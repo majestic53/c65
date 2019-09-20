@@ -27,15 +27,15 @@ The project is implemented in C++ and exposes a simple C-style API, described in
 
 ##### Runtime Routines
 
-|Name         |Description                |Signature                                                              |
-|-------------|---------------------------|-----------------------------------------------------------------------|
-|c65_cleanup  |Cleanup the emulator       |```void c65_cleanup(void)```                                           |
-|c65_interrupt|Interrupt the emulator     |```int c65_interrupt(int type)```                                      |
-|c65_load     |Load data into the emulator|```int c65_load(const uint8_t *data, uint16_t length, uint16_t base)```|
-|c65_reset    |Reset the emulator         |```int c65_reset(void)```                                              |
-|c65_run      |Run the emulator           |```int c65_run(void)```                                                |
-|c65_step     |Step the emulator          |```int c65_step(void)```                                               |
-|c65_unload   |Unload data from emulator  |```int c65_unload(uint16_t base, uint16_t offset)```                   |
+|Name         |Description                |Signature                                                                           |
+|-------------|---------------------------|------------------------------------------------------------------------------------|
+|c65_cleanup  |Cleanup the emulator       |```void c65_cleanup(void)```                                                        |
+|c65_interrupt|Interrupt the emulator     |```int c65_interrupt(int type)```                                                   |
+|c65_load     |Load data into the emulator|```int c65_load(const c65_byte_t *data, c65_address_t length, c65_address_t base)```|
+|c65_reset    |Reset the emulator         |```int c65_reset(void)```                                                           |
+|c65_run      |Run the emulator           |```int c65_run(void)```                                                             |
+|c65_step     |Step the emulator          |```int c65_step(void)```                                                            |
+|c65_unload   |Unload data from emulator  |```int c65_unload(c65_address_t base, c65_address_t offset)```                      |
 
 ##### Misc. Routines
 
