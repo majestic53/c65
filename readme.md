@@ -98,6 +98,10 @@ Changelog
 Version 0.1.1938
 -
 
+*Updated: 9/20/2019*
+
+* Added buffer type class
+
 *Updated: 9/19/2019*
 
 * Initial commit

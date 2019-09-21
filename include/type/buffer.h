@@ -16,20 +16,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_COMMON_VERSION_H_
-#define C65_COMMON_VERSION_H_
+#ifndef C65_TYPE_BUFFER_H_
+#define C65_TYPE_BUFFER_H_
 
-#define C65 "C65"
-#define C65_NOTICE "Copyright (C) 2019 David Jolly"
+#include "../c65.h"
+#include "../common.h"
 
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 1
-#define VERSION_RELEASE "alpha"
-#define VERSION_REVISION 2
-#define VERSION_WEEK 1938
+namespace c65 {
 
-#define VERSION_STRING() \
-	AS_STRING(VERSION_MAJOR) "." AS_STRING(VERSION_MINOR) "." AS_STRING(VERSION_WEEK) "." \
-		AS_STRING(VERSION_REVISION) "-" VERSION_RELEASE
+	namespace type {
 
-#endif // C65_COMMON_VERSION_H_
+		class buffer :
+				public std::vector<c65_byte_t> {
+
+			public:
+
+				buffer(void);
+
+				virtual ~buffer(void);
+
+				void load(
+					__in const std::string &path
+					);
+
+			protected:
+
+				buffer(
+					__in const buffer &other
+					) = delete;
+
+				buffer &operator=(
+					__in const buffer &other
+					) = delete;
+		};
+	}
+}
+
+#endif // C65_TYPE_BUFFER_H_
