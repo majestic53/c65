@@ -46,6 +46,8 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Path[%u]=%s", path.size(), STRING(path));
 
+			TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "File loading", "%s", STRING(path));
+
 			file.open(STRING(path), std::ios::binary | std::ios::in);
 			if(!file) {
 				THROW_C65_TYPE_BUFFER_EXCEPTION_FORMAT(C65_TYPE_BUFFER_EXCEPTION_FILE_NOT_FOUND, "%s", STRING(path));
@@ -67,6 +69,8 @@ namespace c65 {
 			if(length < 0) {
 				THROW_C65_TYPE_BUFFER_EXCEPTION_FORMAT(C65_TYPE_BUFFER_EXCEPTION_FILE_MALFORMED, "%s", STRING(path));
 			}
+
+			TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "File loaded", "%.02 KB (%u bytes)", length / (float)std::kilo::num, length);
 
 			TRACE_EXIT();
 		}

@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../include/interface/bus.h"
-#include "../include/interface/singleton.h"
+#include "../include/system/memory.h"
 #include "./c65_type.h"
 
 namespace c65 {
@@ -35,6 +34,52 @@ namespace c65 {
 				TRACE_MESSAGE(LEVEL_INFORMATION, C65 " unloaded");
 
 				TRACE_EXIT();
+			}
+
+			int action(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				try {
+
+					if(!request || !response) {
+						THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_ACTION_INVALID,
+							"%p, %p", request, response);
+					}
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime action request", "%i(%s)",
+						request->type, INTERRUPT_STRING(request->type));
+
+					initialize();
+					std::memset(response, 0, sizeof(*response));
+
+					switch(request->type) {
+						case C65_ACTION_NOP:
+							break;
+
+						// TODO: ADD ADDITIONAL ACTIONS
+
+						default:
+							THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_ACTION_INVALID,
+								"%i(%s)", request->type, INTERRUPT_STRING(request->type));
+					}
+
+					response->type = request->type;
+				} catch(c65::type::exception &exc) {
+					m_error = exc.to_string();
+					result = EXIT_FAILURE;
+				} catch(std::exception &exc) {
+					m_error = exc.what();
+					result = EXIT_FAILURE;
+				}
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
 			}
 
 			const char *error(void)
@@ -215,7 +260,8 @@ namespace c65 {
 
 			friend class c65::interface::singleton<c65::runtime>;
 
-			runtime(void)
+			runtime(void) :
+				m_memory(c65::system::memory::instance())
 			{
 				TRACE_ENTRY();
 
@@ -248,6 +294,8 @@ namespace c65 {
 
 				TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "SDL loaded", "%i.%i.%i", version.major, version.minor, version.patch);
 
+				m_memory.initialize();
+
 				// TODO: INITIALIZE SUBSYSTEMS
 
 				TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime initialized");
@@ -257,13 +305,44 @@ namespace c65 {
 
 			c65_byte_t on_read(
 				__in c65_address_t address
-				) override
+				) const override
 			{
-				c65_byte_t result = 0;
+				c65_byte_t result = MEMORY_FILL;
 
 				TRACE_ENTRY_FORMAT("Address=%u(%04x)", address.word, address.word);
 
-				// TODO: READ FROM SUBSYSTEMS AT ADDRESS
+				switch(address.word) {
+					case ADDRESS_INPUT:
+
+						// TODO: READ FROM INPUT SUBSYSTEM
+
+						break;
+					case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
+					case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
+					case ADDRESS_MEMORY_ZERO_PAGE_BEGIN ... ADDRESS_MEMORY_ZERO_PAGE_END:
+						result = m_memory.read(address);
+						break;
+					case ADDRESS_PROCESSOR_MASKABLE:
+					case ADDRESS_PROCESSOR_NONMASKABLE:
+					case ADDRESS_PROCESSOR_RESET:
+
+						// TODO: READ FROM PROCESSOR SUBSYSTEM
+
+						break;
+					case ADDRESS_RANDOM:
+
+						// TODO: READ FROM RANDOM SUBSYSTEM
+
+						break;
+					case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
+
+						// TODO: READ FROM VIDEO SUBSYSTEM
+
+						break;
+					default:
+						THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_ADDRESS_INVALID,
+							"%u(%04x)", address.word, address.word);
+				}
 
 				TRACE_EXIT_FORMAT("Result=%u(%02x)", result, result);
 				return result;
@@ -276,6 +355,8 @@ namespace c65 {
 				TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime uninitializing");
 
 				// TODO: UNINITIALIZE SUBSYSTEMS
+
+				m_memory.uninitialize();
 
 				SDL_Quit();
 
@@ -293,13 +374,52 @@ namespace c65 {
 			{
 				TRACE_ENTRY_FORMAT("Address=%u(%04x), Value=%u(%02x)", address.word, address.word, value, value);
 
-				// TODO: WRITE TO SUBSYSTEMS AT ADDRESS
+				switch(address.word) {
+					case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
+					case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
+					case ADDRESS_MEMORY_ZERO_PAGE_BEGIN ... ADDRESS_MEMORY_ZERO_PAGE_END:
+						m_memory.write(address, value);
+						break;
+					case ADDRESS_PROCESSOR_MASKABLE:
+					case ADDRESS_PROCESSOR_NONMASKABLE:
+					case ADDRESS_PROCESSOR_RESET:
+
+						// TODO: WRITE TO PROCESSOR SUBSYSTEM
+
+						break;
+					case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
+
+						// TODO: WRITE TO VIDEO SUBSYSTEM
+
+						break;
+					default:
+						THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_ADDRESS_INVALID,
+							"%u(%04x)", address.word, address.word);
+				}
 
 				TRACE_EXIT();
 			}
 
 			std::string m_error;
+
+			c65::system::memory &m_memory;
 	};
+}
+
+int
+c65_action(
+	__in const c65_action_t *request,
+	__in c65_action_t *response
+	)
+{
+	int result;
+
+	TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+	result = c65::runtime::instance().action(request, response);
+
+	TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+	return result;
 }
 
 void

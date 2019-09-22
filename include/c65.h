@@ -29,6 +29,12 @@
  **********************************************/
 
 enum {
+	C65_ACTION_NOP = 0,
+};
+
+#define C65_ACTION_MAX C65_ACTION_NOP
+
+enum {
 	C65_INTERRUPT_MASKABLE = 0,
 	C65_INTERRUPT_NON_MASKABLE,
 };
@@ -48,6 +54,16 @@ typedef union {
 	c65_word_t word;
 } __attribute__((packed)) c65_address_t;
 
+typedef struct {
+	int type;
+	c65_address_t address;
+
+	union {
+		const char *ascii;
+		c65_word_t data;
+	};
+} __attribute__((packed)) c65_action_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -55,6 +71,8 @@ extern "C" {
 /**********************************************
  * RUNTIME
  **********************************************/
+
+int c65_action(const c65_action_t *request, c65_action_t *response);
 
 void c65_cleanup(void);
 

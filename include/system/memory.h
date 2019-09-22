@@ -16,58 +16,59 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_INTERFACE_BUS_H_
-#define C65_INTERFACE_BUS_H_
+#ifndef C65_SYSTEM_MEMORY_H_
+#define C65_SYSTEM_MEMORY_H_
 
-#include "../type/trace.h"
-#include "../c65.h"
+#include "../interface/bus.h"
+#include "../interface/singleton.h"
+#include "../type/buffer.h"
 
 namespace c65 {
 
-	namespace interface {
+	namespace system {
 
-		class bus {
+		class memory :
+				public c65::interface::bus,
+				public c65::interface::singleton<c65::system::memory> {
 
 			public:
 
-				c65_byte_t read(
-					__in c65_address_t address
-					) const
-				{
-					c65_byte_t result;
-
-					TRACE_ENTRY_FORMAT("Address=%u(%04x)", address.word, address.word);
-
-					result = on_read(address);
-
-					TRACE_EXIT_FORMAT("Result=%u(%02x)", result, result);
-					return result;
-				}
-
-				void write(
-					__in c65_address_t address,
-					__in c65_byte_t value
-					)
-				{
-					TRACE_ENTRY_FORMAT("Address=%u(%04x), Value=%u(%02x)", address.word, address.word, value, value);
-
-					on_write(address, value);
-
-					TRACE_EXIT();
-				}
+				~memory(void);
 
 			protected:
 
-				virtual c65_byte_t on_read(
-					__in c65_address_t address
-					) const = 0;
+				friend class c65::interface::singleton<c65::system::memory>;
 
-				virtual void on_write(
+				memory(void);
+
+				memory(
+					__in const memory &other
+					) = delete;
+
+				memory &operator=(
+					__in const memory &other
+					) = delete;
+
+				void on_initialize(void) override;
+
+				c65_byte_t on_read(
+					__in c65_address_t address
+					) const override;
+
+				void on_uninitialize(void) override;
+
+				void on_write(
 					__in c65_address_t address,
 					__in c65_byte_t value
-					) = 0;
+					) override;
+
+				c65::type::buffer m_high;
+
+				c65::type::buffer m_stack;
+
+				c65::type::buffer m_zero_page;
 		};
 	}
 }
 
-#endif // C65_INTERFACE_BUS_H_
+#endif // C65_SYSTEM_MEMORY_H_

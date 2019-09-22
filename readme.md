@@ -29,6 +29,7 @@ The project is implemented in C++ and exposes a simple C-style API, described in
 
 |Name         |Description                |Signature                                                                           |
 |-------------|---------------------------|------------------------------------------------------------------------------------|
+|c65_action   |Perform action in emulator |```int c65_action(const c65_action_t *request, c65_action_t *response)```           |
 |c65_cleanup  |Cleanup the emulator       |```void c65_cleanup(void)```                                                        |
 |c65_interrupt|Interrupt the emulator     |```int c65_interrupt(int type)```                                                   |
 |c65_load     |Load data into the emulator|```int c65_load(const c65_byte_t *data, c65_address_t length, c65_address_t base)```|
@@ -97,6 +98,11 @@ Changelog
 
 Version 0.1.1938
 -
+
+*Updated: 9/22/2019*
+
+* Added system memory class
+* Added runtime action support
 
 *Updated: 9/20/2019*
 
