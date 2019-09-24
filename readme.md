@@ -96,6 +96,13 @@ $ make TRACE=3
 Changelog
 =
 
+Version 0.1.1939
+-
+
+*Updated: 9/23/2019*
+
+* Added system video class
+
 Version 0.1.1938
 -
 

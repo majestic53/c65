@@ -70,7 +70,7 @@ namespace c65 {
 				THROW_C65_TYPE_BUFFER_EXCEPTION_FORMAT(C65_TYPE_BUFFER_EXCEPTION_FILE_MALFORMED, "%s", STRING(path));
 			}
 
-			TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "File loaded", "%.02 KB (%u bytes)", length / (float)std::kilo::num, length);
+			TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "File loaded", "%.01 KB (%u bytes)", length / (float)std::kilo::num, length);
 
 			TRACE_EXIT();
 		}

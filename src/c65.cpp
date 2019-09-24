@@ -17,6 +17,7 @@
  */
 
 #include "../include/system/memory.h"
+#include "../include/system/video.h"
 #include "./c65_type.h"
 
 namespace c65 {
@@ -163,7 +164,7 @@ namespace c65 {
 
 					initialize();
 
-					// TODO: RESET SUBSYSTEMS
+					// TODO: RESET PROCESSOR
 
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
@@ -184,12 +185,50 @@ namespace c65 {
 				TRACE_ENTRY();
 
 				try {
+					uint32_t begin = 0, current = 0;
+
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime run request");
 
 					initialize();
 
-					// TODO: RUN SUBSYSTEMS
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime loop entry");
 
+					for(;;) {
+						float frequency, rate;
+						uint32_t end = SDL_GetTicks();
+
+						rate = (end - begin);
+						if(rate >= MILLISECONDS_PER_SECOND) {
+							rate = (current - ((rate - MILLISECONDS_PER_SECOND) / (float)FRAMES_PER_SECOND));
+							rate = ((rate > 0.f) ? rate : 0.f);
+
+							TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime framerate", "%.01f", rate);
+
+#ifndef NDEBUG
+							m_video.frame_rate(rate);
+#endif // NDEBUG
+							begin = end;
+							current = 0;
+						}
+
+						if(!poll()) {
+							TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime loop exiting");
+							break;
+						}
+
+						// TODO: STEP PROCESSOR THROUGH FRAME
+
+						m_video.render();
+
+						frequency = (SDL_GetTicks() - end);
+						if(frequency < FRAME_RATE) {
+							SDL_Delay(FRAME_RATE - frequency);
+						}
+
+						++current;
+					}
+
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime loop exit");
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
 					result = EXIT_FAILURE;
@@ -229,7 +268,7 @@ namespace c65 {
 
 			int unload(
 				__in c65_address_t base,
-				__in c65_address_t offset
+				__in c65_address_t length
 				)
 			{
 				int result = EXIT_SUCCESS;
@@ -238,7 +277,7 @@ namespace c65 {
 
 				try {
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime unload request", "%u(%04x), %u(%04x)",
-						base.word, base.word, offset.word, offset.word);
+						base.word, base.word, length.word, length.word);
 
 					initialize();
 
@@ -261,7 +300,10 @@ namespace c65 {
 			friend class c65::interface::singleton<c65::runtime>;
 
 			runtime(void) :
-				m_memory(c65::system::memory::instance())
+				m_input(SDL_SCANCODE_UNKNOWN),
+				m_memory(c65::system::memory::instance()),
+				m_random(0),
+				m_video(c65::system::video::instance())
 			{
 				TRACE_ENTRY();
 
@@ -294,9 +336,14 @@ namespace c65 {
 
 				TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "SDL loaded", "%i.%i.%i", version.major, version.minor, version.patch);
 
+				std::srand(std::time(nullptr));
+				m_random = std::rand();
+
 				m_memory.initialize();
 
-				// TODO: INITIALIZE SUBSYSTEMS
+				// TODO: INITIALIZE PROCESSOR
+
+				m_video.initialize();
 
 				TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime initialized");
 
@@ -307,15 +354,13 @@ namespace c65 {
 				__in c65_address_t address
 				) const override
 			{
-				c65_byte_t result = MEMORY_FILL;
+				c65_byte_t result = MEMORY_ZERO;
 
 				TRACE_ENTRY_FORMAT("Address=%u(%04x)", address.word, address.word);
 
 				switch(address.word) {
 					case ADDRESS_INPUT:
-
-						// TODO: READ FROM INPUT SUBSYSTEM
-
+						result = m_input;
 						break;
 					case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
 					case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
@@ -330,14 +375,10 @@ namespace c65 {
 
 						break;
 					case ADDRESS_RANDOM:
-
-						// TODO: READ FROM RANDOM SUBSYSTEM
-
+						result = m_random;
 						break;
 					case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
-
-						// TODO: READ FROM VIDEO SUBSYSTEM
-
+						result = m_video.read(address);
 						break;
 					default:
 						THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_ADDRESS_INVALID,
@@ -354,9 +395,14 @@ namespace c65 {
 
 				TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime uninitializing");
 
-				// TODO: UNINITIALIZE SUBSYSTEMS
+				m_video.uninitialize();
+
+				// TODO: UNINITIALIZE PROCESSOR
 
 				m_memory.uninitialize();
+
+				m_input = SDL_SCANCODE_UNKNOWN;
+				m_random = 0;
 
 				SDL_Quit();
 
@@ -388,9 +434,7 @@ namespace c65 {
 
 						break;
 					case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
-
-						// TODO: WRITE TO VIDEO SUBSYSTEM
-
+						m_video.write(address, value);
 						break;
 					default:
 						THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_ADDRESS_INVALID,
@@ -400,9 +444,48 @@ namespace c65 {
 				TRACE_EXIT();
 			}
 
+			bool poll(void)
+			{
+				bool result = true;
+				SDL_Event event = {};
+
+				TRACE_ENTRY();
+
+				while(SDL_PollEvent(&event)) {
+
+					switch(event.type) {
+						case SDL_KEYDOWN:
+						case SDL_KEYUP:
+
+							if(!event.key.repeat) {
+								m_input = SDL_GetKeyFromScancode(event.key.keysym.scancode);
+							}
+							break;
+						case SDL_QUIT:
+							result = false;
+							break;
+						default:
+							break;
+					}
+
+					if(!result) {
+						break;
+					}
+				}
+
+				TRACE_EXIT_FORMAT("Result=%x", result);
+				return result;
+			}
+
 			std::string m_error;
 
+			c65_byte_t m_input;
+
 			c65::system::memory &m_memory;
+
+			c65_byte_t m_random;
+
+			c65::system::video &m_video;
 	};
 }
 
@@ -519,14 +602,14 @@ c65_step(void)
 int
 c65_unload(
 	__in c65_address_t base,
-	__in c65_address_t offset
+	__in c65_address_t length
 	)
 {
 	int result;
 
-	TRACE_ENTRY_FORMAT("Base=%u(%04x), Offset=%u(%04x)", base.word, base.word, offset.word, offset.word);
+	TRACE_ENTRY_FORMAT("Base=%u(%04x), Length=%u(%04x)", base.word, base.word, length.word, length.word);
 
-	result = c65::runtime::instance().unload(base, offset);
+	result = c65::runtime::instance().unload(base, length);
 
 	TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 	return result;

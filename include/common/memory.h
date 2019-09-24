@@ -20,5 +20,6 @@
 #define C65_COMMON_MEMORY_H_
 
 #define MEMORY_FILL 0xea
+#define MEMORY_ZERO 0x00
 
 #endif // C65_COMMON_MEMORY_H_

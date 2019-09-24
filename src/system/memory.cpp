@@ -43,8 +43,8 @@ namespace c65 {
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Memory initializing");
 
 			m_high.resize(ADDRESS_LENGTH(ADDRESS_MEMORY_HIGH_BEGIN, ADDRESS_MEMORY_HIGH_END), MEMORY_FILL);
-			m_stack.resize(ADDRESS_LENGTH(ADDRESS_MEMORY_STACK_BEGIN, ADDRESS_MEMORY_STACK_END), MEMORY_FILL);
-			m_zero_page.resize(ADDRESS_LENGTH(ADDRESS_MEMORY_ZERO_PAGE_BEGIN, ADDRESS_MEMORY_ZERO_PAGE_END), MEMORY_FILL);
+			m_stack.resize(ADDRESS_LENGTH(ADDRESS_MEMORY_STACK_BEGIN, ADDRESS_MEMORY_STACK_END), MEMORY_ZERO);
+			m_zero_page.resize(ADDRESS_LENGTH(ADDRESS_MEMORY_ZERO_PAGE_BEGIN, ADDRESS_MEMORY_ZERO_PAGE_END), MEMORY_ZERO);
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Memory initialized");
 
@@ -56,7 +56,7 @@ namespace c65 {
 			__in c65_address_t address
 			) const
 		{
-			c65_byte_t result = MEMORY_FILL;
+			c65_byte_t result = MEMORY_ZERO;
 
 			TRACE_ENTRY_FORMAT("Address=%u(%04x)", address.word, address.word);
 
