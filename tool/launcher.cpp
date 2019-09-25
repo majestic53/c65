@@ -142,6 +142,12 @@ namespace c65 {
 					TRACE_ENTRY();
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher initializing");
+
+					if(c65_reset() != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+							C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher initialized");
 
 					TRACE_EXIT();

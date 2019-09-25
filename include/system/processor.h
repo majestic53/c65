@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_SYSTEM_VIDEO_H_
-#define C65_SYSTEM_VIDEO_H_
+#ifndef C65_SYSTEM_PROCESSOR_H_
+#define C65_SYSTEM_PROCESSOR_H_
 
 #include "../interface/bus.h"
 #include "../interface/singleton.h"
@@ -26,33 +26,43 @@ namespace c65 {
 
 	namespace system {
 
-		class video :
+		class processor :
 				public c65::interface::bus,
-				public c65::interface::singleton<c65::system::video> {
+				public c65::interface::singleton<c65::system::processor> {
 
 			public:
 
-				~video(void);
+				~processor(void);
 
-				void frame_rate(
-					__in float rate
+				void interrupt(
+					__in int type
 					);
 
-				void render(void);
+				void reset(
+					__in c65::interface::bus &bus
+					);
+
+				uint8_t step(
+					__in c65::interface::bus &bus
+					);
 
 			protected:
 
-				friend class c65::interface::singleton<c65::system::video>;
+				friend class c65::interface::singleton<c65::system::processor>;
 
-				video(void);
+				processor(void);
 
-				video(
-					__in const video &other
+				processor(
+					__in const processor &other
 					) = delete;
 
-				video &operator=(
-					__in const video &other
+				processor &operator=(
+					__in const processor &other
 					) = delete;
+
+				uint8_t execute(
+					__in c65::interface::bus &bus
+					);
 
 				void on_initialize(void) override;
 
@@ -67,19 +77,21 @@ namespace c65 {
 					__in c65_byte_t value
 					) override;
 
-				std::vector<c65_byte_t> m_color;
+				uint8_t service(
+					__in c65::interface::bus &bus
+					);
 
-				std::vector<color_t> m_pixel;
+				int m_interrupt;
 
-				SDL_Renderer *m_renderer;
+				c65_address_t m_maskable;
 
-				SDL_Texture *m_texture;
+				c65_address_t m_non_maskable;
 
-				std::string m_title;
+				c65_address_t m_reset;
 
-				SDL_Window *m_window;
+				// TODO: ADD REGISTERS/FLAGS
 		};
 	}
 }
 
-#endif // C65_SYSTEM_VIDEO_H_
+#endif // C65_SYSTEM_PROCESSOR_H_

@@ -36,7 +36,7 @@ The project is implemented in C++ and exposes a simple C-style API, described in
 |c65_reset    |Reset the emulator         |```int c65_reset(void)```                                                           |
 |c65_run      |Run the emulator           |```int c65_run(void)```                                                             |
 |c65_step     |Step the emulator          |```int c65_step(void)```                                                            |
-|c65_unload   |Unload data from emulator  |```int c65_unload(c65_address_t base, c65_address_t offset)```                      |
+|c65_unload   |Unload data from emulator  |```int c65_unload(c65_address_t base, c65_address_t length)```                      |
 
 ##### Misc. Routines
 
@@ -98,6 +98,11 @@ Changelog
 
 Version 0.1.1939
 -
+
+*Updated: 9/24/2019*
+
+* Added system processor class
+* Minor code cleanup
 
 *Updated: 9/23/2019*
 

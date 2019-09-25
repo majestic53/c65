@@ -111,7 +111,6 @@ namespace c65 {
 
 		#define ARGUMENT_SUPPORTED(_ARGUMENT_) \
 			(ARGUMENT_MAP.find(_ARGUMENT_) != ARGUMENT_MAP.end())
-
 		#define ARGUMENT_TYPE(_ARGUMENT_) \
 			ARGUMENT_MAP.find(_ARGUMENT_)->second
 

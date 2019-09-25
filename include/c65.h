@@ -38,14 +38,14 @@ enum {
 
 enum {
 
-	// Maskable interrupt (IRQ)
-	C65_INTERRUPT_MASKABLE = 0,
-
 	// Non-maskable interrupt (NMI)
-	C65_INTERRUPT_NON_MASKABLE,
+	C65_INTERRUPT_NON_MASKABLE = 0,
+
+	// Maskable interrupt (IRQ)
+	C65_INTERRUPT_MASKABLE,
 };
 
-#define C65_INTERRUPT_MAX C65_INTERRUPT_NON_MASKABLE
+#define C65_INTERRUPT_MAX C65_INTERRUPT_MASKABLE
 
 // Byte type
 typedef uint8_t c65_byte_t;

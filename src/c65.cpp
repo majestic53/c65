@@ -17,6 +17,7 @@
  */
 
 #include "../include/system/memory.h"
+#include "../include/system/processor.h"
 #include "../include/system/video.h"
 #include "./c65_type.h"
 
@@ -108,9 +109,7 @@ namespace c65 {
 						type, INTERRUPT_STRING(type));
 
 					initialize();
-
-					// TODO: INTERRUPT PROCESSOR
-
+					m_processor.interrupt(type);
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
 					result = EXIT_FAILURE;
@@ -134,13 +133,33 @@ namespace c65 {
 				TRACE_ENTRY_FORMAT("Data[%u(%04x)]=%p, Base=%u(%04x)", length.word, length.word, data, base.word, base.word);
 
 				try {
+					uint32_t index;
+
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime load request", "[%u(%04x)]%p, %u(%04x)",
 						length.word, length.word, data, base.word, base.word);
 
 					initialize();
 
-					// TODO: LOAD MEMORY OF LENGTH AT BASE
+					for(index = 0; index < length.word; ++index) {
+						c65_address_t address;
 
+						address.word = ((index + length.word) & UINT16_MAX);
+						switch(address.word) {
+							case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
+							case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
+							case ADDRESS_MEMORY_ZERO_PAGE_BEGIN ... ADDRESS_MEMORY_ZERO_PAGE_END:
+							case ADDRESS_PROCESSOR_MASKABLE_BEGIN ... ADDRESS_PROCESSOR_MASKABLE_END:
+							case ADDRESS_PROCESSOR_NON_MASKABLE_BEGIN ... ADDRESS_PROCESSOR_NON_MASKABLE_END:
+							case ADDRESS_PROCESSOR_RESET_BEGIN ... ADDRESS_PROCESSOR_RESET_END:
+							case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
+								write(address, data[index]);
+								break;
+							default:
+								TRACE_MESSAGE_FORMAT(LEVEL_WARNING, "Attempted to load into read-only memory",
+									"%u(%04x)", address.word, address.word);
+								break;
+						}
+					}
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
 					result = EXIT_FAILURE;
@@ -163,9 +182,7 @@ namespace c65 {
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime reset request");
 
 					initialize();
-
-					// TODO: RESET PROCESSOR
-
+					m_processor.reset(*this);
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
 					result = EXIT_FAILURE;
@@ -185,6 +202,7 @@ namespace c65 {
 				TRACE_ENTRY();
 
 				try {
+					int cycle = 0;
 					uint32_t begin = 0, current = 0;
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime run request");
@@ -216,7 +234,11 @@ namespace c65 {
 							break;
 						}
 
-						// TODO: STEP PROCESSOR THROUGH FRAME
+						cycle = (CYCLES_PER_FRAME - cycle);
+						while(cycle > 0) {
+							m_random = std::rand();
+							cycle -= m_processor.step(*this);
+						}
 
 						m_video.render();
 
@@ -252,8 +274,9 @@ namespace c65 {
 
 					initialize();
 
-					// TODO: STEP SUBSYSTEMS
-
+					m_random = std::rand();
+					m_processor.step(*this);
+					m_video.render();
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
 					result = EXIT_FAILURE;
@@ -276,13 +299,35 @@ namespace c65 {
 				TRACE_ENTRY();
 
 				try {
+					uint32_t index;
+
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime unload request", "%u(%04x), %u(%04x)",
 						base.word, base.word, length.word, length.word);
 
 					initialize();
 
-					// TODO: UNLOAD MEMORY FROM BASE TO OFFSET
+					for(index = base.word; index < (base.word + length.word); ++index) {
+						c65_address_t address;
 
+						address.word = (index & UINT16_MAX);
+						switch(address.word) {
+							case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
+							case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
+							case ADDRESS_MEMORY_ZERO_PAGE_BEGIN ... ADDRESS_MEMORY_ZERO_PAGE_END:
+								write(address, MEMORY_FILL);
+								break;
+							case ADDRESS_PROCESSOR_MASKABLE_BEGIN ... ADDRESS_PROCESSOR_MASKABLE_END:
+							case ADDRESS_PROCESSOR_NON_MASKABLE_BEGIN ... ADDRESS_PROCESSOR_NON_MASKABLE_END:
+							case ADDRESS_PROCESSOR_RESET_BEGIN ... ADDRESS_PROCESSOR_RESET_END:
+							case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
+								write(address, MEMORY_ZERO);
+								break;
+							default:
+								TRACE_MESSAGE_FORMAT(LEVEL_WARNING, "Attempted to unload from read-only memory",
+									"%u(%04x)", address.word, address.word);
+								break;
+						}
+					}
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
 					result = EXIT_FAILURE;
@@ -300,8 +345,9 @@ namespace c65 {
 			friend class c65::interface::singleton<c65::runtime>;
 
 			runtime(void) :
-				m_input(SDL_SCANCODE_UNKNOWN),
+				m_key(0),
 				m_memory(c65::system::memory::instance()),
+				m_processor(c65::system::processor::instance()),
 				m_random(0),
 				m_video(c65::system::video::instance())
 			{
@@ -340,9 +386,7 @@ namespace c65 {
 				m_random = std::rand();
 
 				m_memory.initialize();
-
-				// TODO: INITIALIZE PROCESSOR
-
+				m_processor.initialize();
 				m_video.initialize();
 
 				TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime initialized");
@@ -359,20 +403,18 @@ namespace c65 {
 				TRACE_ENTRY_FORMAT("Address=%u(%04x)", address.word, address.word);
 
 				switch(address.word) {
-					case ADDRESS_INPUT:
-						result = m_input;
+					case ADDRESS_KEY:
+						result = m_key;
 						break;
 					case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
 					case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
 					case ADDRESS_MEMORY_ZERO_PAGE_BEGIN ... ADDRESS_MEMORY_ZERO_PAGE_END:
 						result = m_memory.read(address);
 						break;
-					case ADDRESS_PROCESSOR_MASKABLE:
-					case ADDRESS_PROCESSOR_NONMASKABLE:
-					case ADDRESS_PROCESSOR_RESET:
-
-						// TODO: READ FROM PROCESSOR SUBSYSTEM
-
+					case ADDRESS_PROCESSOR_MASKABLE_BEGIN ... ADDRESS_PROCESSOR_MASKABLE_END:
+					case ADDRESS_PROCESSOR_NON_MASKABLE_BEGIN ... ADDRESS_PROCESSOR_NON_MASKABLE_END:
+					case ADDRESS_PROCESSOR_RESET_BEGIN ... ADDRESS_PROCESSOR_RESET_END:
+						result = m_processor.read(address);
 						break;
 					case ADDRESS_RANDOM:
 						result = m_random;
@@ -396,12 +438,10 @@ namespace c65 {
 				TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime uninitializing");
 
 				m_video.uninitialize();
-
-				// TODO: UNINITIALIZE PROCESSOR
-
+				m_processor.uninitialize();
 				m_memory.uninitialize();
 
-				m_input = SDL_SCANCODE_UNKNOWN;
+				m_key = 0;
 				m_random = 0;
 
 				SDL_Quit();
@@ -426,12 +466,10 @@ namespace c65 {
 					case ADDRESS_MEMORY_ZERO_PAGE_BEGIN ... ADDRESS_MEMORY_ZERO_PAGE_END:
 						m_memory.write(address, value);
 						break;
-					case ADDRESS_PROCESSOR_MASKABLE:
-					case ADDRESS_PROCESSOR_NONMASKABLE:
-					case ADDRESS_PROCESSOR_RESET:
-
-						// TODO: WRITE TO PROCESSOR SUBSYSTEM
-
+					case ADDRESS_PROCESSOR_MASKABLE_BEGIN ... ADDRESS_PROCESSOR_MASKABLE_END:
+					case ADDRESS_PROCESSOR_NON_MASKABLE_BEGIN ... ADDRESS_PROCESSOR_NON_MASKABLE_END:
+					case ADDRESS_PROCESSOR_RESET_BEGIN ... ADDRESS_PROCESSOR_RESET_END:
+						m_processor.write(address, value);
 						break;
 					case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
 						m_video.write(address, value);
@@ -458,7 +496,7 @@ namespace c65 {
 						case SDL_KEYUP:
 
 							if(!event.key.repeat) {
-								m_input = SDL_GetKeyFromScancode(event.key.keysym.scancode);
+								m_key = SDL_GetKeyFromScancode(event.key.keysym.scancode);
 							}
 							break;
 						case SDL_QUIT:
@@ -479,9 +517,11 @@ namespace c65 {
 
 			std::string m_error;
 
-			c65_byte_t m_input;
+			c65_byte_t m_key;
 
 			c65::system::memory &m_memory;
+
+			c65::system::processor &m_processor;
 
 			c65_byte_t m_random;
 

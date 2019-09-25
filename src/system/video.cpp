@@ -56,13 +56,15 @@ namespace c65 {
 		void
 		video::on_initialize(void)
 		{
+			color_t background = COLOR(BACKGROUND_COLOR);
+
 			TRACE_ENTRY();
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Video initializing");
 
-			m_pixel.resize(WINDOW_WIDTH * WINDOW_WIDTH, BACKGROUND_COLOR);
-			m_ram.resize(WINDOW_WIDTH * WINDOW_WIDTH, BACKGROUND);
-			m_title = C65 " " VERSION_STRING();
+			m_color.resize(WINDOW_WIDTH * WINDOW_WIDTH, BACKGROUND_COLOR);
+			m_pixel.resize(WINDOW_WIDTH * WINDOW_WIDTH, background);
+			m_title = WINDOW_TITLE;
 
 			m_window = SDL_CreateWindow(STRING(m_title), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 					WINDOW_WIDTH * WINDOW_SCALE, WINDOW_WIDTH * WINDOW_SCALE, SDL_WINDOW_FLAGS);
@@ -83,8 +85,7 @@ namespace c65 {
 					"SDL_RenderSetLogicalSize failed! %s", SDL_GetError());
 			}
 
-			if(SDL_SetRenderDrawColor(m_renderer, BACKGROUND_COLOR.red, BACKGROUND_COLOR.green, BACKGROUND_COLOR.blue,
-					BACKGROUND_COLOR.alpha)) {
+			if(SDL_SetRenderDrawColor(m_renderer, background.red, background.green, background.blue, background.alpha)) {
 				THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_EXTERNAL,
 					"SDL_SetRenderDrawColor failed! %s", SDL_GetError());
 			}
@@ -125,7 +126,7 @@ namespace c65 {
 
 			switch(address.word) {
 				case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
-					result = m_ram.at(address.word - ADDRESS_VIDEO_BEGIN);
+					result = m_color.at(address.word - ADDRESS_VIDEO_BEGIN);
 					break;
 				default:
 					THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_ADDRESS_INVALID, "%u(%04x)",
@@ -159,8 +160,8 @@ namespace c65 {
 			}
 
 			m_title.clear();
-			m_ram.clear();
 			m_pixel.clear();
+			m_color.clear();
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Video uninitialized");
 
@@ -180,7 +181,7 @@ namespace c65 {
 			switch(address.word) {
 				case ADDRESS_VIDEO_BEGIN ... ADDRESS_VIDEO_END:
 					index = (address.word - ADDRESS_VIDEO_BEGIN);
-					m_ram.at(index) = value;
+					m_color.at(index) = value;
 					m_pixel.at(index) = COLOR(value);
 					break;
 				default:
