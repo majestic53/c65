@@ -56,6 +56,22 @@ typedef uint16_t c65_word_t;
 typedef union {
 
 	struct {
+		c65_byte_t carry : 1;
+		c65_byte_t zero : 1;
+		c65_byte_t interrupt_disable : 1;
+		c65_byte_t decimal_mode : 1;
+		c65_byte_t break_instruction : 1;
+		c65_byte_t unused : 1;
+		c65_byte_t overflow : 1;
+		c65_byte_t negative : 1;
+	};
+
+	c65_byte_t raw;
+} c65_flag_t;
+
+typedef union {
+
+	struct {
 
 		// Low byte
 		c65_byte_t low;
@@ -67,6 +83,8 @@ typedef union {
 	// Word
 	c65_word_t word;
 } __attribute__((packed)) c65_address_t;
+
+typedef c65_address_t c65_register_t;
 
 typedef struct {
 
@@ -82,7 +100,10 @@ typedef struct {
 		const char *ascii;
 
 		// Action data
-		c65_word_t data;
+		c65_register_t data;
+
+		// Action flag
+		c65_flag_t flag;
 	};
 } __attribute__((packed)) c65_action_t;
 

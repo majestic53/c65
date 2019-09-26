@@ -63,7 +63,11 @@ namespace c65 {
 		#define SDL_WINDOW_FLAGS (SDL_WINDOW_RESIZABLE)
 
 		#define WINDOW_SCALE 12
+#ifndef NDEBUG
 		#define WINDOW_TITLE C65 " " VERSION_STRING()
+#else
+		#define WINDOW_TITLE C65
+#endif // NDEBUG
 		#define WINDOW_WIDTH 32
 	}
 }

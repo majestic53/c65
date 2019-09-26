@@ -57,6 +57,7 @@
 #include "./common/address.h"
 #include "./common/color.h"
 #include "./common/exception.h"
+#include "./common/flag.h"
 #include "./common/interrupt.h"
 #include "./common/level.h"
 #include "./common/memory.h"

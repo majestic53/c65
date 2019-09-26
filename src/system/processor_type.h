@@ -53,14 +53,22 @@ namespace c65 {
 		#define THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(_EXCEPT_, _FORMAT_, ...) \
 			THROW_EXCEPTION(C65_SYSTEM_PROCESSOR_EXCEPTION_STRING(_EXCEPT_), _FORMAT_, __VA_ARGS__)
 
-		#define BIT_CLEAR(_MASK_, _BIT_) \
-			((_MASK_) &= ~BIT_MASK(_BIT_))
-		#define BIT_CHECK(_MASK_, _BIT_) \
-			(((_MASK_) & BIT_MASK(_BIT_)) == BIT_MASK(_BIT_))
-		#define BIT_MASK(_BIT_) \
+		#define MASK(_BIT_) \
 			(1 << (_BIT_))
-		#define BIT_SET(_MASK_, _BIT_) \
-			((_MASK_) |= BIT_MASK(_BIT_))
+		#define MASK_CLEAR(_MASK_, _BIT_) \
+			((_MASK_) &= ~MASK(_BIT_))
+		#define MASK_CHECK(_MASK_, _BIT_) \
+			(((_MASK_) & MASK(_BIT_)) == MASK(_BIT_))
+		#define MASK_SET(_MASK_, _BIT_) \
+			((_MASK_) |= MASK(_BIT_))
+
+		#define INTERRUPT_CYCLES 7
+
+		#define RESET_ACCUMULATOR 0x00
+		#define RESET_INDEX_X 0x00
+		#define RESET_INDEX_Y 0x00
+		#define RESET_STACK 0x01ff
+		#define RESET_STATUS (MASK(FLAG_BREAK_INSTRUCTION) | MASK(FLAG_INTERRUPT_DISABLE) | MASK(FLAG_UNUSED))
 	}
 }
 

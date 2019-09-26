@@ -383,7 +383,8 @@ namespace c65 {
 				TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "SDL loaded", "%i.%i.%i", version.major, version.minor, version.patch);
 
 				std::srand(std::time(nullptr));
-				m_random = std::rand();
+				m_key = 0;
+				m_random = 0;
 
 				m_memory.initialize();
 				m_processor.initialize();
@@ -441,8 +442,8 @@ namespace c65 {
 				m_processor.uninitialize();
 				m_memory.uninitialize();
 
-				m_key = 0;
 				m_random = 0;
+				m_key = 0;
 
 				SDL_Quit();
 

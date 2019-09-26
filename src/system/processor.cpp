@@ -24,10 +24,18 @@ namespace c65 {
 	namespace system {
 
 		processor::processor(void) :
+			m_accumulator({}),
+			m_index_x({}),
+			m_index_y({}),
 			m_interrupt(0),
 			m_maskable({}),
 			m_non_maskable({}),
-			m_reset({})
+			m_program_counter({}),
+			m_reset({}),
+			m_stack({}),
+			m_status({}),
+			m_stop(false),
+			m_wait(false)
 		{
 			TRACE_ENTRY();
 			TRACE_EXIT();
@@ -49,6 +57,21 @@ namespace c65 {
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
 			// TODO: FETCH/EXECUTE INSTRUCTION, INCREMENT RETURN
+			result = execute_nop();
+			// ---
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_nop(void)
+		{
+			uint8_t result;
+
+			TRACE_ENTRY();
+
+			// TODO: DEFINE INSTRUCTION CYCLES
 			result = 2;
 			// ---
 
@@ -68,7 +91,7 @@ namespace c65 {
 				case C65_INTERRUPT_NON_MASKABLE:
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Processor interrupt request", "%i(%s)",
 						type, INTERRUPT_STRING(type));
-					BIT_SET(m_interrupt, type);
+					MASK_SET(m_interrupt, type);
 					break;
 				default:
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INTERRUPT_INVALID,
@@ -133,12 +156,18 @@ namespace c65 {
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor uninitializing");
 
-			// TODO: CLEAR REGISTERS/FLAGS
+			m_accumulator = {};
+			m_index_x = {};
+			m_index_y = {};
 			m_interrupt = 0;
-
 			m_maskable = {};
 			m_non_maskable = {};
+			m_program_counter = {};
 			m_reset = {};
+			m_stack = {};
+			m_status = {};
+			m_stop = false;
+			m_wait = false;
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor uninitialized");
 
@@ -180,6 +209,104 @@ namespace c65 {
 			TRACE_EXIT();
 		}
 
+		c65_byte_t
+		processor::pop_byte(
+			__in const c65::interface::bus &bus
+			)
+		{
+			c65_byte_t result;
+
+			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
+
+			--m_stack.low;
+			result = bus.read(m_stack);
+
+			TRACE_EXIT_FORMAT("Result=%u(%02x)", result, result);
+			return result;
+		}
+
+		c65_word_t
+		processor::pop_word(
+			__in const c65::interface::bus &bus
+			)
+		{
+			c65_word_t result;
+
+			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
+
+			--m_stack.low;
+			result = bus.read(m_stack);
+			--m_stack.low;
+			result |= (bus.read(m_stack) << CHAR_BIT);
+
+			TRACE_EXIT_FORMAT("Result=%u(%04x)", result, result);
+			return result;
+		}
+
+		void
+		processor::push_byte(
+			__in c65::interface::bus &bus,
+			__in c65_byte_t value
+			)
+		{
+			TRACE_ENTRY_FORMAT("Bus=%p, Value=%u(%02x)", &bus, value, value);
+
+			bus.write(m_stack, value);
+			++m_stack.low;
+
+			TRACE_EXIT();
+		}
+
+		void
+		processor::push_word(
+			__in c65::interface::bus &bus,
+			__in c65_word_t value
+			)
+		{
+			TRACE_ENTRY_FORMAT("Bus=%p, Value=%u(%04x)", &bus, value, value);
+
+			bus.write(m_stack, value >> CHAR_BIT);
+			++m_stack.low;
+			bus.write(m_stack, value);
+			++m_stack.low;
+
+			TRACE_EXIT();
+		}
+
+		c65_byte_t
+		processor::read_byte(
+			__in const c65::interface::bus &bus,
+			__in c65_address_t address
+			) const
+		{
+			c65_byte_t result;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Address=%u(%04x)", &bus, address.word, address.word);
+
+			result = bus.read(address);
+
+			TRACE_EXIT_FORMAT("Result=%u(%02x)", result, result);
+			return result;
+		}
+
+		c65_word_t
+		processor::read_word(
+			__in const c65::interface::bus &bus,
+			__in c65_address_t address
+			) const
+		{
+			c65_word_t result;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Address=%u(%04x)", &bus, address.word, address.word);
+
+			result = bus.read(address);
+			++address.word;
+			result |= (bus.read(address) << CHAR_BIT);
+
+			TRACE_EXIT_FORMAT("Result=%u(%04x)", result, result);
+			return result;
+		}
+
 		void
 		processor::reset(
 			__in c65::interface::bus &bus
@@ -189,9 +316,19 @@ namespace c65 {
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor resetting");
 
-			// TODO: RESET REGISTERS/FLAGS, JUMP TO RESET VECTOR
+			m_accumulator.low = RESET_ACCUMULATOR;
+			m_index_x.low = RESET_INDEX_X;
+			m_index_y.low = RESET_INDEX_Y;
+			m_program_counter = m_reset;
+			m_stack.word = RESET_STACK;
+			m_status.raw = RESET_STATUS;
 
-			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor reset");
+			m_interrupt = 0;
+
+			m_stop = false;
+			m_wait = false;
+
+			TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Processor reset", "%u(%04x)", m_program_counter.word, m_program_counter.word);
 
 			TRACE_EXIT();
 		}
@@ -208,8 +345,11 @@ namespace c65 {
 
 			for(; type <= C65_INTERRUPT_MAX; ++type) {
 
-				if(BIT_CHECK(m_interrupt, type)) {
-					BIT_CLEAR(m_interrupt, type);
+				if(MASK_CHECK(m_interrupt, type)) {
+					bool taken = false;
+					c65_address_t address;
+
+					MASK_CLEAR(m_interrupt, type);
 
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Processor interrupt serviced", "%i(%s)",
 						type, INTERRUPT_STRING(type));
@@ -217,17 +357,27 @@ namespace c65 {
 					switch(type) {
 						case C65_INTERRUPT_MASKABLE:
 
-							//TODO: PERFORM IRQ IF INTERRUPT DISABLE FLAG NOT SET, INCREMENT RETURN
-
+							taken = !m_status.interrupt_disable;
+							if(taken) {
+								address = m_maskable;
+							}
 							break;
 						case C65_INTERRUPT_NON_MASKABLE:
-
-							// TODO: PERFORM NMI, INCREMENT RETURN
-
+							taken = true;
+							address = m_non_maskable;
 							break;
 						default:
 							break;
 					}
+
+					if(taken) {
+						m_wait = false;
+						push_word(bus, m_program_counter.word);
+						push_byte(bus, m_status.raw & ~MASK(FLAG_BREAK_INSTRUCTION));
+						m_program_counter = address;
+						result += INTERRUPT_CYCLES;
+					}
+
 					break;
 				}
 			}
@@ -245,11 +395,50 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
-			result += service(bus);
-			result += execute(bus);
+			if(!m_stop) {
+				result += service(bus);
+
+				if(!m_wait) {
+					result += execute(bus);
+				} else {
+					result += execute_nop();
+				}
+			} else {
+				result += execute_nop();
+			}
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
+		}
+
+		void
+		processor::write_byte(
+			__in c65::interface::bus &bus,
+			__in c65_address_t address,
+			__in c65_byte_t value
+			)
+		{
+			TRACE_ENTRY_FORMAT("Bus=%p, Address=%u(%04x), Value=%u(%02x)", &bus, address.word, address.word, value, value);
+
+			bus.write(address, value);
+
+			TRACE_EXIT();
+		}
+
+		void
+		processor::write_word(
+			__in c65::interface::bus &bus,
+			__in c65_address_t address,
+			__in c65_word_t value
+			)
+		{
+			TRACE_ENTRY_FORMAT("Bus=%p, Address=%u(%04x), Value=%u(%04x)", &bus, address.word, address.word, value, value);
+
+			bus.write(address, value);
+			++address.word;
+			bus.write(address, value >> CHAR_BIT);
+
+			TRACE_EXIT();
 		}
 	}
 }

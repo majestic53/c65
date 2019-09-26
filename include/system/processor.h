@@ -64,6 +64,8 @@ namespace c65 {
 					__in c65::interface::bus &bus
 					);
 
+				uint8_t execute_nop(void);
+
 				void on_initialize(void) override;
 
 				c65_byte_t on_read(
@@ -77,9 +79,55 @@ namespace c65 {
 					__in c65_byte_t value
 					) override;
 
+				c65_byte_t pop_byte(
+					__in const c65::interface::bus &bus
+					);
+
+				c65_word_t pop_word(
+					__in const c65::interface::bus &bus
+					);
+
+				void push_byte(
+					__in c65::interface::bus &bus,
+					__in c65_byte_t value
+					);
+
+				void push_word(
+					__in c65::interface::bus &bus,
+					__in c65_word_t value
+					);
+
+				c65_byte_t read_byte(
+					__in const c65::interface::bus &bus,
+					__in c65_address_t address
+					) const;
+
+				c65_word_t read_word(
+					__in const c65::interface::bus &bus,
+					__in c65_address_t address
+					) const;
+
 				uint8_t service(
 					__in c65::interface::bus &bus
 					);
+
+				void write_byte(
+					__in c65::interface::bus &bus,
+					__in c65_address_t address,
+					__in c65_byte_t value
+					);
+
+				void write_word(
+					__in c65::interface::bus &bus,
+					__in c65_address_t address,
+					__in c65_word_t value
+					);
+
+				c65_register_t m_accumulator;
+
+				c65_register_t m_index_x;
+
+				c65_register_t m_index_y;
 
 				int m_interrupt;
 
@@ -87,9 +135,17 @@ namespace c65 {
 
 				c65_address_t m_non_maskable;
 
+				c65_register_t m_program_counter;
+
 				c65_address_t m_reset;
 
-				// TODO: ADD REGISTERS/FLAGS
+				c65_register_t m_stack;
+
+				c65_flag_t m_status;
+
+				bool m_stop;
+
+				bool m_wait;
 		};
 	}
 }

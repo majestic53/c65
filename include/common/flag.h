@@ -16,20 +16,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_COMMON_VERSION_H_
-#define C65_COMMON_VERSION_H_
+#ifndef C65_COMMON_FLAG_H_
+#define C65_COMMON_FLAG_H_
 
-#define C65 "C65"
-#define C65_NOTICE "Copyright (C) 2019 David Jolly"
+enum {
+	FLAG_CARRY = 0,
+	FLAG_ZERO,
+	FLAG_INTERRUPT_DISABLE,
+	FLAG_DECIMAL_MODE,
+	FLAG_BREAK_INSTRUCTION,
+	FLAG_UNUSED,
+	FLAG_OVERFLOW,
+	FLAG_NEGATIVE,
+};
 
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 1
-#define VERSION_RELEASE "alpha"
-#define VERSION_REVISION 3
-#define VERSION_WEEK 1939
+#define FLAG_MAX FLAG_NEGATIVE
 
-#define VERSION_STRING() \
-	AS_STRING(VERSION_MAJOR) "." AS_STRING(VERSION_MINOR) "." AS_STRING(VERSION_WEEK) "." \
-		AS_STRING(VERSION_REVISION) "-" VERSION_RELEASE
+static const std::string FLAG_STR[] = {
+	"C", // FLAG_CARRY
+	"Z", // FLAG_ZERO
+	"I", // FLAG_INTERRUPT_DISABLE
+	"D", // FLAG_DECIMAL_MODE
+	"B", // FLAG_BREAK_INSTRUCTION
+	"-", // FLAG_UNUSED
+	"V", // FLAG_OVERFLOW
+	"N", // FLAG_NEGATIVE
+	};
 
-#endif // C65_COMMON_VERSION_H_
+#define FLAG_STRING(_TYPE_) \
+	(((_TYPE_) > FLAG_MAX) ? STRING_UNKNOWN : \
+		STRING(FLAG_STR[_TYPE_]))
+
+#endif // C65_COMMON_FLAG_H_
