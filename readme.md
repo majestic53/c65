@@ -99,6 +99,10 @@ Changelog
 Version 0.1.1939
 -
 
+*Updated: 9/26/2019*
+
+* Fixed processor stack routine bug
+
 *Updated: 9/25/2019*
 
 * Added system processor interrupt handling

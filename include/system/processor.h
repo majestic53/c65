@@ -139,7 +139,7 @@ namespace c65 {
 
 				c65_address_t m_reset;
 
-				c65_register_t m_stack;
+				c65_register_t m_stack_pointer;
 
 				c65_flag_t m_status;
 

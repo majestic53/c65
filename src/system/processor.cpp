@@ -32,7 +32,7 @@ namespace c65 {
 			m_non_maskable({}),
 			m_program_counter({}),
 			m_reset({}),
-			m_stack({}),
+			m_stack_pointer({}),
 			m_status({}),
 			m_stop(false),
 			m_wait(false)
@@ -164,7 +164,7 @@ namespace c65 {
 			m_non_maskable = {};
 			m_program_counter = {};
 			m_reset = {};
-			m_stack = {};
+			m_stack_pointer = {};
 			m_status = {};
 			m_stop = false;
 			m_wait = false;
@@ -218,8 +218,8 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
-			--m_stack.low;
-			result = bus.read(m_stack);
+			++m_stack_pointer.low;
+			result = bus.read(m_stack_pointer);
 
 			TRACE_EXIT_FORMAT("Result=%u(%02x)", result, result);
 			return result;
@@ -234,10 +234,11 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
-			--m_stack.low;
-			result = bus.read(m_stack);
-			--m_stack.low;
-			result |= (bus.read(m_stack) << CHAR_BIT);
+
+			++m_stack_pointer.low;
+			result = bus.read(m_stack_pointer);
+			++m_stack_pointer.low;
+			result |= (bus.read(m_stack_pointer) << CHAR_BIT);
 
 			TRACE_EXIT_FORMAT("Result=%u(%04x)", result, result);
 			return result;
@@ -251,8 +252,9 @@ namespace c65 {
 		{
 			TRACE_ENTRY_FORMAT("Bus=%p, Value=%u(%02x)", &bus, value, value);
 
-			bus.write(m_stack, value);
-			++m_stack.low;
+
+			bus.write(m_stack_pointer, value);
+			--m_stack_pointer.low;
 
 			TRACE_EXIT();
 		}
@@ -265,10 +267,10 @@ namespace c65 {
 		{
 			TRACE_ENTRY_FORMAT("Bus=%p, Value=%u(%04x)", &bus, value, value);
 
-			bus.write(m_stack, value >> CHAR_BIT);
-			++m_stack.low;
-			bus.write(m_stack, value);
-			++m_stack.low;
+			bus.write(m_stack_pointer, value >> CHAR_BIT);
+			--m_stack_pointer.low;
+			bus.write(m_stack_pointer, value);
+			--m_stack_pointer.low;
 
 			TRACE_EXIT();
 		}
@@ -319,12 +321,10 @@ namespace c65 {
 			m_accumulator.low = RESET_ACCUMULATOR;
 			m_index_x.low = RESET_INDEX_X;
 			m_index_y.low = RESET_INDEX_Y;
-			m_program_counter = m_reset;
-			m_stack.word = RESET_STACK;
-			m_status.raw = RESET_STATUS;
-
 			m_interrupt = 0;
-
+			m_program_counter = m_reset;
+			m_stack_pointer.word = RESET_STACK_POINTER;
+			m_status.raw = RESET_STATUS;
 			m_stop = false;
 			m_wait = false;
 

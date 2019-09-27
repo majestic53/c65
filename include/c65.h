@@ -96,9 +96,6 @@ typedef struct {
 
 	union {
 
-		// Action string
-		const char *ascii;
-
 		// Action data
 		c65_register_t data;
 
