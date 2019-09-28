@@ -63,9 +63,30 @@ namespace c65 {
 					switch(request->type) {
 						case C65_ACTION_NOP:
 							break;
-
-						// TODO: ADD ADDITIONAL ACTIONS
-
+						case C65_ACTION_READ_BYTE:
+							result = action_read_byte(request, response);
+							break;
+						case C65_ACTION_READ_REGISTER:
+							result = action_read_word(request, response);
+							break;
+						case C65_ACTION_READ_STATUS:
+							result = action_read_status(request, response);
+							break;
+						case C65_ACTION_READ_WORD:
+							result = action_read_word(request, response);
+							break;
+						case C65_ACTION_WRITE_BYTE:
+							result = action_write_byte(request, response);
+							break;
+						case C65_ACTION_WRITE_REGISTER:
+							result = action_write_register(request, response);
+							break;
+						case C65_ACTION_WRITE_STATUS:
+							result = action_write_status(request, response);
+							break;
+						case C65_ACTION_WRITE_WORD:
+							result = action_write_word(request, response);
+							break;
 						default:
 							THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_ACTION_INVALID,
 								"%i(%s)", request->type, INTERRUPT_STRING(request->type));
@@ -79,6 +100,134 @@ namespace c65 {
 					m_error = exc.what();
 					result = EXIT_FAILURE;
 				}
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_read_byte(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->data.word = read(request->address);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_read_register(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->data = m_processor.read_register(request->address.word);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_read_status(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->status = m_processor.read_status();
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_read_word(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				c65_address_t address;
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				address = request->address;
+				response->data.low = read(address);
+				++address.word;
+				response->data.high = read(address);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_write_byte(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				write(request->address, request->data.low);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_write_register(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				m_processor.write_register(request->address.word, request->data);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_write_status(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				m_processor.write_status(request->status);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_write_word(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				c65_address_t address;
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				address = request->address;
+				write(address, response->data.low);
+				++address.word;
+				write(address, response->data.high);
 
 				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 				return result;

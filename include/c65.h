@@ -30,11 +30,35 @@
 
 enum {
 
-	// No-op action
+	// No-op
 	C65_ACTION_NOP = 0,
+
+	// Read memory byte
+	C65_ACTION_READ_BYTE,
+
+	// Read processor register
+	C65_ACTION_READ_REGISTER,
+
+	// Read processor status
+	C65_ACTION_READ_STATUS,
+
+	// Read memory word
+	C65_ACTION_READ_WORD,
+
+	// Write memory byte
+	C65_ACTION_WRITE_BYTE,
+
+	// Write processor register
+	C65_ACTION_WRITE_REGISTER,
+
+	// Write processor status
+	C65_ACTION_WRITE_STATUS,
+
+	// Write memory word
+	C65_ACTION_WRITE_WORD,
 };
 
-#define C65_ACTION_MAX C65_ACTION_NOP
+#define C65_ACTION_MAX C65_ACTION_WRITE_WORD
 
 enum {
 

@@ -21,6 +21,16 @@
 
 static const std::string ACTION_STR[] = {
 	"Nop", // C65_ACTION_NOP
+	"Read-Byte", // C65_ACTION_READ_BYTE
+	"Read-Register", // C65_ACTION_READ_REGISTER
+	"Read-Status", // C65_ACTION_READ_STATUS
+	"Read-Word", // C65_ACTION_READ_WORD
+	"Run", // C65_ACTION_RUN
+	"Step", // C65_ACTION_STEP
+	"Write-Byte", // C65_ACTION_WRITE_BYTE
+	"Write-Register", // C65_ACTION_WRITE_REGISTER
+	"Write-Status", // C65_ACTION_WRITE_STATUS
+	"Write-Word", // C65_ACTION_WRITE_WORD
 	};
 
 #define ACTION_STRING(_TYPE_) \

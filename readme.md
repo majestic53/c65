@@ -16,7 +16,61 @@ Table of Contents
 About
 =
 
-C65 emulates the 65C02 microprocessor in a small sandbox environment.
+C65 emulates the 65C02 microprocessor in a small sandbox environment, and is designed to be binarily compatible with programs generated using [skilldrick's Easy6502 assembler](https://skilldrick.github.io/easy6502/).
+
+#### Memory Map
+
+The project uses the following memory map. Keep in-mind that some of the memory locations, such as IO, are read-only:
+
+![Demo](https://github.com/majestic53/c65/blob/master/docs/memory.png "C65 memory map")
+
+|Section          |Span       |Length|R/W|Description|
+|-----------------|-----------|------|---|-------------------------------------------------|
+|Zero Page        |0000 - 00FD|254   |R/W|Zero page memory                                 |
+|Random (IO)      |00FE - 00FE|1     |R  |Random byte, refreshed every cycle               |
+|Key (IO)         |00FF - 00FF|1     |R  |Last key pressed, as ascii                       |
+|Stack            |0100 - 01FF|256   |R/W|Stack memory                                     |
+|Video RAM (VRAM) |0200 - 05FF|1024  |R/W|Video memory, where every byte represents a pixel|
+|RAM              |0600 - FFF9|63994 |R/W|General purpose memory                           |
+|NMI vector (IV)  |FFFA - FFFB|2     |R/W|Non-maskable interrupt vector address            |
+|Reset vector (IV)|FFFC - FFFD|2     |R/W|Reset interrupt vector address                   |
+|IRQ vector (IV)  |FFFE - FFFF|2     |R/W|Maskable interrupt vector address                |
+
+#### Input
+
+The project supports basic IO through a series of memory-mapped (MMIO) registers at the top of zero page memory:
+
+|Name  |Address|Description                                 |
+|------|-------|--------------------------------------------|
+|Random|00FE   |A random byte value re-generated every cycle|
+|Key   |00FF   |The last keyboard key pressed, as ascii     |
+
+#### Output
+
+The project supports video output onto a 32x32 pixe screen. The pixels are stored in VRAM at addresses 0200 - 05FF, where each byte represents a pixel.
+
+The following colors are supported:
+
+|Color      |Value|Channels (BGRA)   |
+|-----------|-----|------------------|
+|Black      |00   |0, 0, 0, 255      |
+|White      |01   |255, 255, 255, 255|
+|Red        |02   |0, 0, 255, 255    |
+|Cyan       |03   |255, 255, 0, 255  |
+|Purple     |04   |255, 0, 255, 255  |
+|Green      |05   |0, 255, 0, 255    |
+|Blue       |06   |255, 0, 0, 255    |
+|Yellow     |07   |0, 255, 255, 255  |
+|Orange     |08   |0, 127, 255, 255  |
+|Brown      |09   |0, 60, 90, 255    |
+|Light-Red  |0A   |20, 60, 255, 255  |
+|Dark-Grey  |0B   |40, 40, 40, 255   |
+|Grey       |0C   |100, 100, 100, 255|
+|Light-Green|0D   |0, 255, 127, 255  |
+|Light-Blue |0E   |255, 127, 0, 255  |
+|Light-Grey |0F   |160, 160, 160, 255|
+
+__NOTE__: Any pixels that exceed the maximum color values in the above table will be converted to black.
 
 Usage
 =
@@ -98,6 +152,11 @@ Changelog
 
 Version 0.1.1939
 -
+
+*Updated: 9/28/2019*
+
+* Added additional actions
+* Updated documentation
 
 *Updated: 9/27/2019*
 
