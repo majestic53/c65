@@ -27,8 +27,8 @@ The project uses the following memory map. Keep in-mind that some of the memory 
 |Section          |Span       |Length|R/W|Description|
 |-----------------|-----------|------|---|-------------------------------------------------|
 |Zero Page        |0000 - 00FD|254   |R/W|Zero page memory                                 |
-|Random (IO)      |00FE - 00FE|1     |R  |Random byte, refreshed every cycle               |
-|Key (IO)         |00FF - 00FF|1     |R  |Last key pressed, as ascii                       |
+|Random (IO)      |00FE - 00FE|1     |R  |Random byte                                      |
+|Key (IO)         |00FF - 00FF|1     |R  |Last key pressed                                 |
 |Stack            |0100 - 01FF|256   |R/W|Stack memory                                     |
 |Video RAM (VRAM) |0200 - 05FF|1024  |R/W|Video memory, where every byte represents a pixel|
 |RAM              |0600 - FFF9|63994 |R/W|General purpose memory                           |
@@ -47,7 +47,9 @@ The project supports basic IO through a series of memory-mapped (MMIO) registers
 
 #### Output
 
-The project supports video output onto a 32x32 pixe screen. The pixels are stored in VRAM at addresses 0200 - 05FF, where each byte represents a pixel.
+The project supports video output onto a 32x32 pixel screen. The pixels are stored in VRAM at addresses 0200 - 05FF, where each byte represents a pixel.
+
+__NOTE__: Any pixels that exceed the color values in the table below will be converted to black.
 
 The following colors are supported:
 
@@ -69,8 +71,6 @@ The following colors are supported:
 |Light-Green|0D   |0, 255, 127, 255  |
 |Light-Blue |0E   |255, 127, 0, 255  |
 |Light-Grey |0F   |160, 160, 160, 255|
-
-__NOTE__: Any pixels that exceed the maximum color values in the above table will be converted to black.
 
 Usage
 =
