@@ -47,27 +47,31 @@ enum {
 
 #define C65_INTERRUPT_MAX C65_INTERRUPT_MASKABLE
 
+enum {
+
+	// Accumulator register (A)
+	C65_REGISTER_ACCUMULATOR = 0,
+
+	// Index-x register (X)
+	C65_REGISTER_INDEX_X,
+
+	// Index-y register (Y)
+	C65_REGISTER_INDEX_Y,
+
+	// Program counter register (PC)
+	C65_REGISTER_PROGRAM_COUNTER,
+
+	// Stack pointer register (SP)
+	C65_REGISTER_STACK_POINTER,
+};
+
+#define C65_REGISTER_MAX C65_REGISTER_STACK_POINTER
+
 // Byte type
 typedef uint8_t c65_byte_t;
 
 // Word type
 typedef uint16_t c65_word_t;
-
-typedef union {
-
-	struct {
-		c65_byte_t carry : 1;
-		c65_byte_t zero : 1;
-		c65_byte_t interrupt_disable : 1;
-		c65_byte_t decimal_mode : 1;
-		c65_byte_t break_instruction : 1;
-		c65_byte_t unused : 1;
-		c65_byte_t overflow : 1;
-		c65_byte_t negative : 1;
-	};
-
-	c65_byte_t raw;
-} c65_flag_t;
 
 typedef union {
 
@@ -84,6 +88,22 @@ typedef union {
 	c65_word_t word;
 } __attribute__((packed)) c65_address_t;
 
+typedef union {
+
+	struct {
+		c65_byte_t carry : 1;
+		c65_byte_t zero : 1;
+		c65_byte_t interrupt_disable : 1;
+		c65_byte_t decimal_mode : 1;
+		c65_byte_t break_instruction : 1;
+		c65_byte_t unused : 1;
+		c65_byte_t overflow : 1;
+		c65_byte_t negative : 1;
+	};
+
+	c65_byte_t raw;
+} __attribute__((packed)) c65_status_t;
+
 typedef c65_address_t c65_register_t;
 
 typedef struct {
@@ -99,8 +119,8 @@ typedef struct {
 		// Action data
 		c65_register_t data;
 
-		// Action flag
-		c65_flag_t flag;
+		// Action status
+		c65_status_t status;
 	};
 } __attribute__((packed)) c65_action_t;
 

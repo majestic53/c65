@@ -61,6 +61,7 @@
 #include "./common/interrupt.h"
 #include "./common/level.h"
 #include "./common/memory.h"
+#include "./common/register.h"
 #include "./common/string.h"
 #include "./common/trace.h"
 #include "./common/version.h"

@@ -16,20 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_COMMON_VERSION_H_
-#define C65_COMMON_VERSION_H_
+#ifndef C65_COMMON_REGISTER_H_
+#define C65_COMMON_REGISTER_H_
 
-#define C65 "C65"
-#define C65_NOTICE "Copyright (C) 2019 David Jolly"
+static const std::string REGISTER_STR[] = {
+	"A", // C65_REGISTER_ACCUMULATOR
+	"X", // C65_REGISTER_INDEX_X
+	"Y", // C65_REGISTER_INDEX_Y
+	"PC", // C65_REGISTER_PROGRAM_COUNTER
+	"SP", // C65_REGISTER_STACK_POINTER
+	};
 
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 1
-#define VERSION_RELEASE "alpha"
-#define VERSION_REVISION 5
-#define VERSION_WEEK 1939
+#define REGISTER_STRING(_TYPE_) \
+	(((_TYPE_) > C65_REGISTER_MAX) ? STRING_UNKNOWN : \
+		STRING(REGISTER_STR[_TYPE_]))
 
-#define VERSION_STRING() \
-	AS_STRING(VERSION_MAJOR) "." AS_STRING(VERSION_MINOR) "." AS_STRING(VERSION_WEEK) "." \
-		AS_STRING(VERSION_REVISION) "-" VERSION_RELEASE
-
-#endif // C65_COMMON_VERSION_H_
+#endif // C65_COMMON_REGISTER_H_

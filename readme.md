@@ -99,6 +99,10 @@ Changelog
 Version 0.1.1939
 -
 
+*Updated: 9/27/2019*
+
+* Added processor register/status read/write routines
+
 *Updated: 9/26/2019*
 
 * Fixed processor stack routine bug

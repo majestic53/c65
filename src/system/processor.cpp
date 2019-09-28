@@ -107,6 +107,9 @@ namespace c65 {
 			TRACE_ENTRY();
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor initializing");
+
+			m_program_counter.word = DEFAULT_PROGRAM_COUNTER;
+
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor initialized");
 
 			TRACE_EXIT();
@@ -234,7 +237,6 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
-
 			++m_stack_pointer.low;
 			result = bus.read(m_stack_pointer);
 			++m_stack_pointer.low;
@@ -251,7 +253,6 @@ namespace c65 {
 			)
 		{
 			TRACE_ENTRY_FORMAT("Bus=%p, Value=%u(%02x)", &bus, value, value);
-
 
 			bus.write(m_stack_pointer, value);
 			--m_stack_pointer.low;
@@ -291,6 +292,48 @@ namespace c65 {
 			return result;
 		}
 
+		c65_register_t
+		processor::read_register(
+			__in int type
+			) const
+		{
+			c65_register_t result;
+
+			TRACE_ENTRY_FORMAT("Type=%i(%s)", type, REGISTER_STRING(type));
+
+			switch(type) {
+				case C65_REGISTER_ACCUMULATOR:
+					result = m_accumulator;
+					break;
+				case C65_REGISTER_INDEX_X:
+					result = m_index_x;
+					break;
+				case C65_REGISTER_INDEX_Y:
+					result = m_index_y;
+					break;
+				case C65_REGISTER_PROGRAM_COUNTER:
+					result = m_program_counter;
+					break;
+				case C65_REGISTER_STACK_POINTER:
+					result = m_stack_pointer;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_REGISTER_INVALID,
+						"%i(%s)", type, REGISTER_STRING(type));
+			}
+
+			TRACE_EXIT_FORMAT("Result=%u(%04x)", result.word, result.word);
+			return result;
+		}
+
+		c65_status_t
+		processor::read_status(void) const
+		{
+			TRACE_ENTRY();
+			TRACE_EXIT_FORMAT("Result=%u(%02x)", m_status.raw);
+			return m_status;
+		}
+
 		c65_word_t
 		processor::read_word(
 			__in const c65::interface::bus &bus,
@@ -318,9 +361,9 @@ namespace c65 {
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor resetting");
 
-			m_accumulator.low = RESET_ACCUMULATOR;
-			m_index_x.low = RESET_INDEX_X;
-			m_index_y.low = RESET_INDEX_Y;
+			m_accumulator = {};
+			m_index_x = {};
+			m_index_y = {};
 			m_interrupt = 0;
 			m_program_counter = m_reset;
 			m_stack_pointer.word = RESET_STACK_POINTER;
@@ -371,16 +414,34 @@ namespace c65 {
 					}
 
 					if(taken) {
-						m_wait = false;
-						push_word(bus, m_program_counter.word);
-						push_byte(bus, m_status.raw & ~MASK(FLAG_BREAK_INSTRUCTION));
-						m_program_counter = address;
-						result += INTERRUPT_CYCLES;
+						result += service_interrupt(bus, address, false);
 					}
 
 					break;
 				}
 			}
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::service_interrupt(
+			__in c65::interface::bus &bus,
+			__in c65_address_t address,
+			__in bool breakpoint
+			)
+		{
+			c65_status_t status = m_status;
+			uint8_t result = INTERRUPT_CYCLES;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Address=%u(%04x), Breakpoint=%x", &bus, address.word, address.word, breakpoint);
+
+			m_wait = false;
+			MASK_SET_CONDITIONAL(breakpoint, status.raw, FLAG_BREAK_INSTRUCTION);
+			push_word(bus, m_program_counter.word);
+			push_byte(bus, status.raw);
+			m_program_counter = address;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -421,6 +482,50 @@ namespace c65 {
 			TRACE_ENTRY_FORMAT("Bus=%p, Address=%u(%04x), Value=%u(%02x)", &bus, address.word, address.word, value, value);
 
 			bus.write(address, value);
+
+			TRACE_EXIT();
+		}
+
+		void
+		processor::write_register(
+			__in int type,
+			__in c65_register_t value
+			)
+		{
+			TRACE_ENTRY_FORMAT("Type=%i(%s), Value=%u(%04x)", type, REGISTER_STRING(type), value.word, value.word);
+
+			switch(type) {
+				case C65_REGISTER_ACCUMULATOR:
+					m_accumulator = value;
+					break;
+				case C65_REGISTER_INDEX_X:
+					m_index_x = value;
+					break;
+				case C65_REGISTER_INDEX_Y:
+					m_index_y = value;
+					break;
+				case C65_REGISTER_PROGRAM_COUNTER:
+					m_program_counter = value;
+					break;
+				case C65_REGISTER_STACK_POINTER:
+					m_stack_pointer = value;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_REGISTER_INVALID,
+						"%i(%s)", type, REGISTER_STRING(type));
+			}
+
+			TRACE_EXIT();
+		}
+
+		void
+		processor::write_status(
+			__in c65_status_t value
+			)
+		{
+			TRACE_ENTRY_FORMAT("Value=%u(%02x)", value.raw, value.raw);
+
+			m_status = value;
 
 			TRACE_EXIT();
 		}

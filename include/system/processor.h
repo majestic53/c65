@@ -38,12 +38,27 @@ namespace c65 {
 					__in int type
 					);
 
+				c65_register_t read_register(
+					__in int type
+					) const;
+
+				c65_status_t read_status(void) const;
+
 				void reset(
 					__in c65::interface::bus &bus
 					);
 
 				uint8_t step(
 					__in c65::interface::bus &bus
+					);
+
+				void write_register(
+					__in int type,
+					__in c65_register_t value
+					);
+
+				void write_status(
+					__in c65_status_t value
 					);
 
 			protected:
@@ -111,6 +126,12 @@ namespace c65 {
 					__in c65::interface::bus &bus
 					);
 
+				uint8_t service_interrupt(
+					__in c65::interface::bus &bus,
+					__in c65_address_t address,
+					__in bool breakpoint
+					);
+
 				void write_byte(
 					__in c65::interface::bus &bus,
 					__in c65_address_t address,
@@ -141,7 +162,7 @@ namespace c65 {
 
 				c65_register_t m_stack_pointer;
 
-				c65_flag_t m_status;
+				c65_status_t m_status;
 
 				bool m_stop;
 
