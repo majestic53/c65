@@ -155,6 +155,7 @@ Version 0.1.1939
 
 *Updated: 9/28/2019*
 
+* Added debug console
 * Added additional actions
 * Updated documentation
 

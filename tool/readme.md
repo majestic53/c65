@@ -24,10 +24,10 @@ The following arguments are available:
 ```
 c65 [args]
 
--d|--debug        Enable debug mode
--h|--help         Display help information
--q|--quiet        Enable quiet mode
--v|--version      Display version information
+-d|--debug              Enable debug mode
+-h|--help               Display help information
+-q|--quiet              Enable quiet mode
+-v|--version            Display version information
 ```
 
 #### Examples
@@ -42,4 +42,41 @@ The following example shows how to launch C65 in debug mode:
 
 ```
 $ ./bin/c65 -d
+```
+
+#### Debug Mode
+
+The following arguments are available:
+
+```
+rb|read-byte            <address>               Read byte from memory
+rr|read-register        <register>              Read register value
+rs|read-status                                  Read status value
+rw|read-word            <address>               Read word from memory
+wb|write-byte           <address> <value>       Write byte to memory
+wr|write-register       <register> <value>      Write register value
+ws|write-status         <value>                 Write status value
+ww|write-word           <address> <value>       Write word to memory
+```
+
+#### Examples
+
+The following example shows how to read a byte from memory at address 0x0600:
+
+```
+% rb 0600
+
+-OR-
+
+% read-byte 0600
+```
+
+The following example shows how to write the value 0xff into the accumulator register:
+
+```
+% wr a ff
+
+-OR-
+
+% write-register a ff
 ```

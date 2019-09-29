@@ -16,20 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_COMMON_VERSION_H_
-#define C65_COMMON_VERSION_H_
+#ifndef C65_COMMON_MASK_H_
+#define C65_COMMON_MASK_H_
 
-#define C65 "C65"
-#define C65_NOTICE "Copyright (C) 2019 David Jolly"
+#define MASK(_BIT_) \
+	(1 << (_BIT_))
+#define MASK_CLEAR(_MASK_, _BIT_) \
+	((_MASK_) &= ~MASK(_BIT_))
+#define MASK_CHECK(_MASK_, _BIT_) \
+	(((_MASK_) & MASK(_BIT_)) == MASK(_BIT_))
+#define MASK_SET(_MASK_, _BIT_) \
+	((_MASK_) |= MASK(_BIT_))
+#define MASK_SET_CONDITIONAL(_CONDITION_, _MASK_, _BIT_) \
+	((_CONDITION_) ? MASK_SET(_MASK_, _BIT_) : MASK_CLEAR(_MASK_, _BIT_))
 
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 1
-#define VERSION_RELEASE "alpha"
-#define VERSION_REVISION 7
-#define VERSION_WEEK 1939
-
-#define VERSION_STRING() \
-	AS_STRING(VERSION_MAJOR) "." AS_STRING(VERSION_MINOR) "." AS_STRING(VERSION_WEEK) "." \
-		AS_STRING(VERSION_REVISION) "-" VERSION_RELEASE
-
-#endif // C65_COMMON_VERSION_H_
+#endif // C65_COMMON_MASK_H_

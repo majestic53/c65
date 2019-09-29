@@ -30,11 +30,8 @@
 
 enum {
 
-	// No-op
-	C65_ACTION_NOP = 0,
-
 	// Read memory byte
-	C65_ACTION_READ_BYTE,
+	C65_ACTION_READ_BYTE = 0,
 
 	// Read processor register
 	C65_ACTION_READ_REGISTER,

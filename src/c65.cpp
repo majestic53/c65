@@ -55,19 +55,17 @@ namespace c65 {
 					}
 
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime action request", "%i(%s)",
-						request->type, INTERRUPT_STRING(request->type));
+						request->type, ACTION_STRING(request->type));
 
 					initialize();
 					std::memset(response, 0, sizeof(*response));
 
 					switch(request->type) {
-						case C65_ACTION_NOP:
-							break;
 						case C65_ACTION_READ_BYTE:
 							result = action_read_byte(request, response);
 							break;
 						case C65_ACTION_READ_REGISTER:
-							result = action_read_word(request, response);
+							result = action_read_register(request, response);
 							break;
 						case C65_ACTION_READ_STATUS:
 							result = action_read_status(request, response);
@@ -225,9 +223,9 @@ namespace c65 {
 				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
 
 				address = request->address;
-				write(address, response->data.low);
+				write(address, request->data.low);
 				++address.word;
-				write(address, response->data.high);
+				write(address, request->data.high);
 
 				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 				return result;

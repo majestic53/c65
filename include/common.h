@@ -60,6 +60,7 @@
 #include "./common/flag.h"
 #include "./common/interrupt.h"
 #include "./common/level.h"
+#include "./common/mask.h"
 #include "./common/memory.h"
 #include "./common/register.h"
 #include "./common/string.h"

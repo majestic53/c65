@@ -19,7 +19,7 @@
 #ifndef C65_COMMON_STRING_H_
 #define C65_COMMON_STRING_H_
 
-#define COLUMN_WIDTH 18
+#define COLUMN_WIDTH 24
 
 #define FLOAT_PRECISION 1
 

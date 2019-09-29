@@ -107,9 +107,6 @@ namespace c65 {
 			TRACE_ENTRY();
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor initializing");
-
-			m_program_counter.word = DEFAULT_PROGRAM_COUNTER;
-
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor initialized");
 
 			TRACE_EXIT();
