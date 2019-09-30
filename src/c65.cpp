@@ -271,26 +271,26 @@ namespace c65 {
 
 			int load(
 				__in const c65_byte_t *data,
-				__in c65_address_t length,
+				__in c65_word_t length,
 				__in c65_address_t base
 				)
 			{
 				int result = EXIT_SUCCESS;
 
-				TRACE_ENTRY_FORMAT("Data[%u(%04x)]=%p, Base=%u(%04x)", length.word, length.word, data, base.word, base.word);
+				TRACE_ENTRY_FORMAT("Data[%u(%04x)]=%p, Base=%u(%04x)", length, length, data, base.word, base.word);
 
 				try {
 					uint32_t index;
 
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime load request", "[%u(%04x)]%p, %u(%04x)",
-						length.word, length.word, data, base.word, base.word);
+						length, length, data, base.word, base.word);
 
 					initialize();
 
-					for(index = 0; index < length.word; ++index) {
+					for(index = 0; index < length; ++index) {
 						c65_address_t address;
 
-						address.word = ((index + length.word) & UINT16_MAX);
+						address.word = ((index + length) & UINT16_MAX);
 						switch(address.word) {
 							case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
 							case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
@@ -438,7 +438,7 @@ namespace c65 {
 
 			int unload(
 				__in c65_address_t base,
-				__in c65_address_t length
+				__in c65_word_t length
 				)
 			{
 				int result = EXIT_SUCCESS;
@@ -449,11 +449,11 @@ namespace c65 {
 					uint32_t index;
 
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime unload request", "%u(%04x), %u(%04x)",
-						base.word, base.word, length.word, length.word);
+						base.word, base.word, length, length);
 
 					initialize();
 
-					for(index = base.word; index < (base.word + length.word); ++index) {
+					for(index = base.word; index < (base.word + length); ++index) {
 						c65_address_t address;
 
 						address.word = (index & UINT16_MAX);
@@ -734,13 +734,13 @@ c65_interrupt(
 int
 c65_load(
 	__in const c65_byte_t *data,
-	__in c65_address_t length,
+	__in c65_word_t length,
 	__in c65_address_t base
 	)
 {
 	int result;
 
-	TRACE_ENTRY_FORMAT("Data[%u(%04x)]=%p, Base=%u(%04x)", length.word, length.word, data, base.word, base.word);
+	TRACE_ENTRY_FORMAT("Data[%u(%04x)]=%p, Base=%u(%04x)", length, length, data, base.word, base.word);
 
 	result = c65::runtime::instance().load(data, length, base);
 
@@ -790,12 +790,12 @@ c65_step(void)
 int
 c65_unload(
 	__in c65_address_t base,
-	__in c65_address_t length
+	__in c65_word_t length
 	)
 {
 	int result;
 
-	TRACE_ENTRY_FORMAT("Base=%u(%04x), Length=%u(%04x)", base.word, base.word, length.word, length.word);
+	TRACE_ENTRY_FORMAT("Base=%u(%04x), Length=%u(%04x)", base.word, base.word, length, length);
 
 	result = c65::runtime::instance().unload(base, length);
 

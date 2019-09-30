@@ -49,10 +49,19 @@ $ ./bin/c65 -d
 The following arguments are available:
 
 ```
+q|exit                                          Exit console
+?|help                                          Display help information
+i|interrupt             <type>                  Interrupt processor
+l|load                  <path> <address>        Load data into memory
 rb|read-byte            <address>               Read byte from memory
 rr|read-register        <register>              Read register value
 rs|read-status                                  Read status value
 rw|read-word            <address>               Read word from memory
+rt|reset                                        Reset processor
+r|run                                           Run processor
+s|step                                          Step processor
+u|unload                <address> <length>      Unload data from memory
+v|version                                       Display version information
 wb|write-byte           <address> <value>       Write byte to memory
 wr|write-register       <register> <value>      Write register value
 ws|write-status         <value>                 Write status value

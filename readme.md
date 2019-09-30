@@ -153,6 +153,10 @@ Changelog
 Version 0.1.1939
 -
 
+*Updated: 9/29/2019*
+
+* Added additional actions
+
 *Updated: 9/28/2019*
 
 * Added debug console

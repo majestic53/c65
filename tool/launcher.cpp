@@ -19,6 +19,7 @@
 #include <readline/history.h>
 #include <readline/readline.h>
 #include "../include/interface/singleton.h"
+#include "../include/type/buffer.h"
 #include "../include/c65.h"
 #include "./launcher_type.h"
 
@@ -137,6 +138,7 @@ namespace c65 {
 					while(!complete) {
 
 						try {
+							int type;
 							char *input;
 							std::string action;
 							std::stringstream stream;
@@ -160,67 +162,73 @@ namespace c65 {
 								}
 							}
 
-							if(ACTION_CONTROL_SUPPORTED(action)) {
+							if(!ACTION_SUPPORTED(action)) {
+								THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+									C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID, "%s", STRING(action));
+							}
 
-								switch(ACTION_CONTROL_TYPE(action)) {
-									case ACTION_CONTROL_EXIT:
-										complete = true;
-										break;
-									case ACTION_CONTROL_HELP:
-										debug_action_control_help();
-										break;
-									case ACTION_CONTROL_VERSION:
-										debug_action_control_version();
-										break;
-									default:
-										THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
-											C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID,
-											"%s", STRING(action));
-								}
-							} else {
-								int type;
+							type = ACTION_TYPE(action);
+							if(arguments.size() != ACTION_ARGUMENT_LENGTH(type)) {
+								THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+									C65_TOOL_LAUNCHER_EXCEPTION_ARGUMENT_MISMATCH, "%s", input);
+							}
 
-								if(!ACTION_SUPPORTED(action)) {
+							switch(type) {
+								case ACTION_EXIT:
+									complete = true;
+									break;
+								case ACTION_HELP:
+									debug_action_help();
+									break;
+								case ACTION_INTERRUPT:
+									debug_action_interrupt(arguments);
+									break;
+								case ACTION_LOAD:
+									debug_action_load(arguments);
+									break;
+								case ACTION_READ_BYTE:
+									debug_action_read_byte(arguments);
+									break;
+								case ACTION_READ_REGISTER:
+									debug_action_read_register(arguments);
+									break;
+								case ACTION_READ_STATUS:
+									debug_action_read_status();
+									break;
+								case ACTION_READ_WORD:
+									debug_action_read_word(arguments);
+									break;
+								case ACTION_RESET:
+									debug_action_reset();
+									break;
+								case ACTION_RUN:
+									debug_action_run();
+									break;
+								case ACTION_STEP:
+									debug_action_step();
+									break;
+								case ACTION_UNLOAD:
+									debug_action_unload(arguments);
+									break;
+								case ACTION_VERSION:
+									debug_action_version();
+									break;
+								case ACTION_WRITE_BYTE:
+									debug_action_write_byte(arguments);
+									break;
+								case ACTION_WRITE_REGISTER:
+									debug_action_write_register(arguments);
+									break;
+								case ACTION_WRITE_STATUS:
+									debug_action_write_status(arguments);
+									break;
+								case ACTION_WRITE_WORD:
+									debug_action_write_word(arguments);
+									break;
+								default:
 									THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
-										C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID, "%s", STRING(action));
-								}
-
-								type = ACTION_TYPE(action);
-								if(arguments.size() != ACTION_ARGUMENT_LENGTH(type)) {
-									THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
-										C65_TOOL_LAUNCHER_EXCEPTION_ARGUMENT_MISMATCH, "%s", input);
-								}
-
-								switch(type) {
-									case C65_ACTION_READ_BYTE:
-										debug_action_read_byte(arguments);
-										break;
-									case C65_ACTION_READ_REGISTER:
-										debug_action_read_register(arguments);
-										break;
-									case C65_ACTION_READ_STATUS:
-										debug_action_read_status();
-										break;
-									case C65_ACTION_READ_WORD:
-										debug_action_read_word(arguments);
-										break;
-									case C65_ACTION_WRITE_BYTE:
-										debug_action_write_byte(arguments);
-										break;
-									case C65_ACTION_WRITE_REGISTER:
-										debug_action_write_register(arguments);
-										break;
-									case C65_ACTION_WRITE_STATUS:
-										debug_action_write_status(arguments);
-										break;
-									case C65_ACTION_WRITE_WORD:
-										debug_action_write_word(arguments);
-										break;
-									default:
-										THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
-											C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID,
-											"%s", STRING(action));
-								}
+										C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID,
+										"%s", STRING(action));
 							}
 
 							free(input);
@@ -237,14 +245,14 @@ namespace c65 {
 					return result;
 				}
 
-				void debug_action_control_help(void)
+				void debug_action_help(void)
 				{
 					int type = 0;
 					std::stringstream result;
 
 					TRACE_ENTRY();
 
-					for(; type <= C65_ACTION_MAX; ++type) {
+					for(; type <= ACTION_MAX; ++type) {
 						std::stringstream stream;
 
 						stream << ACTION_SHORT_STRING(type) << "|" << ACTION_LONG_STRING(type);
@@ -262,11 +270,49 @@ namespace c65 {
 					TRACE_EXIT();
 				}
 
-				void debug_action_control_version(void)
+				void debug_action_interrupt(
+					__in const std::vector<std::string> &arguments
+					)
 				{
-					TRACE_ENTRY();
+					int type;
 
-					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << VERSION_STRING() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					if(!ACTION_INTERRUPT_SUPPORTED(arguments.front())) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERRUPT_INVALID, "%s",
+							STRING(arguments.front()));
+					}
+
+					type = ACTION_INTERRUPT_TYPE(arguments.front());
+					if(c65_interrupt(type) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_load(
+					__in const std::vector<std::string> &arguments
+					)
+				{
+					c65_address_t address;
+					c65::type::buffer data;
+					std::stringstream stream;
+
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					data.load(arguments.front());
+
+					stream << std::hex << arguments.back();
+					stream >> address.word;
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Load", "%s, %.01f KB (%u bytes), %u(%04x)",
+						STRING(arguments.front()), data.size() / (float)std::kilo::num, data.size(),
+						address.word, address.word);
+
+					if(c65_load((c65_byte_t *)&data[0], data.size(), address) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
 
 					TRACE_EXIT();
 				}
@@ -409,6 +455,76 @@ namespace c65 {
 
 					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_HEXIDECIMAL(c65_word_t, response.data.word)
 						<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_reset(void)
+				{
+					TRACE_ENTRY();
+
+					if(c65_reset() != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_run(void)
+				{
+					TRACE_ENTRY();
+
+					if(c65_run() != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_step(void)
+				{
+					TRACE_ENTRY();
+
+					if(c65_step() != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_unload(
+					__in const std::vector<std::string> &arguments
+					)
+				{
+					c65_word_t length;
+					c65_address_t address;
+					std::stringstream stream;
+
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					stream << std::hex << arguments.front();
+					stream >> address.word;
+
+					stream.clear();
+					stream.str(std::string());
+					stream << std::hex << arguments.back();
+					stream >> length;
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Unload", "%u(%04x), %u(%04x)", address.word, address.word,
+						length, length);
+
+					if(c65_unload(address, length) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_version(void)
+				{
+					TRACE_ENTRY();
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << VERSION_STRING() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
 
 					TRACE_EXIT();
 				}

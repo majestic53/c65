@@ -180,7 +180,7 @@ int c65_interrupt(int type);
  * @param base Base address
  * @return EXIT_SUCCESS on success
  */
-int c65_load(const c65_byte_t *data, c65_address_t length, c65_address_t base);
+int c65_load(const c65_byte_t *data, c65_word_t length, c65_address_t base);
 
 /**
  * Reset emulator
@@ -206,7 +206,7 @@ int c65_step(void);
  * @param length Byte length
  * @return EXIT_SUCCESS on success
  */
-int c65_unload(c65_address_t base, c65_address_t length);
+int c65_unload(c65_address_t base, c65_word_t length);
 
 /**********************************************
  * MISC.
