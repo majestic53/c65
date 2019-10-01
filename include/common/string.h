@@ -21,7 +21,7 @@
 
 #define COLUMN_WIDTH 24
 
-#define FLOAT_PRECISION 1
+#define FLOAT_PRECISION 2
 
 #define STRING_EMPTY ""
 #define STRING_UNKNOWN "Unknown"

@@ -290,7 +290,7 @@ namespace c65 {
 					for(index = 0; index < length; ++index) {
 						c65_address_t address;
 
-						address.word = ((index + length) & UINT16_MAX);
+						address.word = ((index + base.word) & UINT16_MAX);
 						switch(address.word) {
 							case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
 							case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:

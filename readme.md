@@ -150,6 +150,14 @@ $ make TRACE=3
 Changelog
 =
 
+Version 0.1.1940
+-
+
+*Updated: 9/30/2019*
+
+* Added dump action
+* Minor code cleanup
+
 Version 0.1.1939
 -
 

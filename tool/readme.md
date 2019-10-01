@@ -49,6 +49,7 @@ $ ./bin/c65 -d
 The following arguments are available:
 
 ```
+d|dump                  <address> <count>       Dump memory contents
 q|exit                                          Exit console
 ?|help                                          Display help information
 i|interrupt             <type>                  Interrupt processor

@@ -62,7 +62,8 @@ namespace c65 {
 			THROW_EXCEPTION(C65_TOOL_LAUNCHER_EXCEPTION_STRING(_EXCEPT_), _FORMAT_, __VA_ARGS__)
 
 		enum {
-			ACTION_EXIT = 0,
+			ACTION_DUMP = 0,
+			ACTION_EXIT,
 			ACTION_HELP,
 			ACTION_INTERRUPT,
 			ACTION_LOAD,
@@ -84,6 +85,7 @@ namespace c65 {
 		#define ACTION_MAX ACTION_WRITE_WORD
 
 		static const size_t ACTION_ARGUMENT_LEN[] = {
+			2, // ACTION_DUMP
 			0, // ACTION_EXIT
 			0, // ACTION_HELP
 			1, // ACTION_INTERRUPT
@@ -108,6 +110,7 @@ namespace c65 {
 				ACTION_ARGUMENT_LEN[_TYPE_])
 
 		static const std::string ACTION_ARGUMENT_STR[] = {
+			"<address> <count>", // ACTION_DUMP
 			"", // ACTION_EXIT
 			"", // ACTION_HELP
 			"<type>", // ACTION_INTERRUPT
@@ -132,6 +135,7 @@ namespace c65 {
 				STRING(ACTION_ARGUMENT_STR[_TYPE_]))
 
 		static const std::string ACTION_DESCRIPTION_STR[] = {
+			"Dump memory contents", // ACTION_DUMP
 			"Exit console", // ACTION_EXIT
 			"Display help information", // ACTION_HELP
 			"Interrupt processor", // ACTION_INTERRUPT
@@ -156,6 +160,7 @@ namespace c65 {
 				STRING(ACTION_DESCRIPTION_STR[_TYPE_]))
 
 		static const std::string ACTION_LONG_STR[] = {
+			"dump", // ACTION_DUMP
 			"exit", // ACTION_EXIT
 			"help", // ACTION_HELP
 			"interrupt", // ACTION_INTERRUPT
@@ -180,6 +185,7 @@ namespace c65 {
 				STRING(ACTION_LONG_STR[_TYPE_]))
 
 		static const std::string ACTION_SHORT_STR[] = {
+			"d", // ACTION_DUMP
 			"q", // ACTION_EXIT
 			"?", // ACTION_HELP
 			"i", // ACTION_INTERRUPT
@@ -204,6 +210,7 @@ namespace c65 {
 				STRING(ACTION_SHORT_STR[_TYPE_]))
 
 		static const std::map<std::string, int> ACTION_MAP = {
+			std::make_pair(ACTION_LONG_STRING(ACTION_DUMP), ACTION_DUMP), // ACTION_DUMP
 			std::make_pair(ACTION_LONG_STRING(ACTION_EXIT), ACTION_EXIT), // ACTION_EXIT
 			std::make_pair(ACTION_LONG_STRING(ACTION_HELP), ACTION_HELP), // ACTION_HELP
 			std::make_pair(ACTION_LONG_STRING(ACTION_INTERRUPT), ACTION_INTERRUPT), // ACTION_INTERRUPT
@@ -221,6 +228,7 @@ namespace c65 {
 			std::make_pair(ACTION_LONG_STRING(ACTION_WRITE_REGISTER), ACTION_WRITE_REGISTER), // ACTION_WRITE_REGISTER
 			std::make_pair(ACTION_LONG_STRING(ACTION_WRITE_STATUS), ACTION_WRITE_STATUS), // ACTION_WRITE_STATUS
 			std::make_pair(ACTION_LONG_STRING(ACTION_WRITE_WORD), ACTION_WRITE_WORD), // ACTION_WRITE_WORD
+			std::make_pair(ACTION_SHORT_STRING(ACTION_DUMP), ACTION_DUMP), // ACTION_DUMP
 			std::make_pair(ACTION_SHORT_STRING(ACTION_EXIT), ACTION_EXIT), // ACTION_EXIT
 			std::make_pair(ACTION_SHORT_STRING(ACTION_HELP), ACTION_HELP), // ACTION_HELP
 			std::make_pair(ACTION_SHORT_STRING(ACTION_INTERRUPT), ACTION_INTERRUPT), // ACTION_INTERRUPT
@@ -349,6 +357,10 @@ namespace c65 {
 			(ARGUMENT_MAP.find(_ARGUMENT_) != ARGUMENT_MAP.end())
 		#define ARGUMENT_TYPE(_ARGUMENT_) \
 			ARGUMENT_MAP.find(_ARGUMENT_)->second
+
+		#define BLOCK_WIDTH 16
+
+		#define CHARACTER_FILL '.'
 
 		#define HISTORY_MAX 10
 

@@ -151,6 +151,11 @@ namespace c65 {
 
 							add_history(input);
 							stream << input;
+
+							if(stream.str().empty()) {
+								continue;
+							}
+
 							stream >> action;
 
 							while(stream) {
@@ -174,6 +179,9 @@ namespace c65 {
 							}
 
 							switch(type) {
+								case ACTION_DUMP:
+									debug_action_dump(arguments);
+									break;
 								case ACTION_EXIT:
 									complete = true;
 									break;
@@ -245,12 +253,103 @@ namespace c65 {
 					return result;
 				}
 
+				void debug_action_dump(
+					__in const std::vector<std::string> &arguments
+					)
+				{
+					std::string buffer;
+					c65_address_t address;
+					c65_word_t count, end, offset;
+					std::stringstream result, stream;
+
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					stream << std::hex << arguments.front();
+					stream >> address.word;
+
+					stream.clear();
+					stream.str(std::string());
+					stream << std::dec << arguments.back();
+					stream >> count;
+
+					offset = (address.word % BLOCK_WIDTH);
+					if(offset) {
+						address.word -= offset;
+					}
+
+					end = (address.word + (count * BLOCK_WIDTH));
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Dump", "%u(%04x), %u(%04x)", address.word, address.word,
+						end - 1, end - 1);
+
+					offset = (end - address.word);
+					result << "[" << STRING_HEXIDECIMAL(c65_word_t, address.word) << "-"
+						<< STRING_HEXIDECIMAL(c65_word_t, end - 1) << "] -- "
+						<< STRING_FLOAT(offset / (float)std::kilo::num) << " KB (" << offset << " bytes)"
+						<< std::endl << "      ";
+
+					for(offset = 0; offset < BLOCK_WIDTH; ++offset) {
+						result << " " << STRING_HEXIDECIMAL(c65_byte_t, offset);
+					}
+
+					result << std::endl << "      ";
+
+					for(offset = 0; offset < BLOCK_WIDTH; ++offset) {
+						result << " --";
+					}
+
+					for(; address.word != end; ++address.word) {
+						char value;
+						c65_action_t request = {}, response = {};
+
+						if(!(address.word % BLOCK_WIDTH)) {
+
+							if(!buffer.empty()) {
+								result << "   " << buffer;
+								buffer.clear();
+							}
+
+							result << std::endl << STRING_HEXIDECIMAL(c65_word_t, address.word) << " |";
+						}
+
+						request.type = C65_ACTION_READ_BYTE;
+						request.address = address;
+
+						TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Request", "%i(%s), %u(%04x)",
+							request.type, ACTION_STRING(request.type), request.address.word, request.address.word);
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s",
+								c65_error());
+						}
+
+						TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Response", "%i(%s), %u(%02x)",
+							response.type, ACTION_STRING(response.type), response.data.low, response.data.low);
+
+						value = (char)response.data.low;
+						buffer += ((std::isprint(value) && !std::isspace(value)) ? value : CHARACTER_FILL);
+
+						result << " " << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					}
+
+					if(!buffer.empty()) {
+						result << "   " << buffer;
+						buffer.clear();
+					}
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+
+					TRACE_EXIT();
+				}
+
 				void debug_action_help(void)
 				{
 					int type = 0;
 					std::stringstream result;
 
 					TRACE_ENTRY();
+
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Help");
 
 					for(; type <= ACTION_MAX; ++type) {
 						std::stringstream stream;
@@ -284,6 +383,9 @@ namespace c65 {
 					}
 
 					type = ACTION_INTERRUPT_TYPE(arguments.front());
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Interrupt", "%i(%s)", type, INTERRUPT_STRING(type));
+
 					if(c65_interrupt(type) != EXIT_SUCCESS) {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
@@ -463,6 +565,8 @@ namespace c65 {
 				{
 					TRACE_ENTRY();
 
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Reset");
+
 					if(c65_reset() != EXIT_SUCCESS) {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
@@ -474,6 +578,8 @@ namespace c65 {
 				{
 					TRACE_ENTRY();
 
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Run");
+
 					if(c65_run() != EXIT_SUCCESS) {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
@@ -484,6 +590,8 @@ namespace c65 {
 				void debug_action_step(void)
 				{
 					TRACE_ENTRY();
+
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Step");
 
 					if(c65_step() != EXIT_SUCCESS) {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
@@ -524,7 +632,9 @@ namespace c65 {
 				{
 					TRACE_ENTRY();
 
-					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << VERSION_STRING() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Version");
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << c65_version() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
 
 					TRACE_EXIT();
 				}
@@ -799,7 +909,7 @@ namespace c65 {
 						result << C65 << " ";
 					}
 
-					result << VERSION_STRING();
+					result << c65_version();
 
 					if(verbose) {
 						result << std::endl << C65_NOTICE;
