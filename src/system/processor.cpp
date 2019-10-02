@@ -430,7 +430,7 @@ namespace c65 {
 			)
 		{
 			c65_status_t status = m_status;
-			uint8_t result = INTERRUPT_CYCLES;
+			uint8_t result = CYCLE_INTERRUPT;
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Address=%u(%04x), Breakpoint=%x", &bus, address.word, address.word, breakpoint);
 

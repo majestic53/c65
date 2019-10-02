@@ -153,6 +153,10 @@ Changelog
 Version 0.1.1940
 -
 
+*Updated: 10/1/2019*
+
+* Added processor commands (incomplete)
+
 *Updated: 9/30/2019*
 
 * Added dump action
@@ -192,21 +196,5 @@ Version 0.1.1939
 *Updated: 9/23/2019*
 
 * Added system video class
-
-Version 0.1.1938
--
-
-*Updated: 9/22/2019*
-
-* Added system memory class
-* Added runtime action support
-
-*Updated: 9/20/2019*
-
-* Added buffer type class
-
-*Updated: 9/19/2019*
-
-* Initial commit
 
 *Changelog truncated (see file history for full log)*

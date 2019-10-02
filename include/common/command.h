@@ -1,0 +1,310 @@
+/**
+ * C65
+ * Copyright (C) 2019 David Jolly
+ *
+ * C65 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * C65 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef C65_COMMON_COMMAND_H_
+#define C65_COMMON_COMMAND_H_
+
+enum {
+	COMMAND_ADC = 0,
+	COMMAND_AND,
+	COMMAND_ASL,
+	COMMAND_BBR,
+	COMMAND_BBS,
+	COMMAND_BCC,
+	COMMAND_BCS,
+	COMMAND_BEQ,
+	COMMAND_BIT,
+	COMMAND_BMI,
+	COMMAND_BNE,
+	COMMAND_BPL,
+	COMMAND_BRA,
+	COMMAND_BRK,
+	COMMAND_BVC,
+	COMMAND_BVS,
+	COMMAND_CLC,
+	COMMAND_CLD,
+	COMMAND_CLI,
+	COMMAND_CLV,
+	COMMAND_CMP,
+	COMMAND_CPX,
+	COMMAND_CPY,
+	COMMAND_DEC,
+	COMMAND_DEX,
+	COMMAND_DEY,
+	COMMAND_EOR,
+	COMMAND_INC,
+	COMMAND_INX,
+	COMMAND_INY,
+	COMMAND_JMP,
+	COMMAND_JSR,
+	COMMAND_LDA,
+	COMMAND_LDX,
+	COMMAND_LDY,
+	COMMAND_LSR,
+	COMMAND_NOP,
+	COMMAND_ORA,
+	COMMAND_PHA,
+	COMMAND_PHP,
+	COMMAND_PHX,
+	COMMAND_PHY,
+	COMMAND_PLA,
+	COMMAND_PLP,
+	COMMAND_PLX,
+	COMMAND_PLY,
+	COMMAND_RMB,
+	COMMAND_ROL,
+	COMMAND_ROR,
+	COMMAND_RTI,
+	COMMAND_RTS,
+	COMMAND_SBC,
+	COMMAND_SEC,
+	COMMAND_SED,
+	COMMAND_SEI,
+	COMMAND_SMB,
+	COMMAND_STA,
+	COMMAND_STP,
+	COMMAND_STX,
+	COMMAND_STY,
+	COMMAND_STZ,
+	COMMAND_TAX,
+	COMMAND_TAY,
+	COMMAND_TRB,
+	COMMAND_TSB,
+	COMMAND_TSX,
+	COMMAND_TXA,
+	COMMAND_TXS,
+	COMMAND_TYA,
+	COMMAND_WAI,
+};
+
+#define COMMAND_MAX COMMAND_WAI
+
+static const std::string COMMAND_STR[] = {
+	"adc", // COMMAND_ADC
+	"and", // COMMAND_AND
+	"asl", // COMMAND_ASL
+	"bbr", // COMMAND_BBR
+	"bbs", // COMMAND_BBS
+	"bcc", // COMMAND_BCC
+	"bcs", // COMMAND_BCS
+	"beq", // COMMAND_BEQ
+	"bit", // COMMAND_BIT
+	"bmi", // COMMAND_BMI
+	"bne", // COMMAND_BNE
+	"bpl", // COMMAND_BPL
+	"bra", // COMMAND_BRA
+	"brk", // COMMAND_BRK
+	"bvc", // COMMAND_BVC
+	"bvs", // COMMAND_BVS
+	"clc", // COMMAND_CLC
+	"cld", // COMMAND_CLD
+	"cli", // COMMAND_CLI
+	"clv", // COMMAND_CLV
+	"cmp", // COMMAND_CMP
+	"cpx", // COMMAND_CPX
+	"cpy", // COMMAND_CPY
+	"dec", // COMMAND_DEC
+	"dex", // COMMAND_DEX
+	"dey", // COMMAND_DEY
+	"eor", // COMMAND_EOR
+	"inc", // COMMAND_INC
+	"inx", // COMMAND_INX
+	"iny", // COMMAND_INY
+	"jmp", // COMMAND_JMP
+	"jsr", // COMMAND_JSR
+	"lda", // COMMAND_LDA
+	"ldx", // COMMAND_LDX
+	"ldy", // COMMAND_LDY
+	"lsr", // COMMAND_LSR
+	"nop", // COMMAND_NOP
+	"ora", // COMMAND_ORA
+	"pha", // COMMAND_PHA
+	"php", // COMMAND_PHP
+	"phx", // COMMAND_PHX
+	"phy", // COMMAND_PHY
+	"pla", // COMMAND_PLA
+	"plp", // COMMAND_PLP
+	"plx", // COMMAND_PLX
+	"ply", // COMMAND_PLY
+	"rmb", // COMMAND_RMB
+	"rol", // COMMAND_ROL
+	"ror", // COMMAND_ROR
+	"rti", // COMMAND_RTI
+	"rts", // COMMAND_RTS
+	"sbc", // COMMAND_SBC
+	"sec", // COMMAND_SEC
+	"sed", // COMMAND_SED
+	"sei", // COMMAND_SEI
+	"smb", // COMMAND_SMB
+	"sta", // COMMAND_STA
+	"stp", // COMMAND_STP
+	"stx", // COMMAND_STX
+	"sty", // COMMAND_STY
+	"stz", // COMMAND_STZ
+	"tax", // COMMAND_TAX
+	"tay", // COMMAND_TAY
+	"trb", // COMMAND_TRB
+	"tsb", // COMMAND_TSB
+	"tsx", // COMMAND_TSX
+	"txa", // COMMAND_TXA
+	"txs", // COMMAND_TXS
+	"tya", // COMMAND_TYA
+	"wai", // COMMAND_WAI
+	};
+
+#define COMMAND_STRING(_TYPE_) \
+	(((_TYPE_) > COMMAND_MAX) ? STRING_UNKNOWN : \
+		STRING(COMMAND_STR[_TYPE_]))
+
+enum {
+	COMMAND_MODE_ABSOLUTE = 0,
+	COMMAND_MODE_ABSOLUTE_INDEX_INDIRECT,
+	COMMAND_MODE_ABSOLUTE_INDEX_X,
+	COMMAND_MODE_ABSOLUTE_INDEX_Y,
+	COMMAND_MODE_ABSOLUTE_INDIRECT,
+	COMMAND_MODE_ACCUMULATOR,
+	COMMAND_MODE_IMMEDIATE,
+	COMMAND_MODE_IMPLIED,
+	COMMAND_MODE_RELATIVE,
+	COMMAND_MODE_STACK,
+	COMMAND_MODE_ZERO_PAGE,
+	COMMAND_MODE_ZERO_PAGE_INDEX_INDIRECT,
+	COMMAND_MODE_ZERO_PAGE_INDEX_X,
+	COMMAND_MODE_ZERO_PAGE_INDEX_Y,
+	COMMAND_MODE_ZERO_PAGE_INDIRECT,
+	COMMAND_MODE_ZERO_PAGE_INDIRECT_INDEX,
+};
+
+#define COMMAND_MODE_MAX COMMAND_MODE_ZERO_PAGE_INDIRECT_INDEX
+
+static const uint8_t COMMAND_MODE_LEN[] = {
+	3, // COMMAND_MODE_ABSOLUTE
+	3, // COMMAND_MODE_ABSOLUTE_INDEX_INDIRECT
+	3, // COMMAND_MODE_ABSOLUTE_INDEX_X
+	3, // COMMAND_MODE_ABSOLUTE_INDEX_Y
+	3, // COMMAND_MODE_ABSOLUTE_INDIRECT
+	1, // COMMAND_MODE_ACCUMULATOR
+	2, // COMMAND_MODE_IMMEDIATE
+	1, // COMMAND_MODE_IMPLIED
+	1, // COMMAND_MODE_RELATIVE
+	1, // COMMAND_MODE_STACK
+	2, // COMMAND_MODE_ZERO_PAGE
+	2, // COMMAND_MODE_ZERO_PAGE_INDEX_INDIRECT
+	2, // COMMAND_MODE_ZERO_PAGE_INDEX_X
+	2, // COMMAND_MODE_ZERO_PAGE_INDEX_Y
+	2, // COMMAND_MODE_ZERO_PAGE_INDIRECT
+	2, // COMMAND_MODE_ZERO_PAGE_INDIRECT_INDEX
+	};
+
+#define COMMAND_MODE_LENGTH(_TYPE_) \
+	(((_TYPE_) > COMMAND_MODE_MAX) ? COMMAND_MODE_LEN[COMMAND_MODE_IMPLIED] : \
+		COMMAND_MODE_LEN[_TYPE_])
+
+static const std::string COMMAND_MODE_STR[] = {
+	"a", // COMMAND_MODE_ABSOLUTE
+	"(a, x)", // COMMAND_MODE_ABSOLUTE_INDEX_INDIRECT
+	"a, x", // COMMAND_MODE_ABSOLUTE_INDEX_X
+	"a, y", // COMMAND_MODE_ABSOLUTE_INDEX_Y
+	"(a)", // COMMAND_MODE_ABSOLUTE_INDIRECT
+	"A", // COMMAND_MODE_ACCUMULATOR
+	"#", // COMMAND_MODE_IMMEDIATE
+	"i", // COMMAND_MODE_IMPLIED
+	"r", // COMMAND_MODE_RELATIVE
+	"s", // COMMAND_MODE_STACK
+	"zp", // COMMAND_MODE_ZERO_PAGE
+	"(zp, x)", // COMMAND_MODE_ZERO_PAGE_INDEX_INDIRECT
+	"zp, x", // COMMAND_MODE_ZERO_PAGE_INDEX_X
+	"zp, y", // COMMAND_MODE_ZERO_PAGE_INDEX_Y
+	"(zp)", // COMMAND_MODE_ZERO_PAGE_INDIRECT
+	"(zp), y", // COMMAND_MODE_ZERO_PAGE_INDIRECT_INDEX
+	};
+
+#define COMMAND_MODE_STRING(_TYPE_) \
+	(((_TYPE_) > COMMAND_MODE_MAX) ? STRING_UNKNOWN : \
+		STRING(COMMAND_MODE_STR[_TYPE_]))
+
+#define CYCLE_BRANCH_TAKEN 1
+#define CYCLE_BREAK 1
+#define CYCLE_INTERRUPT 7
+#define CYCLE_PAGE_BOUNDARY 1
+
+typedef struct {
+	int type;
+	int mode;
+	uint8_t length;
+	uint8_t cycle;
+	uint8_t cycle_taken;
+} command_t;
+
+static const command_t CMD[] = {
+
+	// 0x00
+	{ COMMAND_BRK, COMMAND_MODE_STACK, COMMAND_MODE_LENGTH(COMMAND_MODE_STACK), CYCLE_INTERRUPT, CYCLE_INTERRUPT }, // BRK IMPLIED
+	// TODO
+
+	// 0x10
+	// TODO
+
+	// 0x20
+	// TODO
+
+	// 0x30
+	// TODO
+
+	// 0x40
+	// TODO
+
+	// 0x50
+	// TODO
+
+	// 0x60
+	// TODO
+
+	// 0x70
+	// TODO
+
+	// 0x80
+	// TODO
+
+	// 0x90
+	// TODO
+
+	// 0xa0
+	// TODO
+
+	// 0xb0
+	// TODO
+
+	// 0xc0
+	// TODO
+
+	// 0xd0
+	// TODO
+
+	// 0xe0
+	// TODO
+
+	// 0xf0
+	// TODO
+	};
+
+#define COMMAND(_TYPE_) \
+	(((_TYPE_) > COMMAND_MAX) ? CMD[0xea] : \
+		CMD[_TYPE_])
+
+#endif // C65_COMMON_COMMAND_H_
