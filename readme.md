@@ -26,15 +26,15 @@ The project uses the following memory map. Keep in-mind that some of the memory 
 
 |Section          |Span       |Length|R/W|Description|
 |-----------------|-----------|------|---|-------------------------------------------------|
-|Zero Page        |0000 - 00FD|254   |R/W|Zero page memory                                 |
-|Random (IO)      |00FE - 00FE|1     |R  |Random byte                                      |
-|Key (IO)         |00FF - 00FF|1     |R  |Last key pressed                                 |
-|Stack            |0100 - 01FF|256   |R/W|Stack memory                                     |
-|Video RAM (VRAM) |0200 - 05FF|1024  |R/W|Video memory, where every byte represents a pixel|
-|RAM              |0600 - FFF9|63994 |R/W|General purpose memory                           |
-|NMI vector (IV)  |FFFA - FFFB|2     |R/W|Non-maskable interrupt vector address            |
-|Reset vector (IV)|FFFC - FFFD|2     |R/W|Reset interrupt vector address                   |
 |IRQ vector (IV)  |FFFE - FFFF|2     |R/W|Maskable interrupt vector address                |
+|Reset vector (IV)|FFFC - FFFD|2     |R/W|Reset interrupt vector address                   |
+|NMI vector (IV)  |FFFA - FFFB|2     |R/W|Non-maskable interrupt vector address            |
+|RAM              |0600 - FFF9|63994 |R/W|General purpose memory                           |
+|Video RAM (VRAM) |0200 - 05FF|1024  |R/W|Video memory, where every byte represents a pixel|
+|Stack            |0100 - 01FF|256   |R/W|Stack memory                                     |
+|Key (IO)         |00FF       |1     |R  |Last key pressed                                 |
+|Random (IO)      |00FE       |1     |R  |Random byte                                      |
+|Zero Page        |0000 - 00FD|254   |R/W|Zero page memory                                 |
 
 #### Input
 
@@ -153,9 +153,9 @@ Changelog
 Version 0.1.1940
 -
 
-*Updated: 10/1/2019*
+*Updated: 10/1-2/2019*
 
-* Added processor commands (incomplete)
+* Added processor commands <s>(incomplete)</s>
 
 *Updated: 9/30/2019*
 
