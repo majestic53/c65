@@ -19,7 +19,7 @@
 #ifndef C65_COMMON_TRACE_H_
 #define C65_COMMON_TRACE_H_
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(C65_TEST)
 #define _TRACE(_LEVEL_, _PREFIX_, _MESSAGE_, _FILE_, _FUNCTION_, _LINE_, _FORMAT_, ...) { \
 		if((_LEVEL_) <= (TRACE)) { \
 			c65::type::trace::generate(_LEVEL_, _PREFIX_, _MESSAGE_, _FILE_, _FUNCTION_, _LINE_, \

@@ -16,53 +16,40 @@
 
 BUILD_FLAGS_DBG=BUILD_FLAGS=-g
 BUILD_FLAGS_REL=BUILD_FLAGS=-O3\ -DNDEBUG
-DIR_BIN=./bin/
-DIR_BIN_INC=./bin/include/
-DIR_BIN_LIB=./bin/lib/
-DIR_BUILD=./build/
+DIR_BUILD=../build/test/
 DIR_ROOT=./
 DIR_SRC=./src/
-DIR_TEST=./test/
 DIR_TOOL=./tool/
 JOB_SLOTS=4
+TEST=./c65-test
 TRACE?=0
 TRACE_FLAGS_DBG=TRACE_FLAGS=-DTRACE_COLOR\ -DTRACE=
 TRACE_FLAGS_REL=TRACE_FLAGS=-DTRACE_COLOR\ -DTRACE=
 
 all: debug
 
-debug: begin_debug clean init lib_debug lib_debug_test exe_debug end
+debug: begin_debug clean init lib_debug exe_debug
 
-release: begin_release clean init lib_release lib_release_test exe_release end
+release: begin_release clean init lib_release exe_release
 
 ### SETUP ###
 
 begin_debug:
 	@echo ''
 	@echo '============================================'
-	@echo 'BUILDING C65 (DEBUG)'
+	@echo 'BUILDING TEST SUITE (DEBUG)'
 	@echo '============================================'
 
 begin_release:
 	@echo ''
 	@echo '============================================'
-	@echo 'BUILDING C65'
+	@echo 'BUILDING TEST SUITE'
 	@echo '============================================'
 
 clean:
-	rm -rf $(DIR_BIN)
 	rm -rf $(DIR_BUILD)
 
-end:
-	@echo ''
-	@echo '============================================'
-	@echo 'BUILD DONE'
-	@echo '============================================'
-	@echo ''
-
 init:
-	mkdir -p $(DIR_BIN_INC)
-	mkdir -p $(DIR_BIN_LIB)
 	mkdir -p $(DIR_BUILD)
 
 ### LIBRARY ###
@@ -70,40 +57,51 @@ init:
 lib_debug:
 	@echo ''
 	@echo '============================================'
-	@echo 'BUILDING LIBRARIES (DEBUG)'
+	@echo 'BUILDING TEST SUITE LIBRARIES (DEBUG)'
 	@echo '============================================'
 	cd $(DIR_SRC) && make $(BUILD_FLAGS_DBG) $(TRACE_FLAGS_DBG)$(TRACE) build -j$(JOB_SLOTS)
 	cd $(DIR_SRC) && make archive
 
-lib_debug_test:
-	cd $(DIR_TEST) && make debug && make run_test
-
 lib_release:
 	@echo ''
 	@echo '============================================'
-	@echo 'BUILDING LIBRARIES'
+	@echo 'BUILDING TEST SUITE LIBRARIES'
 	@echo '============================================'
 	cd $(DIR_SRC) && make $(BUILD_FLAGS_REL) $(TRACE_FLAGS_REL)$(TRACE) build -j$(JOB_SLOTS)
 	cd $(DIR_SRC) && make archive
-
-lib_release_test:
-	cd $(DIR_TEST) && make release && make run_test
 
 ### EXECUTABLE ###
 
 exe_debug:
 	@echo ''
 	@echo '============================================'
-	@echo 'BUILDING EXECUTABLES (DEBUG)'
+	@echo 'BUILDING TEST SUITE EXECUTABLES (DEBUG)'
 	@echo '============================================'
 	cd $(DIR_TOOL) && make $(BUILD_FLAGS_DBG) $(TRACE_FLAGS_DBG)$(TRACE)
 
 exe_release:
 	@echo ''
 	@echo '============================================'
-	@echo 'BUILDING EXECUTABLES'
+	@echo 'BUILDING TEST SUITE EXECUTABLES'
 	@echo '============================================'
 	cd $(DIR_TOOL) && make $(BUILD_FLAGS_REL) $(TRACE_FLAGS_REL)$(TRACE)
+
+### TESTS ###
+
+run_test:
+	@echo ''
+	@echo '============================================'
+	@echo 'RUNNING TEST SUITE'
+	@echo '============================================'
+	@echo ''
+	@echo '--- RUNNING TESTS --------------------------'
+	@cd $(DIR_BUILD) && if $(TEST) -q; \
+	then \
+		echo '--- PASSED ---------------------------------'; \
+	else \
+		echo '--- FAILED ---------------------------------'; \
+		exit 1; \
+	fi
 
 ### MISC ###
 
@@ -119,4 +117,4 @@ static:
 	@echo '============================================'
 	@echo 'RUNNING STATIC ANALYSIS'
 	@echo '============================================'
-	cppcheck --enable=all --std=c++17 $(DIR_SRC) $(DIR_TEST) $(DIR_TOOL)
+	cppcheck --enable=all --std=c++17 $(DIR_SRC) $(DIR_TOOL)

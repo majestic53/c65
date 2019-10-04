@@ -16,20 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_COMMON_VERSION_H_
-#define C65_COMMON_VERSION_H_
+#ifndef C65_TEST_COMMON_H_
+#define C65_TEST_COMMON_H_
 
-#define C65 "C65"
-#define C65_NOTICE "Copyright (C) 2019 David Jolly"
+#define C65_TEST
 
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 1
-#define VERSION_RELEASE "alpha"
-#define VERSION_REVISION 4
-#define VERSION_WEEK 1940
+#include "../../include/interface/singleton.h"
+#include "./common/macro.h"
 
-#define VERSION_STRING() \
-	AS_STRING(VERSION_MAJOR) "." AS_STRING(VERSION_MINOR) "." AS_STRING(VERSION_WEEK) "." \
-		AS_STRING(VERSION_REVISION) "-" VERSION_RELEASE
-
-#endif // C65_COMMON_VERSION_H_
+#endif // C65_TEST_COMMON_H_

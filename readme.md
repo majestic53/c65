@@ -153,6 +153,10 @@ Changelog
 Version 0.1.1940
 -
 
+*Updated: 10/3/2019*
+
+* Added regression test infrastructure
+
 *Updated: 10/1-2/2019*
 
 * Added processor commands <s>(incomplete)</s>
