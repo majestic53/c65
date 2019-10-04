@@ -14,7 +14,7 @@ Usage
 Launch from the project root directory:
 
 ```
-$ ./bin/c65-test [ARGS]
+$ ./build/test/c65-test [ARGS]
 ```
 
 #### Arguments
@@ -34,11 +34,11 @@ c65-test [args]
 The following example shows how to launch C65 test suite:
 
 ```
-$ ./bin/c65-test
+$ ./build/test/c65-test
 ```
 
 The following example shows how to launch C65 test suite in quiet mode:
 
 ```
-$ ./bin/c65-test -q
+$ ./build/test/c65-test -q
 ```
