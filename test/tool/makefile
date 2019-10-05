@@ -18,7 +18,7 @@ DIR_BIN_LIB=../../bin/lib/
 DIR_BUILD=../../build/test/
 DIR_TOOL=./
 EXE=c65-test
-EXE_FLAGS=
+EXE_FLAGS=-pthread
 FLAGS=-march=native -std=c++17 -Wall -Werror
 LIB=libc65.a
 LIB_FLAGS=-lreadline -lSDL2 -lSDL2main

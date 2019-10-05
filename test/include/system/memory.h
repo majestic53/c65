@@ -16,57 +16,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_TEST_C65_H_
-#define C65_TEST_C65_H_
+#ifndef C65_TEST_SYSTEM_MEMORY_H_
+#define C65_TEST_SYSTEM_MEMORY_H_
 
-#include "./interface/fixture.h"
+#include "../interface/fixture.h"
 
 namespace c65 {
 
 	namespace test {
 
-		class runtime :
-				public c65::test::interface::fixture {
+		namespace system {
 
-			public:
+			class memory :
+					public c65::test::interface::fixture {
 
-				runtime(void);
+				public:
 
-				~runtime(void);
+					memory(void);
 
-			protected:
+					~memory(void);
 
-				runtime(
-					__in const runtime &other
-					) = delete;
+				protected:
 
-				runtime &operator=(
-					__in const runtime &other
-					) = delete;
+					memory(
+						__in const memory &other
+						) = delete;
 
-				void on_run(void) override;
+					memory &operator=(
+						__in const memory &other
+						) = delete;
 
-				void on_setup(void) override;
+					void on_run(void) override;
 
-				void on_teardown(void) override;
+					void on_setup(void) override;
 
-				void test_action(void);
+					void on_teardown(void) override;
 
-				void test_cleanup(void);
+					void test_read(void);
 
-				void test_interrupt(void);
-
-				void test_load(void);
-
-				void test_reset(void);
-
-				void test_run(void);
-
-				void test_step(void);
-
-				void test_unload(void);
-		};
+					void test_write(void);
+			};
+		}
 	}
 }
 
-#endif // C65_TEST_C65_H_
+#endif // C65_TEST_SYSTEM_MEMORY_H_

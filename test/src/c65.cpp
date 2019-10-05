@@ -23,6 +23,127 @@ namespace c65 {
 
 	namespace test {
 
-		// TODO
+		runtime::runtime(void)
+		{
+			TRACE_ENTRY();
+			TRACE_EXIT();
+		}
+
+		runtime::~runtime(void)
+		{
+			TRACE_ENTRY();
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::on_run(void)
+		{
+			TRACE_ENTRY();
+
+			test_action();
+			test_cleanup();
+			test_interrupt();
+			test_load();
+			test_reset();
+			test_run();
+			test_step();
+			test_unload();
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::on_setup(void)
+		{
+			TRACE_ENTRY();
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::on_teardown(void)
+		{
+			TRACE_ENTRY();
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_action(void)
+		{
+			TRACE_ENTRY();
+
+			// TODO
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_cleanup(void)
+		{
+			TRACE_ENTRY();
+
+			// TODO
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_interrupt(void)
+		{
+			TRACE_ENTRY();
+
+			// TODO
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_load(void)
+		{
+			TRACE_ENTRY();
+
+			// TODO
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_reset(void)
+		{
+			TRACE_ENTRY();
+
+			// TODO
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_run(void)
+		{
+			TRACE_ENTRY();
+
+			// TODO
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_step(void)
+		{
+			TRACE_ENTRY();
+
+			// TODO
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_unload(void)
+		{
+			TRACE_ENTRY();
+
+			// TODO
+
+			TRACE_EXIT();
+		}
 	}
 }

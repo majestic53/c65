@@ -85,9 +85,7 @@ namespace c65 {
 			{
 				TRACE_ENTRY();
 
-				test_load_file_empty();
-				test_load_file_full();
-				test_load_file_invalid();
+				test_load_file();
 
 				TRACE_EXIT();
 			}
@@ -121,20 +119,7 @@ namespace c65 {
 			}
 
 			void
-			buffer::test_load_file_empty(void)
-			{
-				c65::type::buffer buffer;
-
-				TRACE_ENTRY();
-
-				buffer.load(FILE_STRING(FILE_EMPTY));
-				ASSERT(buffer.empty());
-
-				TRACE_EXIT();
-			}
-
-			void
-			buffer::test_load_file_full(void)
+			buffer::test_load_file(void)
 			{
 				size_t index = 0;
 				c65::type::buffer buffer;
@@ -142,6 +127,12 @@ namespace c65 {
 
 				TRACE_ENTRY();
 
+				// Test #1: empty file
+				buffer.load(FILE_STRING(FILE_EMPTY));
+				ASSERT(buffer.empty());
+				buffer.clear();
+
+				// Test #2: non-empty file
 				data = FILE_DATA(FILE_FULL);
 				buffer.load(FILE_STRING(FILE_FULL));
 
@@ -151,20 +142,15 @@ namespace c65 {
 					ASSERT(buffer.at(index) == data.at(index));
 				}
 
-				TRACE_EXIT();
-			}
+				buffer.clear();
 
-			void
-			buffer::test_load_file_invalid(void)
-			{
-				c65::type::buffer buffer;
-
-				TRACE_ENTRY();
-
+				// Test #3: invalid file
 				try {
 					buffer.load(FILE_INVALID);
 					ASSERT(false);
-				} catch(...) { }
+				} catch(...) {
+					buffer.clear();
+				}
 
 				TRACE_EXIT();
 			}

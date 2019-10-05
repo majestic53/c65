@@ -24,17 +24,17 @@ The project uses the following memory map. Keep in-mind that some of the memory 
 
 ![Demo](https://github.com/majestic53/c65/blob/master/docs/memory.png "C65 memory map")
 
-|Section          |Span       |Length|R/W|Description|
-|-----------------|-----------|------|---|-------------------------------------------------|
-|IRQ vector (IV)  |FFFE - FFFF|2     |R/W|Maskable interrupt vector address                |
-|Reset vector (IV)|FFFC - FFFD|2     |R/W|Reset interrupt vector address                   |
-|NMI vector (IV)  |FFFA - FFFB|2     |R/W|Non-maskable interrupt vector address            |
-|RAM              |0600 - FFF9|63994 |R/W|General purpose memory                           |
-|Video RAM (VRAM) |0200 - 05FF|1024  |R/W|Video memory, where every byte represents a pixel|
-|Stack            |0100 - 01FF|256   |R/W|Stack memory                                     |
-|Key (IO)         |00FF       |1     |R  |Last key pressed                                 |
-|Random (IO)      |00FE       |1     |R  |Random byte                                      |
-|Zero Page        |0000 - 00FD|254   |R/W|Zero page memory                                 |
+|Section          |Address    |Size       |R/W|Description                                      |
+|-----------------|-----------|-----------|---|-------------------------------------------------|
+|IRQ vector (IV)  |FFFE - FFFF|2 bytes    |R/W|Maskable interrupt vector address                |
+|Reset vector (IV)|FFFC - FFFD|2 bytes    |R/W|Reset interrupt vector address                   |
+|NMI vector (IV)  |FFFA - FFFB|2 bytes    |R/W|Non-maskable interrupt vector address            |
+|RAM              |0600 - FFF9|63994 bytes|R/W|General purpose memory                           |
+|Video RAM (VRAM) |0200 - 05FF|1024 bytes |R/W|Video memory, where every byte represents a pixel|
+|Stack            |0100 - 01FF|256 bytes  |R/W|Stack memory                                     |
+|Key (IO)         |00FF       |1 byte     |R  |Last key pressed                                 |
+|Random (IO)      |00FE       |1 byte     |R  |Random byte                                      |
+|Zero Page        |0000 - 00FD|254 bytes  |R/W|Zero page memory                                 |
 
 #### Input
 
@@ -152,6 +152,10 @@ Changelog
 
 Version 0.1.1940
 -
+
+*Updated: 10/5/2019*
+
+* Added runtime/memory system regression tests (incomplete)
 
 *Updated: 10/4/2019*
 

@@ -16,8 +16,10 @@
 
 DIR_BUILD=../../build/test/
 DIR_INC=../include/
+DIR_INC_SYSTEM=../include/system/
 DIR_INC_TYPE=../include/type/
 DIR_SRC=./
+DIR_SRC_SYSTEM=./system/
 DIR_SRC_TYPE=./type/
 FLAGS=-march=native -std=c++17 -Wall -Werror
 LIB=libc65-test.a
@@ -30,10 +32,11 @@ archive:
 	@echo ''
 	@echo '--- BUILDING LIBRARY -----------------------'
 	ar rcs $(DIR_BUILD)$(LIB) $(DIR_BUILD)base_c65.o \
+		$(DIR_BUILD)system_memory.o \
 		$(DIR_BUILD)type_buffer.o
 	@echo '--- DONE -----------------------------------'
 
-build: build_base build_type
+build: build_base build_system build_type
 
 ### BASE ###
 
@@ -41,6 +44,13 @@ build_base: base_c65.o
 
 base_c65.o: $(DIR_SRC)c65.cpp $(DIR_INC)c65.h
 	$(CXX) $(FLAGS) $(BUILD_FLAGS) $(TRACE_FLAGS) -c $(DIR_SRC)c65.cpp -o $(DIR_BUILD)base_c65.o
+
+### TYPE ###
+
+build_system: system_memory.o
+
+system_memory.o: $(DIR_SRC_SYSTEM)memory.cpp $(DIR_INC_SYSTEM)memory.h
+	$(CXX) $(FLAGS) $(BUILD_FLAGS) $(TRACE_FLAGS) -c $(DIR_SRC_SYSTEM)memory.cpp -o $(DIR_BUILD)system_memory.o
 
 ### TYPE ###
 

@@ -61,11 +61,7 @@ namespace c65 {
 
 					void on_teardown(void) override;
 
-					void test_load_file_empty(void);
-
-					void test_load_file_full(void);
-
-					void test_load_file_invalid(void);
+					void test_load_file(void);
 			};
 		}
 	}

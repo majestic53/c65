@@ -17,6 +17,7 @@
  */
 
 #include "../../include/interface/singleton.h"
+#include "../include/system/memory.h"
 #include "../include/type/buffer.h"
 #include "../include/c65.h"
 #include "./launcher_type.h"
@@ -183,7 +184,9 @@ namespace c65 {
 					int run(void)
 					{
 						int result = EXIT_SUCCESS;
+						c65::test::runtime runtime;
 						c65::test::type::buffer buffer;
+						c65::test::system::memory memory;
 						std::map<std::string, c65::test::interface::fixture *> fixtures;
 						std::map<std::string, c65::test::interface::fixture *>::iterator fixture;
 
@@ -191,6 +194,8 @@ namespace c65 {
 
 						TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher runtime request");
 
+						fixtures.insert(std::make_pair("c65::runtime", &runtime));
+						fixtures.insert(std::make_pair("c65::system::memory", &memory));
 						fixtures.insert(std::make_pair("c65::type::buffer", &buffer));
 
 						for(fixture = fixtures.begin(); fixture != fixtures.end(); ++fixture) {
