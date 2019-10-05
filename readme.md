@@ -153,6 +153,11 @@ Changelog
 Version 0.1.1940
 -
 
+*Updated: 10/4/2019*
+
+* Added buffer type regression tests
+* Minor code cleanup
+
 *Updated: 10/3/2019*
 
 * Added regression test infrastructure

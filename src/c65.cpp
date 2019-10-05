@@ -367,7 +367,7 @@ namespace c65 {
 							rate = (current - ((rate - MILLISECONDS_PER_SECOND) / (float)FRAMES_PER_SECOND));
 							rate = ((rate > 0.f) ? rate : 0.f);
 
-							TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime framerate", "%.01f", rate);
+							TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime framerate", "%.02f", rate);
 
 #ifndef NDEBUG
 							m_video.frame_rate(rate);

@@ -30,7 +30,7 @@ archive:
 	@echo ''
 	@echo '--- BUILDING LIBRARY -----------------------'
 	ar rcs $(DIR_BUILD)$(LIB) $(DIR_BUILD)base_c65.o \
-		$(DIR_BUILD)type_fixture.o
+		$(DIR_BUILD)type_buffer.o
 	@echo '--- DONE -----------------------------------'
 
 build: build_base build_type
@@ -44,7 +44,7 @@ base_c65.o: $(DIR_SRC)c65.cpp $(DIR_INC)c65.h
 
 ### TYPE ###
 
-build_type: type_fixture.o
+build_type: type_buffer.o
 
-type_fixture.o: $(DIR_SRC_TYPE)fixture.cpp $(DIR_INC_TYPE)fixture.h
-	$(CXX) $(FLAGS) $(BUILD_FLAGS) $(TRACE_FLAGS) -c $(DIR_SRC_TYPE)fixture.cpp -o $(DIR_BUILD)type_fixture.o
+type_buffer.o: $(DIR_SRC_TYPE)buffer.cpp $(DIR_INC_TYPE)buffer.h
+	$(CXX) $(FLAGS) $(BUILD_FLAGS) $(TRACE_FLAGS) -c $(DIR_SRC_TYPE)buffer.cpp -o $(DIR_BUILD)type_buffer.o

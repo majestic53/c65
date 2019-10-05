@@ -408,7 +408,7 @@ namespace c65 {
 					stream << std::hex << arguments.back();
 					stream >> address.word;
 
-					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Load", "%s, %.01f KB (%u bytes), %u(%04x)",
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Load", "%s, %.02f KB (%u bytes), %u(%04x)",
 						STRING(arguments.front()), data.size() / (float)std::kilo::num, data.size(),
 						address.word, address.word);
 

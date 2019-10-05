@@ -19,8 +19,7 @@
 #ifndef C65_TEST_C65_H_
 #define C65_TEST_C65_H_
 
-#include "../../include/c65.h"
-#include "./type/fixture.h"
+#include "./interface/fixture.h"
 
 namespace c65 {
 

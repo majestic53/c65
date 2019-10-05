@@ -16,16 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../include/type/fixture.h"
-#include "./fixture_type.h"
+#ifndef C65_TEST_COMMON_TEST_H_
+#define C65_TEST_COMMON_TEST_H_
 
-namespace c65 {
+enum {
+	TEST_SUCCESS = 0,
+	TEST_FAILURE,
+	TEST_INCONCLUSIVE,
+};
 
-	namespace test {
+#define TEST_MAX TEST_INCONCLUSIVE
 
-		namespace type {
+static const std::string TEST_STR[] = {
+	"Success", // TEST_PASS
+	"Failure", // TEST_FAILURE
+	"Inconclusive", // TEST_INCONCLUSIVE
+	};
 
-			// TODO
-		}
-	}
-}
+#define TEST_STRING(_TYPE_) \
+	(((_TYPE_) > TEST_MAX) ? STRING_UNKNOWN : \
+		STRING(TEST_STR[_TYPE_]))
+
+#endif // C65_TEST_COMMON_TEST_H_

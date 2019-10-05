@@ -107,6 +107,11 @@ namespace c65 {
 			TRACE_ENTRY();
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor initializing");
+
+			m_maskable.word = DEFAULT_INTERRUPT_MASKABLE;
+			m_non_maskable.word = DEFAULT_INTERRUPT_NON_MASKABLE;
+			m_reset.word = DEFAULT_INTERRUPT_RESET;
+
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Processor initialized");
 
 			TRACE_EXIT();

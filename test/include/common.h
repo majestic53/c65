@@ -22,6 +22,8 @@
 #define C65_TEST
 
 #include "../../include/interface/singleton.h"
+#include "../../include/c65.h"
 #include "./common/macro.h"
+#include "./common/test.h"
 
 #endif // C65_TEST_COMMON_H_

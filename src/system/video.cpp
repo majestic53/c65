@@ -45,9 +45,9 @@ namespace c65 {
 		{
 			std::stringstream result;
 
-			TRACE_ENTRY_FORMAT("Rate=%.01f", rate);
+			TRACE_ENTRY_FORMAT("Rate=%.02f", rate);
 
-			result << m_title << " [" << STRING_FLOAT(rate) << " fps]";
+			result << m_title << " [" << (int)rate << " fps]";
 			SDL_SetWindowTitle(m_window, STRING(result.str()));
 
 			TRACE_EXIT();

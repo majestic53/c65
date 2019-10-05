@@ -19,6 +19,10 @@
 #ifndef C65_TEST_COMMON_MACRO_H_
 #define C65_TEST_COMMON_MACRO_H_
 
-// TODO
+#define ASSERT(_CONDITION_) { \
+	if(!(_CONDITION_)) { \
+		THROW_EXCEPTION("Failed assertion!", "%s", AS_STRING(_CONDITION_)); \
+	} \
+	}
 
 #endif // C65_TEST_COMMON_MACRO_H_
