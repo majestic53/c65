@@ -14,11 +14,12 @@ About
 
 This test suite performs regression testing during build-time. The following tests are available:
 
-|Test               |Count|Description            |
-|-------------------|-----|-----------------------|
-|c65::runtime       |7    |C65 runtime tests      |
-|c65::system::memory|2    |C65 memory system tests|
-|c65::type::buffer  |1    |C65 buffer type tests  |
+|Test                  |Count|Description               |
+|----------------------|-----|--------------------------|
+|c65::runtime          |7    |C65 runtime tests         |
+|c65::system::memory   |2    |C65 memory system tests   |
+|c65::system::processor|9    |C65 processor system tests|
+|c65::type::buffer     |1    |C65 buffer type tests     |
 
 Building
 =

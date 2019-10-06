@@ -153,6 +153,10 @@ Changelog
 Version 0.1.1940
 -
 
+*Updated: 10/6/2019*
+
+* Added processor system regression tests
+
 *Updated: 10/5/2019*
 
 * Added runtime/memory system regression tests <s>(incomplete)</s>
