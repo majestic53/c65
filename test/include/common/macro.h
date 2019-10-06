@@ -21,7 +21,7 @@
 
 #define ASSERT(_CONDITION_) { \
 	if(!(_CONDITION_)) { \
-		THROW_EXCEPTION("Failed assertion!", "%s", AS_STRING(_CONDITION_)); \
+		THROW_EXCEPTION("Failed assertion", "%s", AS_STRING(_CONDITION_)); \
 	} \
 	}
 

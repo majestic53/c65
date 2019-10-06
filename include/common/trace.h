@@ -19,16 +19,24 @@
 #ifndef C65_COMMON_TRACE_H_
 #define C65_COMMON_TRACE_H_
 
-#if !defined(NDEBUG) && !defined(C65_TEST)
+#ifndef NDEBUG
 #define _TRACE(_LEVEL_, _PREFIX_, _MESSAGE_, _FILE_, _FUNCTION_, _LINE_, _FORMAT_, ...) { \
 		if((_LEVEL_) <= (TRACE)) { \
 			c65::type::trace::generate(_LEVEL_, _PREFIX_, _MESSAGE_, _FILE_, _FUNCTION_, _LINE_, \
 				_FORMAT_, __VA_ARGS__); \
 		} \
 	}
+#define _TRACE_ENABLE(_ENABLE_) \
+	c65::type::trace::enable(_ENABLE_)
 #else
 #define _TRACE(_LEVEL_, _PREFIX_, _MESSAGE_, _FILE_, _FUNCTION_, _LINE_, _FORMAT_, ...)
+#define _TRACE_ENABLE(_ENABLE_)
 #endif // NDEBUG
+
+#define TRACE_DISABLE() \
+	_TRACE_ENABLE(false)
+#define TRACE_ENABLE() \
+	_TRACE_ENABLE(true)
 
 #define TRACE_ENTRY() \
 	TRACE_ENTRY_FORMAT("", "")

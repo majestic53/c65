@@ -29,6 +29,10 @@ namespace c65 {
 
 			public:
 
+				static void enable(
+					__in bool enabled
+					);
+
 				static void generate(
 					__in int level,
 					__in const std::string &prefix,
@@ -43,6 +47,8 @@ namespace c65 {
 			protected:
 
 				static std::string timestamp(void);
+
+				static bool g_enabled;
 		};
 	}
 }

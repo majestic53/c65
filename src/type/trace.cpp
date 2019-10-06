@@ -23,6 +23,20 @@ namespace c65 {
 
 	namespace type {
 
+		bool trace::g_enabled = true;
+
+		void
+		trace::enable(
+			__in bool enabled
+			)
+		{
+			TRACE_ENTRY_FORMAT("Enabled=%x", enabled);
+
+			g_enabled = enabled;
+
+			TRACE_EXIT();
+		}
+
 		void
 		trace::generate(
 			__in int level,
@@ -37,69 +51,71 @@ namespace c65 {
 		{
 			std::stringstream result;
 
-			result << LEVEL_COLOR(level) << "[" << c65::type::trace::timestamp() << "] {" << LEVEL_STRING(level) << "} "
-				<< prefix << message;
+			if(g_enabled) {
+				result << LEVEL_COLOR(level) << "[" << c65::type::trace::timestamp() << "] {" << LEVEL_STRING(level) << "} "
+					<< prefix << message;
 
-			if(format) {
-				int length;
-				va_list arguments;
-				std::string buffer;
+				if(format) {
+					int length;
+					va_list arguments;
+					std::string buffer;
 
-				va_start(arguments, format);
-				length = std::vsnprintf(nullptr, 0, format, arguments);
-				va_end(arguments);
-
-				if(length > 0) {
-					buffer.resize(++length);
 					va_start(arguments, format);
-					length = std::vsnprintf((char *)&buffer[0], buffer.size(), format, arguments);
+					length = std::vsnprintf(nullptr, 0, format, arguments);
 					va_end(arguments);
-				}
 
-				if(length < 0) {
-					buffer = C65_TYPE_TRACE_EXCEPTION_STRING(C65_TYPE_TRACE_EXCEPTION_FORMAT_INVALID);
-				}
-
-				if(!buffer.empty()) {
-
-					if(!result.str().empty()) {
-						result << ": ";
+					if(length > 0) {
+						buffer.resize(++length);
+						va_start(arguments, format);
+						length = std::vsnprintf((char *)&buffer[0], buffer.size(), format, arguments);
+						va_end(arguments);
 					}
 
-					result << buffer;
+					if(length < 0) {
+						buffer = C65_TYPE_TRACE_EXCEPTION_STRING(C65_TYPE_TRACE_EXCEPTION_FORMAT_INVALID);
+					}
+
+					if(!buffer.empty()) {
+
+						if(!result.str().empty()) {
+							result << ": ";
+						}
+
+						result << buffer;
+					}
 				}
-			}
 
 #ifndef NDEBUG
-			if(!result.str().empty()) {
-				result << " ";
-			}
+				if(!result.str().empty()) {
+					result << " ";
+				}
 
-			result << "(";
+				result << "(";
 
-			if(!function.empty()) {
-				result << function << ":";
-			}
+				if(!function.empty()) {
+					result << function << ":";
+				}
 
-			if(!file.empty()) {
-				result << file << "@";
-			}
+				if(!file.empty()) {
+					result << file << "@";
+				}
 
-			result << line << ")";
+				result << line << ")";
 #endif // NDEBUG
-			result << LEVEL_COLOR(LEVEL_NONE);
+				result << LEVEL_COLOR(LEVEL_NONE);
 
-			switch(level) {
-				case LEVEL_ERROR:
-				case LEVEL_WARNING:
-					std::cerr << result.str() << std::endl;
-					break;
-				case LEVEL_INFORMATION:
-				case LEVEL_VERBOSE:
-					std::cout << result.str() << std::endl;
-					break;
-				default:
-					break;
+				switch(level) {
+					case LEVEL_ERROR:
+					case LEVEL_WARNING:
+						std::cerr << result.str() << std::endl;
+						break;
+					case LEVEL_INFORMATION:
+					case LEVEL_VERBOSE:
+						std::cout << result.str() << std::endl;
+						break;
+					default:
+						break;
+				}
 			}
 		}
 

@@ -18,10 +18,10 @@ DIR_BIN_LIB=../../bin/lib/
 DIR_BUILD=../../build/test/
 DIR_TOOL=./
 EXE=c65-test
-EXE_FLAGS=-pthread
+EXE_FLAGS=
 FLAGS=-march=native -std=c++17 -Wall -Werror
 LIB=libc65.a
-LIB_FLAGS=-lreadline -lSDL2 -lSDL2main
+LIB_FLAGS=-lSDL2 -lSDL2main
 LIB_TEST=libc65-test.a
 
 all: launcher

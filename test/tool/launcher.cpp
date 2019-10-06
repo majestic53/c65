@@ -194,6 +194,8 @@ namespace c65 {
 
 						TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher runtime request");
 
+						TRACE_DISABLE();
+
 						fixtures.insert(std::make_pair("c65::runtime", &runtime));
 						fixtures.insert(std::make_pair("c65::system::memory", &memory));
 						fixtures.insert(std::make_pair("c65::type::buffer", &buffer));
@@ -224,6 +226,8 @@ namespace c65 {
 								error.clear();
 							}
 						}
+
+						TRACE_ENABLE();
 
 						TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 						return result;

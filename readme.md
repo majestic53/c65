@@ -155,7 +155,7 @@ Version 0.1.1940
 
 *Updated: 10/5/2019*
 
-* Added runtime/memory system regression tests (incomplete)
+* Added runtime/memory system regression tests <s>(incomplete)</s>
 
 *Updated: 10/4/2019*
 

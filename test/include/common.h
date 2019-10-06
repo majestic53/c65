@@ -19,8 +19,6 @@
 #ifndef C65_TEST_COMMON_H_
 #define C65_TEST_COMMON_H_
 
-#define C65_TEST
-
 #include "../../include/interface/singleton.h"
 #include "../../include/c65.h"
 #include "./common/macro.h"

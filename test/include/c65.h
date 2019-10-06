@@ -60,8 +60,6 @@ namespace c65 {
 
 				void test_reset(void);
 
-				void test_run(void);
-
 				void test_step(void);
 
 				void test_unload(void);

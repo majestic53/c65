@@ -127,12 +127,12 @@ namespace c65 {
 
 				TRACE_ENTRY();
 
-				// Test #1: empty file
+				// Test #1: Empty file
 				buffer.load(FILE_STRING(FILE_EMPTY));
 				ASSERT(buffer.empty());
 				buffer.clear();
 
-				// Test #2: non-empty file
+				// Test #2: Non-empty file
 				data = FILE_DATA(FILE_FULL);
 				buffer.load(FILE_STRING(FILE_FULL));
 
@@ -144,7 +144,7 @@ namespace c65 {
 
 				buffer.clear();
 
-				// Test #3: invalid file
+				// Test #3: Invalid file
 				try {
 					buffer.load(FILE_INVALID);
 					ASSERT(false);

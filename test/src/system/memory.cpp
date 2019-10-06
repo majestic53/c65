@@ -66,9 +66,42 @@ namespace c65 {
 			void
 			memory::test_read(void)
 			{
+				c65_address_t address = {};
+
 				TRACE_ENTRY();
 
-				// TODO
+				c65::system::memory &instance = c65::system::memory::instance();
+
+				instance.initialize();
+
+				do {
+
+					switch(address.word) {
+
+						// Test #1: Valid range
+						case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
+							ASSERT(instance.read(address) == MEMORY_FILL);
+							break;
+						case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
+						case ADDRESS_MEMORY_ZERO_PAGE_BEGIN ... ADDRESS_MEMORY_ZERO_PAGE_END:
+							ASSERT(instance.read(address) == MEMORY_ZERO);
+							break;
+
+						// Test #2: Invalid range
+						default:
+
+							try {
+								instance.read(address);
+								ASSERT(false);
+							} catch(...) { }
+
+							break;
+					}
+
+					++address.word;
+				} while(address.word);
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
@@ -76,9 +109,45 @@ namespace c65 {
 			void
 			memory::test_write(void)
 			{
+				c65_address_t address = {};
+				c65_byte_t value = std::rand();
+
 				TRACE_ENTRY();
 
-				// TODO
+				c65::system::memory &instance = c65::system::memory::instance();
+
+				instance.initialize();
+
+				do {
+
+					switch(address.word) {
+
+						// Test #1: Valid range
+						case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
+							instance.write(address, value);
+							ASSERT(instance.read(address) == value);
+							break;
+						case ADDRESS_MEMORY_STACK_BEGIN ... ADDRESS_MEMORY_STACK_END:
+						case ADDRESS_MEMORY_ZERO_PAGE_BEGIN ... ADDRESS_MEMORY_ZERO_PAGE_END:
+							instance.write(address, value);
+							ASSERT(instance.read(address) == value);
+							break;
+
+						// Test #2: Invalid range
+						default:
+
+							try {
+								instance.write(address, value);
+								ASSERT(false);
+							} catch(...) { }
+
+							break;
+					}
+
+					++address.word;
+				} while(address.word);
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
