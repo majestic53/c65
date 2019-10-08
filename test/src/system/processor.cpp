@@ -43,9 +43,12 @@ namespace c65 {
 				__in c65_address_t address
 				) const
 			{
-				c65_byte_t result = MEMORY_ZERO;
+				c65_byte_t result;
 
 				TRACE_ENTRY_FORMAT("Address=%u(%04x)", address.word, address.word);
+
+				result = m_memory.at(address.word);
+
 				TRACE_EXIT_FORMAT("Result=%u(%02x)", result, result);
 				return result;
 			}
@@ -71,7 +74,18 @@ namespace c65 {
 			void
 			processor::on_setup(void)
 			{
+				int type = 0;
+				c65_word_t *interrupt;
+
 				TRACE_ENTRY();
+
+				m_memory.resize(UINT16_MAX + 1, MEMORY_FILL);
+				interrupt = (c65_word_t *)&m_memory[ADDRESS_PROCESSOR_NON_MASKABLE_BEGIN];
+
+				for(; type <= INTERRUPT_VECTOR_MAX; ++type) {
+					interrupt[type] = INTERRUPT_VECTOR_ADDRESS(type);
+				}
+
 				TRACE_EXIT();
 			}
 
@@ -79,6 +93,9 @@ namespace c65 {
 			processor::on_teardown(void)
 			{
 				TRACE_ENTRY();
+
+				m_memory.clear();
+
 				TRACE_EXIT();
 			}
 
@@ -89,6 +106,9 @@ namespace c65 {
 				)
 			{
 				TRACE_ENTRY_FORMAT("Address=%u(%04x), Value=%u(%02x)", address.word, address.word, value, value);
+
+				m_memory.at(address.word) = value;
+
 				TRACE_EXIT();
 			}
 
@@ -106,35 +126,69 @@ namespace c65 {
 				// Test #1: Valid interrupt
 				for(; type <= C65_INTERRUPT_MAX; ++type) {
 					c65_status_t status = {};
-					c65_register_t value = {};
+					c65_address_t address = {};
+					c65_register_t program_counter = {}, stack = {};
 
 					instance.reset(*this);
 
+					address.word = ADDRESS_PROCESSOR_NON_MASKABLE_BEGIN;
+					instance.write(address, INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE));
+					address.word = ADDRESS_PROCESSOR_NON_MASKABLE_END;
+					instance.write(address, INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE) >> CHAR_BIT);
+					address.word = ADDRESS_PROCESSOR_MASKABLE_BEGIN;
+					instance.write(address, INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_MASKABLE));
+					address.word = ADDRESS_PROCESSOR_MASKABLE_END;
+					instance.write(address, INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_MASKABLE) >> CHAR_BIT);
+
+					for(address.word = ADDRESS_MEMORY_STACK_END; address.word > (ADDRESS_MEMORY_STACK_END - 3);
+							address.word--) {
+						m_memory.at(address.word) = MEMORY_FILL;
+					}
+
+					program_counter.word = (UINT16_MAX - 1);
+					stack.word = ADDRESS_MEMORY_STACK_END;
+
 					switch(type) {
 						case C65_INTERRUPT_NON_MASKABLE:
-							value.word = UINT16_MAX;
-							instance.write_register(C65_REGISTER_PROGRAM_COUNTER, value);
+							instance.write_register(C65_REGISTER_PROGRAM_COUNTER, program_counter);
+							instance.write_register(C65_REGISTER_STACK_POINTER, stack);
 							instance.interrupt(type);
-							ASSERT(instance.step(*this) == 9);
-							value.word = 0;
-							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == value.word);
+							ASSERT(instance.step(*this) == (COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED)
+								+ COMMAND_CYCLE_INTERRUPT));
+							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
+								== INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE));
+							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word
+								== (ADDRESS_MEMORY_STACK_END - 3));
+							status.raw = (instance.read_status().raw & ~MASK(FLAG_BREAK_INSTRUCTION));
+							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 2) == status.raw);
+							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 1) == program_counter.low);
+							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END) == program_counter.high);
 							break;
 						case C65_INTERRUPT_MASKABLE:
 
 							// Test #1.a: IRQ with interrupts disabled
-							value.word = UINT16_MAX;
-							instance.write_register(C65_REGISTER_PROGRAM_COUNTER, value);
+							instance.write_register(C65_REGISTER_PROGRAM_COUNTER, program_counter);
+							instance.write_register(C65_REGISTER_STACK_POINTER, stack);
 							instance.interrupt(type);
-							ASSERT(instance.step(*this) == 2);
-							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == value.word);
+							ASSERT(instance.step(*this) == COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED));
+							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == program_counter.word);
+							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == stack.word);
 
 							// Test #1.b: IRQ with interrupts enabled
 							status.raw = (instance.read_status().raw & ~MASK(FLAG_INTERRUPT_DISABLE));
 							instance.write_status(status);
+							instance.write_register(C65_REGISTER_STACK_POINTER, stack);
 							instance.interrupt(type);
-							ASSERT(instance.step(*this) == 9);
-							value.word = 0;
-							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == value.word);
+							ASSERT(instance.step(*this) == (COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED)
+								+ COMMAND_CYCLE_INTERRUPT));
+							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
+								== INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_MASKABLE));
+							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word
+								== (ADDRESS_MEMORY_STACK_END - 3));
+							status.raw = (instance.read_status().raw & ~MASK(FLAG_BREAK_INSTRUCTION));
+							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 2) == status.raw);
+							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 1) == program_counter.low);
+							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END) == program_counter.high);
 							break;
 						default:
 							break;
@@ -260,7 +314,8 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == 0);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == 0);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == 0);
-				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == ADDRESS_MEMORY_HIGH_BEGIN);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word ==
+					INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == ADDRESS_MEMORY_STACK_END);
 				ASSERT(instance.read_status().raw == (MASK(FLAG_BREAK_INSTRUCTION) | MASK(FLAG_INTERRUPT_DISABLE)
 					| MASK(FLAG_UNUSED)));

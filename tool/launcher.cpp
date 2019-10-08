@@ -124,6 +124,82 @@ namespace c65 {
 					__in const launcher &other
 					) = delete;
 
+				static char **command_completion(
+					__in const char *input,
+					__in int begin,
+					__in int end
+					)
+				{
+					char **result;
+
+					TRACE_ENTRY_FORMAT("Input=%p, Begin=%i, End=%i", input, begin, end);
+
+					rl_attempted_completion_over = true;
+					result = rl_completion_matches(input, c65::tool::launcher::command_generator);
+
+					TRACE_EXIT_FORMAT("Result=%p", result);
+					return result;
+				}
+
+				static char *command_generator(
+					__in const char *input,
+					__in int state
+					)
+				{
+					char *result = nullptr;
+					static size_t completion = 0;
+					static std::vector<std::string> completions;
+
+					TRACE_ENTRY_FORMAT("Input=%p, State=%i", input, state);
+
+					if(!state) {
+						int type;
+						std::string in(input);
+
+						completions.clear();
+						completion = 0;
+
+						for(type = 0; type <= ACTION_MAX; ++type) {
+							std::string out = ACTION_LONG_STRING(type);
+
+							if((out.size() >= in.size()) && !out.compare(0, in.size(), in)) {
+								completions.push_back(out);
+							}
+						}
+
+						for(type = 0; type <= ACTION_MAX; ++type) {
+							std::string out = ACTION_SHORT_STRING(type);
+
+							if((out.size() >= in.size()) && !out.compare(0, in.size(), in)) {
+								completions.push_back(out);
+							}
+						}
+
+						for(type = 0; type <= C65_INTERRUPT_MAX; ++type) {
+							std::string out = ACTION_INTERRUPT_STRING(type);
+
+							if((out.size() >= in.size()) && !out.compare(0, in.size(), in)) {
+								completions.push_back(out);
+							}
+						}
+
+						for(type = 0; type <= C65_REGISTER_MAX; ++type) {
+							std::string out = ACTION_REGISTER_STRING(type);
+
+							if((out.size() >= in.size()) && !out.compare(0, in.size(), in)) {
+								completions.push_back(out);
+							}
+						}
+					}
+
+					if(completion < completions.size()) {
+						result = strdup(completions.at(completion++).c_str());
+					}
+
+					TRACE_EXIT_FORMAT("Result=%p", result);
+					return result;
+				}
+
 				int debug(void)
 				{
 					bool complete = false;
@@ -133,6 +209,7 @@ namespace c65 {
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher console request");
 
+					rl_attempted_completion_function = c65::tool::launcher::command_completion;
 					stifle_history(HISTORY_MAX);
 
 					while(!complete) {

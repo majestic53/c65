@@ -80,6 +80,8 @@ namespace c65 {
 					void test_write_register(void);
 
 					void test_write_status(void);
+
+					std::vector<c65_byte_t> m_memory;
 			};
 		}
 	}

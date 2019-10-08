@@ -150,6 +150,14 @@ $ make TRACE=3
 Changelog
 =
 
+Version 0.1.1941
+-
+
+*Updated: 10/7/2019*
+
+* Added debug console tab completion
+* Added additional processor test cases
+
 Version 0.1.1940
 -
 
@@ -178,40 +186,5 @@ Version 0.1.1940
 
 * Added dump action
 * Minor code cleanup
-
-Version 0.1.1939
--
-
-*Updated: 9/29/2019*
-
-* Added additional actions
-
-*Updated: 9/28/2019*
-
-* Added debug console
-* Added additional actions
-* Updated documentation
-
-*Updated: 9/27/2019*
-
-* Added processor register/status read/write routines
-
-*Updated: 9/26/2019*
-
-* Fixed processor stack routine bug
-
-*Updated: 9/25/2019*
-
-* Added system processor interrupt handling
-* Added system processor push/pop/read/write
-
-*Updated: 9/24/2019*
-
-* Added system processor class
-* Minor code cleanup
-
-*Updated: 9/23/2019*
-
-* Added system video class
 
 *Changelog truncated (see file history for full log)*

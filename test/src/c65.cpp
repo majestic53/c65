@@ -302,9 +302,27 @@ namespace c65 {
 		void
 		runtime::test_step(void)
 		{
+			c65_byte_t value;
+			c65_action_t request = {}, response = {};
+
 			TRACE_ENTRY();
 
+			request.type = C65_ACTION_READ_BYTE;
+			request.address.word = ADDRESS_RANDOM;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			value = response.data.low;
+
+			// Test #1: Step instruction
 			ASSERT(c65_step() == EXIT_SUCCESS);
+
+			// Test #2: Check random value
+			request.type = C65_ACTION_READ_BYTE;
+			request.address.word = ADDRESS_RANDOM;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+
+			try {
+				ASSERT(response.data.low != value);
+			} catch(...) { }
 
 			TRACE_EXIT();
 		}
