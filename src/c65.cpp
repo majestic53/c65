@@ -61,6 +61,12 @@ namespace c65 {
 					std::memset(response, 0, sizeof(*response));
 
 					switch(request->type) {
+						case C65_ACTION_CYCLE:
+							result = action_cycle(request, response);
+							break;
+						case C65_ACTION_INTERRUPT_PENDING:
+							result = action_interrupt_pending(request, response);
+							break;
 						case C65_ACTION_READ_BYTE:
 							result = action_read_byte(request, response);
 							break;
@@ -72,6 +78,12 @@ namespace c65 {
 							break;
 						case C65_ACTION_READ_WORD:
 							result = action_read_word(request, response);
+							break;
+						case C65_ACTION_STOPPED:
+							result = action_stopped(request, response);
+							break;
+						case C65_ACTION_WAITING:
+							result = action_waiting(request, response);
 							break;
 						case C65_ACTION_WRITE_BYTE:
 							result = action_write_byte(request, response);
@@ -98,6 +110,36 @@ namespace c65 {
 					m_error = exc.what();
 					result = EXIT_FAILURE;
 				}
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_cycle(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->cycle = m_cycle;
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_interrupt_pending(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->data.word = m_processor.interrupt_pending();
 
 				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 				return result;
@@ -162,6 +204,36 @@ namespace c65 {
 				response->data.low = read(address);
 				++address.word;
 				response->data.high = read(address);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_stopped(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->data.word = m_processor.stopped();
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_waiting(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->data.word = m_processor.waiting();
 
 				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 				return result;
@@ -271,18 +343,18 @@ namespace c65 {
 
 			int load(
 				__in const c65_byte_t *data,
-				__in c65_word_t length,
+				__in c65_dword_t length,
 				__in c65_address_t base
 				)
 			{
 				int result = EXIT_SUCCESS;
 
-				TRACE_ENTRY_FORMAT("Data[%u(%04x)]=%p, Base=%u(%04x)", length, length, data, base.word, base.word);
+				TRACE_ENTRY_FORMAT("Data[%u(%08x)]=%p, Base=%u(%04x)", length, length, data, base.word, base.word);
 
 				try {
 					uint32_t index;
 
-					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime load request", "[%u(%04x)]%p, %u(%04x)",
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime load request", "[%u(%08x)]%p, %u(%04x)",
 						length, length, data, base.word, base.word);
 
 					initialize();
@@ -330,6 +402,7 @@ namespace c65 {
 
 					initialize();
 					m_processor.reset(*this);
+					m_cycle = 0;
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
 					result = EXIT_FAILURE;
@@ -349,7 +422,7 @@ namespace c65 {
 				TRACE_ENTRY();
 
 				try {
-					int cycle = 0;
+					int remaining = 0;
 					uint32_t begin = 0, current = 0;
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime run request");
@@ -381,10 +454,15 @@ namespace c65 {
 							break;
 						}
 
-						cycle = (CYCLES_PER_FRAME - cycle);
-						while(cycle > 0) {
+						remaining = (CYCLES_PER_FRAME - remaining);
+						while(remaining > 0) {
+							uint8_t last;
+
 							m_random = std::rand();
-							cycle -= m_processor.step(*this);
+							last = m_processor.step(*this);
+
+							remaining -= last;
+							m_cycle += last;
 						}
 
 						m_video.render();
@@ -422,7 +500,7 @@ namespace c65 {
 					initialize();
 
 					m_random = std::rand();
-					m_processor.step(*this);
+					m_cycle += m_processor.step(*this);
 					m_video.render();
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
@@ -438,7 +516,7 @@ namespace c65 {
 
 			int unload(
 				__in c65_address_t base,
-				__in c65_word_t length
+				__in c65_dword_t length
 				)
 			{
 				int result = EXIT_SUCCESS;
@@ -448,7 +526,7 @@ namespace c65 {
 				try {
 					uint32_t index;
 
-					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime unload request", "%u(%04x), %u(%04x)",
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime unload request", "%u(%04x), %u(%08x)",
 						base.word, base.word, length, length);
 
 					initialize();
@@ -492,6 +570,7 @@ namespace c65 {
 			friend class c65::interface::singleton<c65::runtime>;
 
 			runtime(void) :
+				m_cycle(0),
 				m_key(0),
 				m_memory(c65::system::memory::instance()),
 				m_processor(c65::system::processor::instance()),
@@ -530,6 +609,8 @@ namespace c65 {
 				TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "SDL loaded", "%i.%i.%i", version.major, version.minor, version.patch);
 
 				std::srand(std::time(nullptr));
+
+				m_cycle = 0;
 				m_key = 0;
 				m_random = 0;
 
@@ -591,6 +672,7 @@ namespace c65 {
 
 				m_random = 0;
 				m_key = 0;
+				m_cycle = 0;
 
 				SDL_Quit();
 
@@ -663,6 +745,8 @@ namespace c65 {
 				return result;
 			}
 
+			c65_dword_t m_cycle;
+
 			std::string m_error;
 
 			c65_byte_t m_key;
@@ -734,13 +818,13 @@ c65_interrupt(
 int
 c65_load(
 	__in const c65_byte_t *data,
-	__in c65_word_t length,
+	__in c65_dword_t length,
 	__in c65_address_t base
 	)
 {
 	int result;
 
-	TRACE_ENTRY_FORMAT("Data[%u(%04x)]=%p, Base=%u(%04x)", length, length, data, base.word, base.word);
+	TRACE_ENTRY_FORMAT("Data[%u(%08x)]=%p, Base=%u(%04x)", length, length, data, base.word, base.word);
 
 	result = c65::runtime::instance().load(data, length, base);
 
@@ -790,12 +874,12 @@ c65_step(void)
 int
 c65_unload(
 	__in c65_address_t base,
-	__in c65_word_t length
+	__in c65_dword_t length
 	)
 {
 	int result;
 
-	TRACE_ENTRY_FORMAT("Base=%u(%04x), Length=%u(%04x)", base.word, base.word, length, length);
+	TRACE_ENTRY_FORMAT("Base=%u(%04x), Length=%u(%08x)", base.word, base.word, length, length);
 
 	result = c65::runtime::instance().unload(base, length);
 

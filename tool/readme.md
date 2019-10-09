@@ -49,11 +49,14 @@ $ ./bin/c65 -d
 The following arguments are available:
 
 ```
+c|cycle                                         Display cycle information
+da|disassemble          <address> <count>       Disassemble memory contents
 d|dump                  <address> <count>       Dump memory contents
 q|exit                                          Exit console
 ?|help                                          Display help information
 i|interrupt             <type>                  Interrupt processor
 l|load                  <path> <address>        Load data into memory
+p|processor                                     Display processor information
 rb|read-byte            <address>               Read byte from memory
 rr|read-register        <register>              Read register value
 rs|read-status                                  Read status value

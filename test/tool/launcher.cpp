@@ -206,11 +206,6 @@ namespace c65 {
 						for(fixture = fixtures.begin(); fixture != fixtures.end(); ++fixture) {
 							std::string error;
 
-							if(!m_quiet) {
-								std::cerr << LEVEL_COLOR(LEVEL_INFORMATION) << fixture->first
-									<< std::endl << LEVEL_COLOR(LEVEL_NONE);
-							}
-
 							TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Running fixture", "%s", STRING(fixture->first));
 
 							if(fixture->second->setup(error) != TEST_SUCCESS) {
@@ -221,6 +216,18 @@ namespace c65 {
 
 							if(fixture->second->teardown(error) != TEST_SUCCESS) {
 								result = EXIT_FAILURE;
+							}
+
+							if(!m_quiet) {
+
+								if(result == EXIT_SUCCESS) {
+									std::cout << LEVEL_COLOR(LEVEL_INFORMATION) << "[PASS] ";
+								} else {
+									std::cout << LEVEL_COLOR(LEVEL_ERROR) << "[FAIL] ";
+								}
+
+								std::cout << LEVEL_COLOR(LEVEL_INFORMATION) << fixture->first
+									<< std::endl << LEVEL_COLOR(LEVEL_NONE);
 							}
 
 							if(!error.empty()) {

@@ -30,8 +30,14 @@
 
 enum {
 
+	// Cycle count
+	C65_ACTION_CYCLE = 0,
+
+	// Interrupt pending state
+	C65_ACTION_INTERRUPT_PENDING,
+
 	// Read memory byte
-	C65_ACTION_READ_BYTE = 0,
+	C65_ACTION_READ_BYTE,
 
 	// Read processor register
 	C65_ACTION_READ_REGISTER,
@@ -41,6 +47,12 @@ enum {
 
 	// Read memory word
 	C65_ACTION_READ_WORD,
+
+	// Stop status
+	C65_ACTION_STOPPED,
+
+	// Wait status
+	C65_ACTION_WAITING,
 
 	// Write memory byte
 	C65_ACTION_WRITE_BYTE,
@@ -94,6 +106,9 @@ typedef uint8_t c65_byte_t;
 // Word type
 typedef uint16_t c65_word_t;
 
+// Double-word type
+typedef uint32_t c65_dword_t;
+
 typedef union {
 
 	struct {
@@ -136,6 +151,8 @@ typedef struct {
 	c65_address_t address;
 
 	union {
+		// Action cycle
+		c65_dword_t cycle;
 
 		// Action data
 		c65_register_t data;
@@ -180,7 +197,7 @@ int c65_interrupt(int type);
  * @param base Base address
  * @return EXIT_SUCCESS on success
  */
-int c65_load(const c65_byte_t *data, c65_word_t length, c65_address_t base);
+int c65_load(const c65_byte_t *data, c65_dword_t length, c65_address_t base);
 
 /**
  * Reset emulator
@@ -206,7 +223,7 @@ int c65_step(void);
  * @param length Byte length
  * @return EXIT_SUCCESS on success
  */
-int c65_unload(c65_address_t base, c65_word_t length);
+int c65_unload(c65_address_t base, c65_dword_t length);
 
 /**********************************************
  * MISC.

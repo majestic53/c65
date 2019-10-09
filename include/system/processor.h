@@ -38,6 +38,8 @@ namespace c65 {
 					__in int type
 					);
 
+				bool interrupt_pending(void) const;
+
 				c65_register_t read_register(
 					__in int type
 					) const;
@@ -51,6 +53,10 @@ namespace c65 {
 				uint8_t step(
 					__in c65::interface::bus &bus
 					);
+
+				bool stopped(void) const;
+
+				bool waiting(void) const;
 
 				void write_register(
 					__in int type,

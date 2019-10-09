@@ -256,6 +256,12 @@ namespace c65 {
 							}
 
 							switch(type) {
+								case ACTION_CYCLE:
+									debug_action_cycle();
+									break;
+								case ACTION_DISASSEMBLE:
+									debug_action_disassemble(arguments);
+									break;
 								case ACTION_DUMP:
 									debug_action_dump(arguments);
 									break;
@@ -270,6 +276,9 @@ namespace c65 {
 									break;
 								case ACTION_LOAD:
 									debug_action_load(arguments);
+									break;
+								case ACTION_PROCESSOR:
+									debug_action_processor();
 									break;
 								case ACTION_READ_BYTE:
 									debug_action_read_byte(arguments);
@@ -328,6 +337,140 @@ namespace c65 {
 
 					TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 					return result;
+				}
+
+				void debug_action_cycle(void)
+				{
+					c65_action_t request = {}, response = {};
+
+					TRACE_ENTRY();
+
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Cycle");
+
+					request.type = C65_ACTION_CYCLE;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << response.cycle << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_disassemble(
+					__in const std::vector<std::string> &arguments
+					)
+				{
+					c65_word_t count;
+					c65_address_t address;
+					std::stringstream result, stream;
+
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					stream << std::hex << arguments.front();
+					stream >> address.word;
+
+					stream.clear();
+					stream.str(std::string());
+					stream << std::dec << arguments.back();
+					stream >> count;
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Disassemble", "%u(%04x), %u", address.word, address.word,
+						count);
+
+					result << "[" << STRING_HEXIDECIMAL(c65_word_t, address.word) << ", " << count << " instructions]"
+						<< std::endl;
+
+					while(count--) {
+						c65_address_t origin;
+						std::vector<c65_byte_t> data;
+						std::vector<c65_byte_t>::iterator byte;
+						c65_action_t request = {}, response = {};
+
+						stream.clear();
+						stream.str(std::string());
+						stream << STRING_HEXIDECIMAL(c65_word_t, address.word);
+
+						result << std::endl << STRING_COLUMN() << stream.str();
+
+						request.type = C65_ACTION_READ_BYTE;
+						request.address = address;
+						origin = address;
+						++address.word;
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
+						}
+
+						data.push_back(response.data.low);
+						const command_t &command = COMMAND(data.back());
+
+						stream.clear();
+						stream.str(std::string());
+						stream << COMMAND_MODE_STRING(command.mode);
+						result << COMMAND_STRING(command.type) << " " << STRING_COLUMN() << stream.str();
+
+						switch(command.length) {
+							case COMMAND_LENGTH_BYTE:
+								request.type = C65_ACTION_READ_BYTE;
+								request.address = address;
+								++address.word;
+
+								if(c65_action(&request, &response) != EXIT_SUCCESS) {
+									THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+										C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+								}
+
+								data.push_back(response.data.low);
+
+								stream.clear();
+								stream.str(std::string());
+								stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+
+								if(command.mode == COMMAND_MODE_RELATIVE) {
+									c65_word_t offset = (origin.word + (int8_t)response.data.low);
+									stream << " (" << STRING_HEXIDECIMAL(c65_word_t, offset) << ")";
+								}
+
+								result << STRING_COLUMN() << stream.str();
+								break;
+							case COMMAND_LENGTH_WORD:
+								request.type = C65_ACTION_READ_WORD;
+								request.address = address;
+								address.word += COMMAND_LENGTH_WORD;
+
+								if(c65_action(&request, &response) != EXIT_SUCCESS) {
+									THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+										C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+								}
+
+								data.push_back(response.data.low);
+								data.push_back(response.data.high);
+
+								stream.clear();
+								stream.str(std::string());
+								stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+								result << STRING_COLUMN() << stream.str();
+								break;
+							default:
+								result << STRING_COLUMN() << " ";
+								break;
+						}
+
+						result << "[" << (int)command.cycle << "] {";
+
+						for(byte = data.begin(); byte != data.end(); ++byte) {
+							result << " " << STRING_HEXIDECIMAL(c65_byte_t, *byte);
+						}
+
+						result << " }";
+					}
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+
+					TRACE_EXIT();
 				}
 
 				void debug_action_dump(
@@ -492,6 +635,140 @@ namespace c65 {
 					if(c65_load((c65_byte_t *)&data[0], data.size(), address) != EXIT_SUCCESS) {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_processor(void)
+				{
+					int flag = FLAG_MAX;
+					std::stringstream result, stream;
+					c65_action_t request = {}, response = {};
+
+					TRACE_ENTRY();
+
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Processor");
+
+					request.type = C65_ACTION_CYCLE;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << STRING_COLUMN() << "Cycle" << response.cycle;
+
+					request.type = C65_ACTION_READ_STATUS;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					request.type = C65_ACTION_INTERRUPT_PENDING;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << std::endl << STRING_COLUMN() << "Interrupted" << STRING_COLUMN() << response.data.word
+						<< (response.data.word ? "true" : "false");
+
+					request.type = C65_ACTION_STOPPED;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << std::endl << STRING_COLUMN() << "Stopped" << STRING_COLUMN() << response.data.word
+						<< (response.data.word ? "true" : "false");
+
+					request.type = C65_ACTION_WAITING;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << std::endl << STRING_COLUMN() << "Waiting" << STRING_COLUMN() << response.data.word
+						<< (response.data.word ? "true" : "false");
+
+					request.type = C65_ACTION_READ_STATUS;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					stream << STRING_HEXIDECIMAL(c65_byte_t, response.status.raw);
+					result << std::endl << STRING_COLUMN() << "Status" << STRING_COLUMN() << stream.str();
+
+					for(; flag >= 0; flag--) {
+						result << FLAG_STRING(MASK_CHECK(response.status.raw, flag) ? flag : FLAG_UNUSED);
+					}
+
+					request.type = C65_ACTION_READ_REGISTER;
+					request.address.word = C65_REGISTER_PROGRAM_COUNTER;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					stream.clear();
+					stream.str(std::string());
+					stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+					result << std::endl << STRING_COLUMN() << "Program-Counter" << STRING_COLUMN() << stream.str()
+						<< (int)response.data.word;
+
+					request.type = C65_ACTION_READ_REGISTER;
+					request.address.word = C65_REGISTER_STACK_POINTER;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					stream.clear();
+					stream.str(std::string());
+					stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+					result << std::endl << STRING_COLUMN() << "Stack-Pointer" << STRING_COLUMN() << stream.str()
+						<< (int)response.data.word;
+
+					request.type = C65_ACTION_READ_REGISTER;
+					request.address.word = C65_REGISTER_ACCUMULATOR;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					stream.clear();
+					stream.str(std::string());
+					stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					result << std::endl << STRING_COLUMN() << "Accumulator" << STRING_COLUMN() << stream.str()
+						<< (int)response.data.low;
+
+					request.type = C65_ACTION_READ_REGISTER;
+					request.address.word = C65_REGISTER_INDEX_X;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					stream.clear();
+					stream.str(std::string());
+					stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					result << std::endl << STRING_COLUMN() << "Index-X" << STRING_COLUMN() << stream.str()
+						<< (int)response.data.low;
+
+					request.type = C65_ACTION_READ_REGISTER;
+					request.address.word = C65_REGISTER_INDEX_Y;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					stream.clear();
+					stream.str(std::string());
+					stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					result << std::endl << STRING_COLUMN() << "Index-Y" << STRING_COLUMN() << stream.str()
+						<< (int)response.data.low;
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
 
 					TRACE_EXIT();
 				}

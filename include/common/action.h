@@ -20,10 +20,14 @@
 #define C65_COMMON_ACTION_H_
 
 static const std::string ACTION_STR[] = {
+	"Cycle", // C65_ACTION_CYCLE
+	"Interrupt-Pending", // C65_ACTION_INTERRUPT_PENDING
 	"Read-Byte", // C65_ACTION_READ_BYTE
 	"Read-Register", // C65_ACTION_READ_REGISTER
 	"Read-Status", // C65_ACTION_READ_STATUS
 	"Read-Word", // C65_ACTION_READ_WORD
+	"Stopped", // C65_ACTION_STOPPED
+	"Waiting", // C65_ACTION_WAITING
 	"Write-Byte", // C65_ACTION_WRITE_BYTE
 	"Write-Register", // C65_ACTION_WRITE_REGISTER
 	"Write-Status", // C65_ACTION_WRITE_STATUS

@@ -65,6 +65,8 @@ namespace c65 {
 
 					void test_interrupt(void);
 
+					void test_interrupt_pending(void);
+
 					void test_read(void);
 
 					void test_read_register(void);
@@ -74,6 +76,10 @@ namespace c65 {
 					void test_reset(void);
 
 					void test_step(void);
+
+					void test_stopped(void);
+
+					void test_waiting(void);
 
 					void test_write(void);
 

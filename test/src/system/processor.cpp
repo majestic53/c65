@@ -59,11 +59,14 @@ namespace c65 {
 				TRACE_ENTRY();
 
 				test_interrupt();
+				test_interrupt_pending();
 				test_read();
 				test_read_register();
 				test_read_status();
 				test_reset();
 				test_step();
+				test_stopped();
+				test_waiting();
 				test_write();
 				test_write_register();
 				test_write_status();
@@ -207,6 +210,31 @@ namespace c65 {
 			}
 
 			void
+			processor::test_interrupt_pending(void)
+			{
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1: Maskable interrupt
+				ASSERT(!instance.interrupt_pending());
+				instance.interrupt(C65_INTERRUPT_MASKABLE);
+				ASSERT(instance.interrupt_pending());
+
+				// Test #2: Non-maskable interrupt
+				instance.reset(*this);
+				ASSERT(!instance.interrupt_pending());
+				instance.interrupt(C65_INTERRUPT_NON_MASKABLE);
+				ASSERT(instance.interrupt_pending());
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
 			processor::test_read(void)
 			{
 				c65_address_t address = {};
@@ -334,7 +362,39 @@ namespace c65 {
 
 				instance.initialize();
 
-				ASSERT(instance.step(*this) == 2);
+				ASSERT(instance.step(*this) == COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED));
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_stopped(void)
+			{
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				ASSERT(!instance.stopped());
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_waiting(void)
+			{
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				ASSERT(!instance.waiting());
 
 				instance.uninitialize();
 

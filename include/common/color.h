@@ -66,8 +66,8 @@ static const color_t COL[] = {
 	{{ 20, 60, 255, 255 }}, // COLOR_LIGHT_RED
 	{{ 40, 40, 40, 255 }}, // COLOR_DARK_GREY
 	{{ 100, 100, 100, 255 }}, // COLOR_GREY
-	{{ 0, 255, 127, 255 }}, // COLOR_LIGHT_GREEN
-	{{ 255, 127, 0, 255 }}, // COLOR_LIGHT_BLUE
+	{{ 0, 255, 100, 255 }}, // COLOR_LIGHT_GREEN
+	{{ 255, 168, 0, 255 }}, // COLOR_LIGHT_BLUE
 	{{ 160, 160, 160, 255 }}, // COLOR_LIGHT_GREY
 	};
 

@@ -79,7 +79,31 @@ namespace c65 {
 						+ ADDRESS_MEMORY_HIGH_BEGIN);
 			value.word = std::rand();
 
-			// Test #1: Read byte action
+			// Test #1: Cycle action
+			request.type = C65_ACTION_CYCLE;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_CYCLE);
+			ASSERT(!response.cycle);
+			ASSERT(c65_step() == EXIT_SUCCESS);
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_CYCLE);
+			ASSERT(response.cycle == COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED));
+
+			// Test #2: Interrupt pending action
+			request.type = C65_ACTION_INTERRUPT_PENDING;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_INTERRUPT_PENDING);
+			ASSERT(!response.data.low);
+			ASSERT(c65_interrupt(C65_INTERRUPT_MASKABLE) == EXIT_SUCCESS);
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_INTERRUPT_PENDING);
+			ASSERT(response.data.low);
+			ASSERT(c65_interrupt(C65_INTERRUPT_NON_MASKABLE) == EXIT_SUCCESS);
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_INTERRUPT_PENDING);
+			ASSERT(response.data.low);
+
+			// Test #3: Read byte action
 			ASSERT(c65_load((c65_byte_t *)&value.low, COMMAND_LENGTH_BYTE, address) == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_BYTE;
 			request.address = address;
@@ -88,7 +112,7 @@ namespace c65 {
 			ASSERT(response.data.low == value.low);
 			ASSERT(c65_unload(address, COMMAND_LENGTH_BYTE) == EXIT_SUCCESS);
 
-			// Test #2: Read register action
+			// Test #4: Read register action
 			ASSERT(c65_reset() == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_REGISTER;
 
@@ -114,14 +138,14 @@ namespace c65 {
 				}
 			}
 
-			// Test #3: Read status action
+			// Test #5: Read status action
 			ASSERT(c65_reset() == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_STATUS;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_READ_STATUS);
 			ASSERT(response.status.raw == (MASK(FLAG_BREAK_INSTRUCTION) | MASK(FLAG_INTERRUPT_DISABLE) | MASK(FLAG_UNUSED)));
 
-			// Test #4: Read word action
+			// Test #6: Read word action
 			ASSERT(c65_load((c65_byte_t *)&value.word, COMMAND_LENGTH_WORD, address) == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_WORD;
 			request.address = address;
@@ -130,7 +154,19 @@ namespace c65 {
 			ASSERT(response.data.word == value.word);
 			ASSERT(c65_unload(address, COMMAND_LENGTH_WORD) == EXIT_SUCCESS);
 
-			// Test #5: Write byte action
+			// Test #7: Stopped action
+			request.type = C65_ACTION_STOPPED;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_STOPPED);
+			ASSERT(!response.data.low);
+
+			// Test #8: Waiting action
+			request.type = C65_ACTION_WAITING;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_WAITING);
+			ASSERT(!response.data.low);
+
+			// Test #9: Write byte action
 			request.type = C65_ACTION_WRITE_BYTE;
 			request.address = address;
 			request.data.low = value.low;
@@ -144,7 +180,7 @@ namespace c65 {
 			ASSERT(response.data.low == value.low);
 			ASSERT(c65_unload(address, COMMAND_LENGTH_BYTE) == EXIT_SUCCESS);
 
-			// Test #6: Write register action
+			// Test #10: Write register action
 			for(type = 0; type <= C65_REGISTER_MAX; ++type) {
 				request.type = C65_ACTION_WRITE_REGISTER;
 				request.address.word = type;
@@ -186,7 +222,7 @@ namespace c65 {
 				}
 			}
 
-			// Test #7: Write status action
+			// Test #11: Write status action
 			request.type = C65_ACTION_WRITE_STATUS;
 			request.status.raw = value.low;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
@@ -197,7 +233,7 @@ namespace c65 {
 			ASSERT(response.type == C65_ACTION_READ_STATUS);
 			ASSERT(response.status.raw == value.low);
 
-			// Test #8: Write word action
+			// Test #12: Write word action
 			request.type = C65_ACTION_WRITE_WORD;
 			request.address = address;
 			request.data = value;

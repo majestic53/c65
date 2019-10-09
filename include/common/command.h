@@ -123,9 +123,9 @@ enum {
 #define COMMAND_MAX COMMAND_WAI
 
 static const std::string COMMAND_STR[] = {
-	"adc", // COMMAND_ADC
-	"and", // COMMAND_AND
-	"asl", // COMMAND_ASL
+	"adc ", // COMMAND_ADC
+	"and ", // COMMAND_AND
+	"asl ", // COMMAND_ASL
 	"bbr0", // COMMAND_BBR0
 	"bbr1", // COMMAND_BBR1
 	"bbr2", // COMMAND_BBR2
@@ -142,47 +142,47 @@ static const std::string COMMAND_STR[] = {
 	"bbs5", // COMMAND_BBS5
 	"bbs6", // COMMAND_BBS6
 	"bbs7", // COMMAND_BBS7
-	"bcc", // COMMAND_BCC
-	"bcs", // COMMAND_BCS
-	"beq", // COMMAND_BEQ
-	"bit", // COMMAND_BIT
-	"bmi", // COMMAND_BMI
-	"bne", // COMMAND_BNE
-	"bpl", // COMMAND_BPL
-	"bra", // COMMAND_BRA
-	"brk", // COMMAND_BRK
-	"bvc", // COMMAND_BVC
-	"bvs", // COMMAND_BVS
-	"clc", // COMMAND_CLC
-	"cld", // COMMAND_CLD
-	"cli", // COMMAND_CLI
-	"clv", // COMMAND_CLV
-	"cmp", // COMMAND_CMP
-	"cpx", // COMMAND_CPX
-	"cpy", // COMMAND_CPY
-	"dec", // COMMAND_DEC
-	"dex", // COMMAND_DEX
-	"dey", // COMMAND_DEY
-	"eor", // COMMAND_EOR
-	"inc", // COMMAND_INC
-	"inx", // COMMAND_INX
-	"iny", // COMMAND_INY
-	"jmp", // COMMAND_JMP
-	"jsr", // COMMAND_JSR
-	"lda", // COMMAND_LDA
-	"ldx", // COMMAND_LDX
-	"ldy", // COMMAND_LDY
-	"lsr", // COMMAND_LSR
-	"nop", // COMMAND_NOP
-	"ora", // COMMAND_ORA
-	"pha", // COMMAND_PHA
-	"php", // COMMAND_PHP
-	"phx", // COMMAND_PHX
-	"phy", // COMMAND_PHY
-	"pla", // COMMAND_PLA
-	"plp", // COMMAND_PLP
-	"plx", // COMMAND_PLX
-	"ply", // COMMAND_PLY
+	"bcc ", // COMMAND_BCC
+	"bcs ", // COMMAND_BCS
+	"beq ", // COMMAND_BEQ
+	"bit ", // COMMAND_BIT
+	"bmi ", // COMMAND_BMI
+	"bne ", // COMMAND_BNE
+	"bpl ", // COMMAND_BPL
+	"bra ", // COMMAND_BRA
+	"brk ", // COMMAND_BRK
+	"bvc ", // COMMAND_BVC
+	"bvs ", // COMMAND_BVS
+	"clc ", // COMMAND_CLC
+	"cld ", // COMMAND_CLD
+	"cli ", // COMMAND_CLI
+	"clv ", // COMMAND_CLV
+	"cmp ", // COMMAND_CMP
+	"cpx ", // COMMAND_CPX
+	"cpy ", // COMMAND_CPY
+	"dec ", // COMMAND_DEC
+	"dex ", // COMMAND_DEX
+	"dey ", // COMMAND_DEY
+	"eor ", // COMMAND_EOR
+	"inc ", // COMMAND_INC
+	"inx ", // COMMAND_INX
+	"iny ", // COMMAND_INY
+	"jmp ", // COMMAND_JMP
+	"jsr ", // COMMAND_JSR
+	"lda ", // COMMAND_LDA
+	"ldx ", // COMMAND_LDX
+	"ldy ", // COMMAND_LDY
+	"lsr ", // COMMAND_LSR
+	"nop ", // COMMAND_NOP
+	"ora ", // COMMAND_ORA
+	"pha ", // COMMAND_PHA
+	"php ", // COMMAND_PHP
+	"phx ", // COMMAND_PHX
+	"phy ", // COMMAND_PHY
+	"pla ", // COMMAND_PLA
+	"plp ", // COMMAND_PLP
+	"plx ", // COMMAND_PLX
+	"ply ", // COMMAND_PLY
 	"rmb0", // COMMAND_RMB0
 	"rmb1", // COMMAND_RMB1
 	"rmb2", // COMMAND_RMB2
@@ -191,14 +191,14 @@ static const std::string COMMAND_STR[] = {
 	"rmb5", // COMMAND_RMB5
 	"rmb6", // COMMAND_RMB6
 	"rmb7", // COMMAND_RMB7
-	"rol", // COMMAND_ROL
-	"ror", // COMMAND_ROR
-	"rti", // COMMAND_RTI
-	"rts", // COMMAND_RTS
-	"sbc", // COMMAND_SBC
-	"sec", // COMMAND_SEC
-	"sed", // COMMAND_SED
-	"sei", // COMMAND_SEI
+	"rol ", // COMMAND_ROL
+	"ror ", // COMMAND_ROR
+	"rti ", // COMMAND_RTI
+	"rts ", // COMMAND_RTS
+	"sbc ", // COMMAND_SBC
+	"sec ", // COMMAND_SEC
+	"sed ", // COMMAND_SED
+	"sei ", // COMMAND_SEI
 	"smb0", // COMMAND_SMB0
 	"smb1", // COMMAND_SMB1
 	"smb2", // COMMAND_SMB2
@@ -207,20 +207,20 @@ static const std::string COMMAND_STR[] = {
 	"smb5", // COMMAND_SMB5
 	"smb6", // COMMAND_SMB6
 	"smb7", // COMMAND_SMB7
-	"sta", // COMMAND_STA
-	"stp", // COMMAND_STP
-	"stx", // COMMAND_STX
-	"sty", // COMMAND_STY
-	"stz", // COMMAND_STZ
-	"tax", // COMMAND_TAX
-	"tay", // COMMAND_TAY
-	"trb", // COMMAND_TRB
-	"tsb", // COMMAND_TSB
-	"tsx", // COMMAND_TSX
-	"txa", // COMMAND_TXA
-	"txs", // COMMAND_TXS
-	"tya", // COMMAND_TYA
-	"wai", // COMMAND_WAI
+	"sta ", // COMMAND_STA
+	"stp ", // COMMAND_STP
+	"stx ", // COMMAND_STX
+	"sty ", // COMMAND_STY
+	"stz ", // COMMAND_STZ
+	"tax ", // COMMAND_TAX
+	"tay ", // COMMAND_TAY
+	"trb ", // COMMAND_TRB
+	"tsb ", // COMMAND_TSB
+	"tsx ", // COMMAND_TSX
+	"txa ", // COMMAND_TXA
+	"txs ", // COMMAND_TXS
+	"tya ", // COMMAND_TYA
+	"wai ", // COMMAND_WAI
 	};
 
 #define COMMAND_STRING(_TYPE_) \
@@ -303,21 +303,21 @@ static const uint8_t COMMAND_MODE_LEN[] = {
 		COMMAND_MODE_LEN[_TYPE_])
 
 static const std::string COMMAND_MODE_STR[] = {
-	"a", // COMMAND_MODE_ABSOLUTE
-	"(a, x)", // COMMAND_MODE_ABSOLUTE_INDEX_INDIRECT
-	"a, x", // COMMAND_MODE_ABSOLUTE_INDEX_X
-	"a, y", // COMMAND_MODE_ABSOLUTE_INDEX_Y
-	"(a)", // COMMAND_MODE_ABSOLUTE_INDIRECT
-	"A", // COMMAND_MODE_ACCUMULATOR
-	"#", // COMMAND_MODE_IMMEDIATE
-	"i", // COMMAND_MODE_IMPLIED
-	"r", // COMMAND_MODE_RELATIVE
-	"s", // COMMAND_MODE_STACK
-	"zp", // COMMAND_MODE_ZERO_PAGE
+	"a      ", // COMMAND_MODE_ABSOLUTE
+	"(a, x) ", // COMMAND_MODE_ABSOLUTE_INDEX_INDIRECT
+	"a, x   ", // COMMAND_MODE_ABSOLUTE_INDEX_X
+	"a, y   ", // COMMAND_MODE_ABSOLUTE_INDEX_Y
+	"(a)    ", // COMMAND_MODE_ABSOLUTE_INDIRECT
+	"A      ", // COMMAND_MODE_ACCUMULATOR
+	"#      ", // COMMAND_MODE_IMMEDIATE
+	"i      ", // COMMAND_MODE_IMPLIED
+	"r      ", // COMMAND_MODE_RELATIVE
+	"s      ", // COMMAND_MODE_STACK
+	"zp     ", // COMMAND_MODE_ZERO_PAGE
 	"(zp, x)", // COMMAND_MODE_ZERO_PAGE_INDEX_INDIRECT
-	"zp, x", // COMMAND_MODE_ZERO_PAGE_INDEX_X
-	"zp, y", // COMMAND_MODE_ZERO_PAGE_INDEX_Y
-	"(zp)", // COMMAND_MODE_ZERO_PAGE_INDIRECT
+	"zp, x  ", // COMMAND_MODE_ZERO_PAGE_INDEX_X
+	"zp, y  ", // COMMAND_MODE_ZERO_PAGE_INDEX_Y
+	"(zp)   ", // COMMAND_MODE_ZERO_PAGE_INDIRECT
 	"(zp), y", // COMMAND_MODE_ZERO_PAGE_INDIRECT_INDEX
 	};
 
@@ -335,7 +335,7 @@ typedef struct {
 static const command_t CMD[] = {
 
 	// 0x00
-	{ COMMAND_BRK, COMMAND_MODE_STACK, COMMAND_MODE_LENGTH(COMMAND_MODE_STACK), COMMAND_CYCLE_INTERRUPT }, // brk s
+	{ COMMAND_BRK, COMMAND_MODE_STACK, COMMAND_LENGTH_BYTE, COMMAND_CYCLE_INTERRUPT }, // brk s
 	{ COMMAND_ORA, COMMAND_MODE_ZERO_PAGE_INDEX_INDIRECT, COMMAND_MODE_LENGTH(COMMAND_MODE_ZERO_PAGE_INDEX_INDIRECT), COMMAND_MODE_CYCLE(COMMAND_MODE_ZERO_PAGE_INDEX_INDIRECT) }, // ora (zp, x)
 	{ COMMAND_NOP, COMMAND_MODE_IMPLIED, COMMAND_MODE_LENGTH(COMMAND_MODE_IMPLIED), COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED) }, // nop i
 	{ COMMAND_NOP, COMMAND_MODE_IMPLIED, COMMAND_MODE_LENGTH(COMMAND_MODE_IMPLIED), COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED) }, // nop i

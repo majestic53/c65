@@ -69,7 +69,7 @@ The following colors are supported:
 |Dark-Grey  |0B   |40, 40, 40, 255   |
 |Grey       |0C   |100, 100, 100, 255|
 |Light-Green|0D   |0, 255, 127, 255  |
-|Light-Blue |0E   |255, 127, 0, 255  |
+|Light-Blue |0E   |255, 168, 0, 255  |
 |Light-Grey |0F   |160, 160, 160, 255|
 
 Usage
@@ -152,6 +152,10 @@ Changelog
 
 Version 0.1.1941
 -
+
+*Updated: 10/8/2019*
+
+* Added cycle, disassemble, processor debug commands
 
 *Updated: 10/7/2019*
 

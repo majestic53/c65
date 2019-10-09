@@ -71,9 +71,7 @@ namespace c65 {
 
 			TRACE_ENTRY();
 
-			// TODO: DEFINE INSTRUCTION CYCLES
-			result = 2;
-			// ---
+			result = COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -99,6 +97,19 @@ namespace c65 {
 			}
 
 			TRACE_EXIT();
+		}
+
+		bool
+		processor::interrupt_pending(void) const
+		{
+			bool result;
+
+			TRACE_ENTRY();
+
+			result = (m_interrupt != 0);
+
+			TRACE_EXIT_FORMAT("Result=%x", result);
+			return result;
 		}
 
 		void
@@ -472,6 +483,22 @@ namespace c65 {
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
+		}
+
+		bool
+		processor::stopped(void) const
+		{
+			TRACE_ENTRY();
+			TRACE_EXIT_FORMAT("Result=%x", m_stop);
+			return m_stop;
+		}
+
+		bool
+		processor::waiting(void) const
+		{
+			TRACE_ENTRY();
+			TRACE_EXIT_FORMAT("Result=%x", m_wait);
+			return m_wait;
 		}
 
 		void
