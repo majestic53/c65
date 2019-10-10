@@ -69,6 +69,7 @@ namespace c65 {
 		runtime::test_action(void)
 		{
 			int type;
+			c65_status_t status = {};
 			c65_register_t value = {};
 			c65_address_t address = {};
 			c65_action_t request = {}, response = {};
@@ -143,7 +144,10 @@ namespace c65 {
 			request.type = C65_ACTION_READ_STATUS;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_READ_STATUS);
-			ASSERT(response.status.raw == (MASK(FLAG_BREAK_INSTRUCTION) | MASK(FLAG_INTERRUPT_DISABLE) | MASK(FLAG_UNUSED)));
+			status.break_instruction = true;
+			status.interrupt_disable = true;
+			status.unused = true;
+			ASSERT(response.status.raw == status.raw);
 
 			// Test #6: Read word action
 			ASSERT(c65_load((c65_byte_t *)&value.word, COMMAND_LENGTH_WORD, address) == EXIT_SUCCESS);

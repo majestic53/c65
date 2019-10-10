@@ -148,7 +148,7 @@ namespace c65 {
 						m_memory.at(address.word) = MEMORY_FILL;
 					}
 
-					program_counter.word = (UINT16_MAX - 1);
+					program_counter.word = UINT16_MAX;
 					stack.word = ADDRESS_MEMORY_STACK_END;
 
 					switch(type) {
@@ -159,10 +159,11 @@ namespace c65 {
 							ASSERT(instance.step(*this) == (COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED)
 								+ COMMAND_CYCLE_INTERRUPT));
 							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
-								== INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE));
+								== (INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE) + 1));
 							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word
 								== (ADDRESS_MEMORY_STACK_END - 3));
-							status.raw = (instance.read_status().raw & ~MASK(FLAG_BREAK_INSTRUCTION));
+							status = instance.read_status();
+							status.break_instruction = false;
 							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 2) == status.raw);
 							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 1) == program_counter.low);
 							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END) == program_counter.high);
@@ -174,21 +175,26 @@ namespace c65 {
 							instance.write_register(C65_REGISTER_STACK_POINTER, stack);
 							instance.interrupt(type);
 							ASSERT(instance.step(*this) == COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED));
-							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == program_counter.word);
+							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
+								== ((program_counter.word + 2) & UINT16_MAX));
 							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == stack.word);
 
 							// Test #1.b: IRQ with interrupts enabled
-							status.raw = (instance.read_status().raw & ~MASK(FLAG_INTERRUPT_DISABLE));
+							status = instance.read_status();
+							status.interrupt_disable = false;
 							instance.write_status(status);
+							instance.write_register(C65_REGISTER_PROGRAM_COUNTER, program_counter);
 							instance.write_register(C65_REGISTER_STACK_POINTER, stack);
 							instance.interrupt(type);
 							ASSERT(instance.step(*this) == (COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED)
 								+ COMMAND_CYCLE_INTERRUPT));
 							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
-								== INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_MASKABLE));
+								== (INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_MASKABLE) + 1));
 							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word
 								== (ADDRESS_MEMORY_STACK_END - 3));
-							status.raw = (instance.read_status().raw & ~MASK(FLAG_BREAK_INSTRUCTION));
+							status = instance.read_status();
+							status.break_instruction = false;
+							status.interrupt_disable = false;
 							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 2) == status.raw);
 							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 1) == program_counter.low);
 							ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END) == program_counter.high);
@@ -314,6 +320,8 @@ namespace c65 {
 			void
 			processor::test_read_status(void)
 			{
+				c65_status_t status = {};
+
 				TRACE_ENTRY();
 
 				c65::system::processor &instance = c65::system::processor::instance();
@@ -321,8 +329,10 @@ namespace c65 {
 				instance.initialize();
 
 				instance.reset(*this);
-				ASSERT(instance.read_status().raw == (MASK(FLAG_BREAK_INSTRUCTION) | MASK(FLAG_INTERRUPT_DISABLE)
-					| MASK(FLAG_UNUSED)));
+				status.break_instruction = true;
+				status.interrupt_disable = true;
+				status.unused = true;
+				ASSERT(instance.read_status().raw == status.raw);
 
 				instance.uninitialize();
 
@@ -332,6 +342,8 @@ namespace c65 {
 			void
 			processor::test_reset(void)
 			{
+				c65_status_t status = {};
+
 				TRACE_ENTRY();
 
 				c65::system::processor &instance = c65::system::processor::instance();
@@ -345,8 +357,10 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word ==
 					INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == ADDRESS_MEMORY_STACK_END);
-				ASSERT(instance.read_status().raw == (MASK(FLAG_BREAK_INSTRUCTION) | MASK(FLAG_INTERRUPT_DISABLE)
-					| MASK(FLAG_UNUSED)));
+				status.break_instruction = true;
+				status.interrupt_disable = true;
+				status.unused = true;
+				ASSERT(instance.read_status().raw == status.raw);
 
 				instance.uninitialize();
 

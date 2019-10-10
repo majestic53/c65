@@ -363,8 +363,9 @@ namespace c65 {
 					)
 				{
 					c65_word_t count;
-					c65_address_t address;
 					std::stringstream result, stream;
+					c65_address_t address, program_counter;
+					c65_action_t request = {}, response = {};
 
 					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
 
@@ -382,21 +383,27 @@ namespace c65 {
 					result << "[" << STRING_HEXIDECIMAL(c65_word_t, address.word) << ", " << count << " instructions]"
 						<< std::endl;
 
+					request.type = C65_ACTION_READ_REGISTER;
+					request.address.word = C65_REGISTER_PROGRAM_COUNTER;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					program_counter.word = response.data.word;
+
 					while(count--) {
-						c65_address_t origin;
 						std::vector<c65_byte_t> data;
 						std::vector<c65_byte_t>::iterator byte;
-						c65_action_t request = {}, response = {};
 
 						stream.clear();
 						stream.str(std::string());
 						stream << STRING_HEXIDECIMAL(c65_word_t, address.word);
-
-						result << std::endl << STRING_COLUMN() << stream.str();
+						result << std::endl << ((address.word == program_counter.word) ? ">" : " ") << STRING_COLUMN()
+							<< stream.str();
 
 						request.type = C65_ACTION_READ_BYTE;
 						request.address = address;
-						origin = address;
 						++address.word;
 
 						if(c65_action(&request, &response) != EXIT_SUCCESS) {
@@ -430,7 +437,7 @@ namespace c65 {
 								stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
 
 								if(command.mode == COMMAND_MODE_RELATIVE) {
-									c65_word_t offset = (origin.word + (int8_t)response.data.low);
+									c65_word_t offset = (address.word + (int8_t)response.data.low);
 									stream << " (" << STRING_HEXIDECIMAL(c65_word_t, offset) << ")";
 								}
 
@@ -506,7 +513,7 @@ namespace c65 {
 					result << "[" << STRING_HEXIDECIMAL(c65_word_t, address.word) << "-"
 						<< STRING_HEXIDECIMAL(c65_word_t, end - 1) << "] -- "
 						<< STRING_FLOAT(offset / (float)std::kilo::num) << " KB (" << offset << " bytes)"
-						<< std::endl << "      ";
+						<< std::endl << std::endl << "      ";
 
 					for(offset = 0; offset < BLOCK_WIDTH; ++offset) {
 						result << " " << STRING_HEXIDECIMAL(c65_byte_t, offset);

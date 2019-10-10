@@ -53,12 +53,111 @@ namespace c65 {
 			)
 		{
 			uint8_t result = 0;
+			c65_word_t value = 0;
 
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
-			// TODO: FETCH/EXECUTE INSTRUCTION, INCREMENT RETURN
-			result = execute_nop();
-			// ---
+			const command_t &command = COMMAND(read_byte(bus, m_program_counter));
+
+			TRACE_MESSAGE_FORMAT(LEVEL_VERBOSE, "Opcode", "[%04x] %s %s", m_program_counter.word, COMMAND_STRING(command.type),
+				COMMAND_MODE_STRING(command.mode));
+
+			++m_program_counter.word;
+
+			switch(command.length) {
+				case COMMAND_LENGTH_BYTE:
+					value = read_byte(bus, m_program_counter);
+
+					TRACE_MESSAGE_FORMAT(LEVEL_VERBOSE, "Operand", "[%04x] %u(%02x)", m_program_counter.word, value, value);
+					break;
+				case COMMAND_LENGTH_WORD:
+					value = read_word(bus, m_program_counter);
+
+					TRACE_MESSAGE_FORMAT(LEVEL_VERBOSE, "Operand", "[%04x] %u(%04x)", m_program_counter.word, value, value);
+					break;
+				default:
+					break;
+			}
+
+			m_program_counter.word += command.length;
+
+			switch(command.type) {
+				case COMMAND_ADC:
+				case COMMAND_AND:
+				case COMMAND_ASL:
+				case COMMAND_BBR0 ... COMMAND_BBR7:
+				case COMMAND_BBS0 ... COMMAND_BBS7:
+				case COMMAND_BCC:
+				case COMMAND_BCS:
+				case COMMAND_BEQ:
+				case COMMAND_BIT:
+				case COMMAND_BMI:
+				case COMMAND_BNE:
+				case COMMAND_BPL:
+				case COMMAND_BRA:
+				case COMMAND_BRK:
+				case COMMAND_BVC:
+				case COMMAND_BVS:
+				case COMMAND_CLC:
+				case COMMAND_CLD:
+				case COMMAND_CLI:
+				case COMMAND_CLV:
+				case COMMAND_CMP:
+				case COMMAND_CPX:
+				case COMMAND_CPY:
+				case COMMAND_DEC:
+				case COMMAND_DEX:
+				case COMMAND_DEY:
+				case COMMAND_EOR:
+				case COMMAND_INC:
+				case COMMAND_INX:
+				case COMMAND_INY:
+				case COMMAND_JMP:
+				case COMMAND_JSR:
+				case COMMAND_LDA:
+				case COMMAND_LDX:
+				case COMMAND_LDY:
+				case COMMAND_LSR:
+				case COMMAND_ORA:
+				case COMMAND_PHA:
+				case COMMAND_PHP:
+				case COMMAND_PHX:
+				case COMMAND_PHY:
+				case COMMAND_PLA:
+				case COMMAND_PLP:
+				case COMMAND_PLX:
+				case COMMAND_PLY:
+				case COMMAND_RMB0 ... COMMAND_RMB7:
+				case COMMAND_ROL:
+				case COMMAND_ROR:
+				case COMMAND_RTI:
+				case COMMAND_RTS:
+				case COMMAND_SBC:
+				case COMMAND_SEC:
+				case COMMAND_SED:
+				case COMMAND_SEI:
+				case COMMAND_SMB0 ... COMMAND_SMB7:
+				case COMMAND_STA:
+				case COMMAND_STP:
+				case COMMAND_STX:
+				case COMMAND_STY:
+				case COMMAND_STZ:
+				case COMMAND_TAX:
+				case COMMAND_TAY:
+				case COMMAND_TRB:
+				case COMMAND_TSB:
+				case COMMAND_TSX:
+				case COMMAND_TXA:
+				case COMMAND_TXS:
+				case COMMAND_TYA:
+				case COMMAND_WAI:
+
+					// TODO: EXECUTE COMMAND
+
+				default:
+					result = execute_nop();
+					break;
+			}
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -405,8 +504,6 @@ namespace c65 {
 					bool taken = false;
 					c65_address_t address;
 
-					MASK_CLEAR(m_interrupt, type);
-
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Processor interrupt serviced", "%i(%s)",
 						type, INTERRUPT_STRING(type));
 
@@ -427,6 +524,7 @@ namespace c65 {
 					}
 
 					if(taken) {
+						MASK_CLEAR(m_interrupt, type);
 						result += service_interrupt(bus, address, false);
 					}
 
@@ -451,9 +549,10 @@ namespace c65 {
 			TRACE_ENTRY_FORMAT("Bus=%p, Address=%u(%04x), Breakpoint=%x", &bus, address.word, address.word, breakpoint);
 
 			m_wait = false;
-			MASK_SET_CONDITIONAL(breakpoint, status.raw, FLAG_BREAK_INSTRUCTION);
+			status.break_instruction = breakpoint;
 			push_word(bus, m_program_counter.word);
 			push_byte(bus, status.raw);
+			m_status.interrupt_disable = true;
 			m_program_counter = address;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
