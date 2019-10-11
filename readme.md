@@ -153,6 +153,11 @@ Changelog
 Version 0.1.1941
 -
 
+*Updated: 10/10/2019*
+
+* Added Launcher load/base arguments
+* Added gdb-like behavior to debug console
+
 *Updated: 10/9/2019*
 
 * Added processor command handler

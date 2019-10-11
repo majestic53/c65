@@ -22,12 +22,13 @@ $ ./bin/c65 [ARGS]
 The following arguments are available:
 
 ```
-c65 [args]
+c65 [args] [path]
 
--d|--debug              Enable debug mode
--h|--help               Display help information
--q|--quiet              Enable quiet mode
--v|--version            Display version information
+-b|--base               <address>               Define base address
+-d|--debug                                      Enable debug mode
+-h|--help                                       Display help information
+-q|--quiet                                      Enable quiet mode
+-v|--version                                    Display version information
 ```
 
 #### Examples
@@ -42,6 +43,18 @@ The following example shows how to launch C65 in debug mode:
 
 ```
 $ ./bin/c65 -d
+```
+
+The following example shows how to launch C65 with an input file:
+
+```
+$ ./bin/c65 file.bin
+```
+
+The following example shows how to launch C65 with an input file, loaded at a specific offset:
+
+```
+$ ./bin/c65 -o 600 file.bin
 ```
 
 #### Debug Mode
@@ -77,19 +90,19 @@ ww|write-word           <address> <value>       Write word to memory
 The following example shows how to read a byte from memory at address 0x0600:
 
 ```
-% rb 0600
+(c65) rb 0600
 
 -OR-
 
-% read-byte 0600
+(c65) read-byte 0600
 ```
 
 The following example shows how to write the value 0xff into the accumulator register:
 
 ```
-% wr a ff
+(c65) wr a ff
 
 -OR-
 
-% write-register a ff
+(c65) write-register a ff
 ```
