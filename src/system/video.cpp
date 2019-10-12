@@ -24,6 +24,7 @@ namespace c65 {
 	namespace system {
 
 		video::video(void) :
+			m_changed(false),
 			m_renderer(nullptr),
 			m_texture(nullptr),
 			m_window(nullptr)
@@ -62,6 +63,7 @@ namespace c65 {
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Video initializing");
 
+			m_changed = true;
 			m_color.resize(WINDOW_WIDTH * WINDOW_WIDTH, BACKGROUND_COLOR);
 			m_pixel.resize(WINDOW_WIDTH * WINDOW_WIDTH, background);
 			m_title = WINDOW_TITLE;
@@ -162,6 +164,7 @@ namespace c65 {
 			m_title.clear();
 			m_pixel.clear();
 			m_color.clear();
+			m_changed = false;
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Video uninitialized");
 
@@ -183,6 +186,7 @@ namespace c65 {
 					index = (address.word - ADDRESS_VIDEO_BEGIN);
 					m_color.at(index) = value;
 					m_pixel.at(index) = COLOR(value);
+					m_changed = true;
 					break;
 				default:
 					THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_ADDRESS_INVALID, "%u(%04x)",
@@ -197,9 +201,13 @@ namespace c65 {
 		{
 			TRACE_ENTRY();
 
-			if(SDL_UpdateTexture(m_texture, nullptr, &m_pixel[0], WINDOW_WIDTH * sizeof(color_t))) {
-				THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_EXTERNAL,
-					"SDL_UpdateTexture failed! %s", SDL_GetError());
+			if(m_changed) {
+				m_changed = false;
+
+				if(SDL_UpdateTexture(m_texture, nullptr, &m_pixel[0], WINDOW_WIDTH * sizeof(color_t))) {
+					THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_EXTERNAL,
+						"SDL_UpdateTexture failed! %s", SDL_GetError());
+				}
 			}
 
 			if(SDL_RenderClear(m_renderer)) {

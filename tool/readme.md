@@ -54,7 +54,7 @@ $ ./bin/c65 file.bin
 The following example shows how to launch C65 with an input file, loaded at a specific offset:
 
 ```
-$ ./bin/c65 -o 600 file.bin
+$ ./bin/c65 -b 600 file.bin
 ```
 
 #### Debug Mode

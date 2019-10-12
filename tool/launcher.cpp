@@ -402,7 +402,7 @@ namespace c65 {
 						<< std::endl;
 
 					while(count--) {
-						result << std::endl << debug_disassemble(address);
+						result << std::endl << disassemble(address);
 					}
 
 					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
@@ -886,7 +886,7 @@ namespace c65 {
 					}
 
 					address.word = response.data.word;
-					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << debug_disassemble(address) << LEVEL_COLOR(LEVEL_NONE)
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << disassemble(address) << LEVEL_COLOR(LEVEL_NONE)
 						<< std::endl;
 
 					if(c65_step() != EXIT_SUCCESS) {
@@ -1075,7 +1075,7 @@ namespace c65 {
 					TRACE_EXIT();
 				}
 
-				std::string debug_disassemble(
+				std::string disassemble(
 					__inout c65_address_t &address
 					)
 				{

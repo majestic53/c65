@@ -67,6 +67,8 @@ namespace c65 {
 					__in c65_byte_t value
 					) override;
 
+				bool m_changed;
+
 				std::vector<c65_byte_t> m_color;
 
 				std::vector<color_t> m_pixel;
