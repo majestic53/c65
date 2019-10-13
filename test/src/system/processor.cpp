@@ -58,6 +58,13 @@ namespace c65 {
 			{
 				TRACE_ENTRY();
 
+				test_execute_branch();
+				test_execute_brk();
+				test_execute_clear();
+				test_execute_nop();
+				test_execute_set();
+				test_execute_stp();
+				test_execute_wai();
 				test_interrupt();
 				test_interrupt_pending();
 				test_read();
@@ -116,6 +123,782 @@ namespace c65 {
 			}
 
 			void
+			processor::save_state(
+				__in processor_state_t &state
+				)
+			{
+				TRACE_ENTRY_FORMAT("State=%p", &state);
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				state.accumulator = instance.read_register(C65_REGISTER_ACCUMULATOR);
+				state.index_x = instance.read_register(C65_REGISTER_INDEX_X);
+				state.index_y = instance.read_register(C65_REGISTER_INDEX_Y);
+				state.program_counter = instance.read_register(C65_REGISTER_PROGRAM_COUNTER);
+				state.stack_pointer = instance.read_register(C65_REGISTER_STACK_POINTER);
+				state.status = instance.read_status();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_branch(void)
+			{
+				command_t command;
+				c65_status_t status;
+				c65_address_t address;
+				processor_state_t state;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+
+				// Test #1.a: BCC not taken
+				instance.reset(*this);
+				status = {};
+				status.carry = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BCC_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BCC_RELATIVE);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #1.b: BCC taken forward
+				instance.reset(*this);
+				status = {};
+				status.carry = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BCC_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BCC_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 1));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 11));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #1.c: BCC taken backwards, page crossing
+				instance.reset(*this);
+				status = {};
+				status.carry = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BCC_RELATIVE;
+				m_memory.at(address.word + 1) = 0xfd;
+				command = COMMAND(COMMAND_TYPE_BCC_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word - 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #2.a: BCS not taken
+				instance.reset(*this);
+				status = {};
+				status.carry = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BCS_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BCS_RELATIVE);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #2.b: BCS taken forward
+				instance.reset(*this);
+				status = {};
+				status.carry = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BCS_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BCS_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 1));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 11));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #2.c: BCS taken backwards, page crossing
+				instance.reset(*this);
+				status = {};
+				status.carry = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BCS_RELATIVE;
+				m_memory.at(address.word + 1) = 0xfd;
+				command = COMMAND(COMMAND_TYPE_BCS_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word - 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #3.a: BEQ not taken
+				instance.reset(*this);
+				status = {};
+				status.zero = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BEQ_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BEQ_RELATIVE);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #3.b: BEQ taken forward
+				instance.reset(*this);
+				status = {};
+				status.zero = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BEQ_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BEQ_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 1));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 11));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #3.c: BEQ taken backwards, page crossing
+				instance.reset(*this);
+				status = {};
+				status.zero = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BEQ_RELATIVE;
+				m_memory.at(address.word + 1) = 0xfd;
+				command = COMMAND(COMMAND_TYPE_BEQ_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word - 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #4.a: BMI not taken
+				instance.reset(*this);
+				status = {};
+				status.negative = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BMI_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BMI_RELATIVE);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #4.b: BMI taken forward
+				instance.reset(*this);
+				status = {};
+				status.negative = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BMI_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BMI_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 1));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 11));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #4.c: BMI taken backwards, page crossing
+				instance.reset(*this);
+				status = {};
+				status.negative = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BMI_RELATIVE;
+				m_memory.at(address.word + 1) = 0xfd;
+				command = COMMAND(COMMAND_TYPE_BMI_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word - 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #5.a: BNE not taken
+				instance.reset(*this);
+				status = {};
+				status.zero = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BNE_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BNE_RELATIVE);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #5.b: BNE taken forward
+				instance.reset(*this);
+				status = {};
+				status.zero = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BNE_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BNE_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 1));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 11));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #5.c: BNE taken backwards, page crossing
+				instance.reset(*this);
+				status = {};
+				status.zero = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BNE_RELATIVE;
+				m_memory.at(address.word + 1) = 0xfd;
+				command = COMMAND(COMMAND_TYPE_BNE_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word - 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #6.a: BPL not taken
+				instance.reset(*this);
+				status = {};
+				status.negative = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BPL_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BPL_RELATIVE);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #6.b: BPL taken forward
+				instance.reset(*this);
+				status = {};
+				status.negative = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BPL_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BPL_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 1));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 11));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #6.c: BPL taken backwards, page crossing
+				instance.reset(*this);
+				status = {};
+				status.negative = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BPL_RELATIVE;
+				m_memory.at(address.word + 1) = 0xfd;
+				command = COMMAND(COMMAND_TYPE_BPL_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word - 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #7.a: BVC not taken
+				instance.reset(*this);
+				status = {};
+				status.overflow = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BVC_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BVC_RELATIVE);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #7.b: BVC taken forward
+				instance.reset(*this);
+				status = {};
+				status.overflow = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BVC_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BVC_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 1));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 11));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #7.c: BVC taken backwards, page crossing
+				instance.reset(*this);
+				status = {};
+				status.overflow = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BVC_RELATIVE;
+				m_memory.at(address.word + 1) = 0xfd;
+				command = COMMAND(COMMAND_TYPE_BVC_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word - 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #8.a: BVS not taken
+				instance.reset(*this);
+				status = {};
+				status.overflow = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BVS_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BVS_RELATIVE);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #8.b: BVS taken forward
+				instance.reset(*this);
+				status = {};
+				status.overflow = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BVS_RELATIVE;
+				m_memory.at(address.word + 1) = 10;
+				command = COMMAND(COMMAND_TYPE_BVS_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 1));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 11));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #8.c: BVS taken backwards, page crossing
+				instance.reset(*this);
+				status = {};
+				status.overflow = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BVS_RELATIVE;
+				m_memory.at(address.word + 1) = 0xfd;
+				command = COMMAND(COMMAND_TYPE_BVS_RELATIVE);
+				ASSERT(instance.step(*this) == (command.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word - 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_brk(void)
+			{
+				command_t command;
+				c65_address_t address;
+				processor_state_t state;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				instance.reset(*this);
+				address.word = ADDRESS_PROCESSOR_NON_MASKABLE_BEGIN;
+				instance.write(address, INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE));
+				address.word = ADDRESS_PROCESSOR_NON_MASKABLE_END;
+				instance.write(address, INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE) >> CHAR_BIT);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				state.status = instance.read_status();
+				state.status.break_instruction = false;
+				instance.write_status(state.status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_BRK_STACK;
+				command = COMMAND(COMMAND_TYPE_BRK_STACK);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
+					== INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == (state.stack_pointer.word - 3));
+				state.status.break_instruction = true;
+				ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 2) == state.status.raw);
+				ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END - 1) == (state.program_counter.low + command.length + 1));
+				ASSERT(m_memory.at(ADDRESS_MEMORY_STACK_END) == state.program_counter.high);
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_clear(void)
+			{
+				command_t command;
+				c65_status_t status;
+				c65_address_t address;
+				processor_state_t state;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+
+				// Test #1: CLC
+				instance.reset(*this);
+				status = {};
+				status.carry = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_CLC_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_CLC_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(!instance.read_status().carry);
+
+				// Test #2: CLD
+				instance.reset(*this);
+				status = {};
+				status.decimal_mode = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_CLD_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_CLD_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(!instance.read_status().decimal_mode);
+
+				// Test #3: CLI
+				instance.reset(*this);
+				status = {};
+				status.interrupt_disable = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_CLI_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_CLI_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(!instance.read_status().interrupt_disable);
+
+				// Test #4: CLV
+				instance.reset(*this);
+				status = {};
+				status.overflow = true;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_CLV_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_CLV_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(!instance.read_status().overflow);
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_nop(void)
+			{
+				command_t command;
+				c65_address_t address;
+				processor_state_t state;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_NOP_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_NOP_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_set(void)
+			{
+				command_t command;
+				c65_status_t status;
+				c65_address_t address;
+				processor_state_t state;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+
+				// Test #1: SEC
+				instance.reset(*this);
+				status = {};
+				status.carry = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_SEC_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_SEC_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().carry);
+
+				// Test #2: SED
+				instance.reset(*this);
+				status = {};
+				status.decimal_mode = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_SED_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_SED_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().decimal_mode);
+
+				// Test #3: SEI
+				instance.reset(*this);
+				status = {};
+				status.interrupt_disable = false;
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_status(status);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_SEI_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_SEI_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().interrupt_disable);
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_stp(void)
+			{
+				command_t command;
+				c65_address_t address;
+				processor_state_t state;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_STP_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_STP_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+				ASSERT(instance.stopped());
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_wai(void)
+			{
+				command_t command;
+				c65_address_t address;
+				processor_state_t state;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				save_state(state);
+				m_memory.at(address.word) = COMMAND_TYPE_WAI_IMPLIED;
+				command = COMMAND(COMMAND_TYPE_WAI_IMPLIED);
+				ASSERT(instance.step(*this) == command.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+				ASSERT(instance.waiting());
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
 			processor::test_interrupt(void)
 			{
 				int type = 0;
@@ -148,7 +931,7 @@ namespace c65 {
 						m_memory.at(address.word) = MEMORY_FILL;
 					}
 
-					program_counter.word = UINT16_MAX;
+					program_counter.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
 					stack.word = ADDRESS_MEMORY_STACK_END;
 
 					switch(type) {
@@ -176,7 +959,7 @@ namespace c65 {
 							instance.interrupt(type);
 							ASSERT(instance.step(*this) == COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED));
 							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
-								== ((program_counter.word + 2) & UINT16_MAX));
+								== (program_counter.word + 1));
 							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == stack.word);
 
 							// Test #1.b: IRQ with interrupts enabled

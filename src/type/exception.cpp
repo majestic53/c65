@@ -99,7 +99,7 @@ namespace c65 {
 
 			result << std::runtime_error::what();
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 			if(!result.str().empty()) {
 				result << " ";
 			}
@@ -115,7 +115,7 @@ namespace c65 {
 			}
 
 			result << m_line << ")";
-#endif // NDEBUG
+//#endif // NDEBUG
 
 			return result.str();
 		}

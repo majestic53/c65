@@ -85,10 +85,11 @@ namespace c65 {
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_CYCLE);
 			ASSERT(!response.cycle);
+			ASSERT(c65_reset() == EXIT_SUCCESS);
 			ASSERT(c65_step() == EXIT_SUCCESS);
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_CYCLE);
-			ASSERT(response.cycle == COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED));
+			ASSERT(response.cycle);
 
 			// Test #2: Interrupt pending action
 			request.type = C65_ACTION_INTERRUPT_PENDING;

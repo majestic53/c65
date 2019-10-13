@@ -37,4 +37,13 @@ static const std::string TEST_STR[] = {
 	(((_TYPE_) > TEST_MAX) ? STRING_UNKNOWN : \
 		STRING(TEST_STR[_TYPE_]))
 
+typedef struct {
+	c65_register_t accumulator;
+	c65_register_t index_x;
+	c65_register_t index_y;
+	c65_register_t program_counter;
+	c65_register_t stack_pointer;
+	c65_status_t status;
+} processor_state_t;
+
 #endif // C65_TEST_COMMON_TEST_H_

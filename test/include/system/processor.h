@@ -63,6 +63,24 @@ namespace c65 {
 						__in c65_byte_t value
 						) override;
 
+					void save_state(
+						__in processor_state_t &state
+						);
+
+					void test_execute_branch(void);
+
+					void test_execute_brk(void);
+
+					void test_execute_clear(void);
+
+					void test_execute_nop(void);
+
+					void test_execute_set(void);
+
+					void test_execute_stp(void);
+
+					void test_execute_wai(void);
+
 					void test_interrupt(void);
 
 					void test_interrupt_pending(void);

@@ -85,7 +85,47 @@ namespace c65 {
 					__in c65::interface::bus &bus
 					);
 
-				uint8_t execute_nop(void);
+				uint8_t execute_branch(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_brk(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_clear(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_nop(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_set(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_stp(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_wai(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
 
 				void on_initialize(void) override;
 

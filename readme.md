@@ -153,6 +153,10 @@ Changelog
 Version 0.1.1941
 -
 
+*Updated: 10/12/2019*
+
+* Added processor command handlers
+
 *Updated: 10/11/2019*
 
 * Minor code cleanup/documentation changes
