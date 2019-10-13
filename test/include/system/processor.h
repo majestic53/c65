@@ -69,17 +69,19 @@ namespace c65 {
 
 					void test_execute_branch(void);
 
-					void test_execute_brk(void);
+					void test_execute_branch_bit(void);
+
+					void test_execute_break(void);
 
 					void test_execute_clear(void);
 
-					void test_execute_nop(void);
+					void test_execute_no_operation(void);
 
 					void test_execute_set(void);
 
-					void test_execute_stp(void);
+					void test_execute_stop(void);
 
-					void test_execute_wai(void);
+					void test_execute_wait(void);
 
 					void test_interrupt(void);
 

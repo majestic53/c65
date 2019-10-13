@@ -1147,7 +1147,17 @@ namespace c65 {
 
 							stream.clear();
 							stream.str(std::string());
-							stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+
+							if(command.mode == COMMAND_MODE_ZERO_PAGE_RELATIVE) {
+								c65_word_t offset = (address.word + (int8_t)response.data.high);
+
+								stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low) << ", "
+									<< STRING_HEXIDECIMAL(c65_byte_t, response.data.high)
+									<< " (" << STRING_HEXIDECIMAL(c65_word_t, offset) << ")";
+							} else {
+								stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+							}
+
 							result << STRING_COLUMN() << stream.str();
 							break;
 						default:

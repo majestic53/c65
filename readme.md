@@ -153,6 +153,11 @@ Changelog
 Version 0.1.1941
 -
 
+*Updated: 10/13/2019*
+
+* Added additional zero-page-relative addressing mode
+* Added bbr/bbs processor command handlers
+
 *Updated: 10/12/2019*
 
 * Added processor command handlers

@@ -59,12 +59,13 @@ namespace c65 {
 				TRACE_ENTRY();
 
 				test_execute_branch();
-				test_execute_brk();
+				test_execute_branch_bit();
+				test_execute_break();
 				test_execute_clear();
-				test_execute_nop();
+				test_execute_no_operation();
 				test_execute_set();
-				test_execute_stp();
-				test_execute_wai();
+				test_execute_stop();
+				test_execute_wait();
 				test_interrupt();
 				test_interrupt_pending();
 				test_read();
@@ -595,7 +596,115 @@ namespace c65 {
 			}
 
 			void
-			processor::test_execute_brk(void)
+			processor::test_execute_branch_bit(void)
+			{
+				int type;
+				c65_byte_t index;
+				command_t command;
+				c65_address_t address;
+				processor_state_t state;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1: BBR
+				for(type = COMMAND_BBR0; type <= COMMAND_BBR7; ++type) {
+
+					// Test #1.a: BBR with bit unset
+					index = (COMMAND_TYPE_BBR0_ZERO_PAGE_RELATIVE + ((type - COMMAND_BBR0) * 0x10));
+					instance.reset(*this);
+					address.word = 0xaa;
+					m_memory.at(address.word) = 0;
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					save_state(state);
+					m_memory.at(address.word) = index;
+					m_memory.at(address.word + 1) = 0xaa;
+					m_memory.at(address.word + 2) = 0x02;
+					command = COMMAND(index);
+					ASSERT(instance.step(*this) == command.cycle);
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + 5));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+
+					// Test #1.b: BBR with bit set
+					index = (COMMAND_TYPE_BBR0_ZERO_PAGE_RELATIVE + ((type - COMMAND_BBR0) * 0x10));
+					instance.reset(*this);
+					address.word = 0xaa;
+					m_memory.at(address.word) = _MASK(type - COMMAND_BBR0);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					save_state(state);
+					m_memory.at(address.word) = index;
+					m_memory.at(address.word + 1) = 0xaa;
+					m_memory.at(address.word + 2) = 0x02;
+					command = COMMAND(index);
+					ASSERT(instance.step(*this) == command.cycle);
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + 3));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+				}
+
+				// Test #2: BBS
+				for(type = COMMAND_BBS0; type <= COMMAND_BBS7; ++type) {
+
+					// Test #2.a: BBS with bit unset
+					index = (COMMAND_TYPE_BBS0_ZERO_PAGE_RELATIVE + ((type - COMMAND_BBS0) * 0x10));
+					instance.reset(*this);
+					address.word = 0xaa;
+					m_memory.at(address.word) = 0;
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					save_state(state);
+					m_memory.at(address.word) = index;
+					m_memory.at(address.word + 1) = 0xaa;
+					m_memory.at(address.word + 2) = 0x02;
+					command = COMMAND(index);
+					ASSERT(instance.step(*this) == command.cycle);
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + 3));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+
+					// Test #2.b: BBS with bit set
+					index = (COMMAND_TYPE_BBS0_ZERO_PAGE_RELATIVE + ((type - COMMAND_BBS0) * 0x10));
+					instance.reset(*this);
+					address.word = 0xaa;
+					m_memory.at(address.word) = _MASK(type - COMMAND_BBS0);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					save_state(state);
+					m_memory.at(address.word) = index;
+					m_memory.at(address.word + 1) = 0xaa;
+					m_memory.at(address.word + 2) = 0x02;
+					command = COMMAND(index);
+					ASSERT(instance.step(*this) == command.cycle);
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + 5));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+				}
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_break(void)
 			{
 				command_t command;
 				c65_address_t address;
@@ -726,7 +835,7 @@ namespace c65 {
 			}
 
 			void
-			processor::test_execute_nop(void)
+			processor::test_execute_no_operation(void)
 			{
 				command_t command;
 				c65_address_t address;
@@ -831,7 +940,7 @@ namespace c65 {
 			}
 
 			void
-			processor::test_execute_stp(void)
+			processor::test_execute_stop(void)
 			{
 				command_t command;
 				c65_address_t address;
@@ -865,7 +974,7 @@ namespace c65 {
 			}
 
 			void
-			processor::test_execute_wai(void)
+			processor::test_execute_wait(void)
 			{
 				command_t command;
 				c65_address_t address;

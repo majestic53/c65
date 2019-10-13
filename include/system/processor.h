@@ -91,7 +91,13 @@ namespace c65 {
 					__in c65_word_t value
 					);
 
-				uint8_t execute_brk(
+				uint8_t execute_branch_bit(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_break(
 					__in c65::interface::bus &bus,
 					__in const command_t &command,
 					__in c65_word_t value
@@ -103,7 +109,7 @@ namespace c65 {
 					__in c65_word_t value
 					);
 
-				uint8_t execute_nop(
+				uint8_t execute_no_operation(
 					__in c65::interface::bus &bus,
 					__in const command_t &command,
 					__in c65_word_t value
@@ -115,13 +121,13 @@ namespace c65 {
 					__in c65_word_t value
 					);
 
-				uint8_t execute_stp(
+				uint8_t execute_stop(
 					__in c65::interface::bus &bus,
 					__in const command_t &command,
 					__in c65_word_t value
 					);
 
-				uint8_t execute_wai(
+				uint8_t execute_wait(
 					__in c65::interface::bus &bus,
 					__in const command_t &command,
 					__in c65_word_t value

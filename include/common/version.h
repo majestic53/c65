@@ -25,7 +25,7 @@
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 1
 #define VERSION_RELEASE "alpha"
-#define VERSION_REVISION 6
+#define VERSION_REVISION 7
 #define VERSION_WEEK 1941
 
 #define VERSION_STRING() \

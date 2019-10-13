@@ -90,13 +90,11 @@ namespace c65 {
 					break;
 				case COMMAND_ASL:
 					// TODO
-					break;
-				case COMMAND_BBR0 ... COMMAND_BBR7:
-					// TODO
-					break;
-				case COMMAND_BBS0 ... COMMAND_BBS7:
-					// TODO
 					break;*/
+				case COMMAND_BBR0 ... COMMAND_BBR7:
+				case COMMAND_BBS0 ... COMMAND_BBS7:
+					result = execute_branch_bit(bus, command, value);
+					break;
 				case COMMAND_BCC:
 				case COMMAND_BCS:
 				case COMMAND_BEQ:
@@ -112,7 +110,7 @@ namespace c65 {
 					// TODO
 					break;*/
 				case COMMAND_BRK:
-					result = execute_brk(bus, command, value);
+					result = execute_break(bus, command, value);
 					break;
 				case COMMAND_CLC:
 				case COMMAND_CLD:
@@ -225,7 +223,7 @@ namespace c65 {
 					// TODO
 					break;*/
 				case COMMAND_STP:
-					result = execute_stp(bus, command, value);
+					result = execute_stop(bus, command, value);
 					break;
 				/*case COMMAND_STX:
 					// TODO
@@ -261,10 +259,10 @@ namespace c65 {
 					// TODO
 					break;*/
 				case COMMAND_WAI:
-					result = execute_wai(bus, command, value);
+					result = execute_wait(bus, command, value);
 					break;
 				default:
-					result = execute_nop(bus, command, value);
+					result = execute_no_operation(bus, command, value);
 					break;
 			}
 
@@ -336,7 +334,44 @@ namespace c65 {
 		}
 
 		uint8_t
-		processor::execute_brk(
+		processor::execute_branch_bit(
+			__in c65::interface::bus &bus,
+			__in const command_t &command,
+			__in c65_word_t value
+			)
+		{
+			uint8_t result;
+			bool taken = false;
+			c65_address_t address;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &command, value, value);
+
+			address.word = (value & UINT8_MAX);
+
+			switch(command.type) {
+				case COMMAND_BBR0 ... COMMAND_BBR7:
+					taken = !MASK_CHECK(read_byte(bus, address), command.type - COMMAND_BBR0);
+					break;
+				case COMMAND_BBS0 ... COMMAND_BBS7:
+					taken = MASK_CHECK(read_byte(bus, address), command.type - COMMAND_BBS0);
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
+						"%u(%s)", command.type, COMMAND_STRING(command.type));
+			}
+
+			result = command.cycle;
+
+			if(taken) {
+				m_program_counter.word += (int8_t)(value >> CHAR_BIT);
+			}
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_break(
 			__in c65::interface::bus &bus,
 			__in const command_t &command,
 			__in c65_word_t value
@@ -388,7 +423,7 @@ namespace c65 {
 		}
 
 		uint8_t
-		processor::execute_nop(
+		processor::execute_no_operation(
 			__in c65::interface::bus &bus,
 			__in const command_t &command,
 			__in c65_word_t value
@@ -437,7 +472,7 @@ namespace c65 {
 		}
 
 		uint8_t
-		processor::execute_stp(
+		processor::execute_stop(
 			__in c65::interface::bus &bus,
 			__in const command_t &command,
 			__in c65_word_t value
@@ -455,7 +490,7 @@ namespace c65 {
 		}
 
 		uint8_t
-		processor::execute_wai(
+		processor::execute_wait(
 			__in c65::interface::bus &bus,
 			__in const command_t &command,
 			__in c65_word_t value
@@ -870,10 +905,10 @@ namespace c65 {
 				if(!m_wait) {
 					result += execute(bus);
 				} else {
-					result += execute_nop(bus, COMMAND(COMMAND_TYPE_NOP_IMPLIED), 0);
+					result += execute_no_operation(bus, COMMAND(COMMAND_TYPE_NOP_IMPLIED), 0);
 				}
 			} else {
-				result += execute_nop(bus, COMMAND(COMMAND_TYPE_NOP_IMPLIED), 0);
+				result += execute_no_operation(bus, COMMAND(COMMAND_TYPE_NOP_IMPLIED), 0);
 			}
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
