@@ -115,7 +115,19 @@ namespace c65 {
 					__in c65_word_t value
 					);
 
+				uint8_t execute_reset_bit(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
 				uint8_t execute_set(
+					__in c65::interface::bus &bus,
+					__in const command_t &command,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_set_bit(
 					__in c65::interface::bus &bus,
 					__in const command_t &command,
 					__in c65_word_t value

@@ -63,7 +63,9 @@ namespace c65 {
 				test_execute_break();
 				test_execute_clear();
 				test_execute_no_operation();
+				test_execute_reset_bit();
 				test_execute_set();
+				test_execute_set_bit();
 				test_execute_stop();
 				test_execute_wait();
 				test_interrupt();
@@ -130,7 +132,7 @@ namespace c65 {
 			{
 				TRACE_ENTRY_FORMAT("State=%p", &state);
 
-				c65::system::processor &instance = c65::system::processor::instance();
+				const c65::system::processor &instance = c65::system::processor::instance();
 
 				state.accumulator = instance.read_register(C65_REGISTER_ACCUMULATOR);
 				state.index_x = instance.read_register(C65_REGISTER_INDEX_X);
@@ -868,6 +870,70 @@ namespace c65 {
 			}
 
 			void
+			processor::test_execute_reset_bit(void)
+			{
+				int type;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1: RMB
+				for(type = COMMAND_RMB0; type <= COMMAND_RMB7; ++type) {
+					c65_byte_t index;
+					command_t command;
+					c65_address_t address;
+					processor_state_t state;
+
+					// Test #1.a: RMB with bit unset
+					index = (COMMAND_TYPE_RMB0_ZERO_PAGE + ((type - COMMAND_RMB0) * 0x10));
+					instance.reset(*this);
+					address.word = 0xaa;
+					m_memory.at(address.word) = 0;
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					save_state(state);
+					m_memory.at(address.word) = index;
+					m_memory.at(address.word + 1) = 0xaa;
+					command = COMMAND(index);
+					ASSERT(instance.step(*this) == (command.cycle + 2));
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+					ASSERT(!m_memory.at(0xaa));
+
+					// Test #1.b: RMB with bit set
+					index = (COMMAND_TYPE_RMB0_ZERO_PAGE + ((type - COMMAND_RMB0) * 0x10));
+					instance.reset(*this);
+					address.word = 0xaa;
+					m_memory.at(address.word) = _MASK(type - COMMAND_RMB0);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					save_state(state);
+					m_memory.at(address.word) = index;
+					m_memory.at(address.word + 1) = 0xaa;
+					command = COMMAND(index);
+					ASSERT(instance.step(*this) == (command.cycle + 2));
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+					ASSERT(!m_memory.at(0xaa));
+				}
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
 			processor::test_execute_set(void)
 			{
 				command_t command;
@@ -933,6 +999,70 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().interrupt_disable);
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_set_bit(void)
+			{
+				int type;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1: SMB
+				for(type = COMMAND_SMB0; type <= COMMAND_SMB7; ++type) {
+					c65_byte_t index;
+					command_t command;
+					c65_address_t address;
+					processor_state_t state;
+
+					// Test #1.a: SMB with bit unset
+					index = (COMMAND_TYPE_SMB0_ZERO_PAGE + ((type - COMMAND_SMB0) * 0x10));
+					instance.reset(*this);
+					address.word = 0xaa;
+					m_memory.at(address.word) = 0;
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					save_state(state);
+					m_memory.at(address.word) = index;
+					m_memory.at(address.word + 1) = 0xaa;
+					command = COMMAND(index);
+					ASSERT(instance.step(*this) == (command.cycle + 2));
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+					ASSERT(MASK_CHECK(m_memory.at(0xaa), type - COMMAND_SMB0));
+
+					// Test #1.b: SMB with bit set
+					index = (COMMAND_TYPE_SMB0_ZERO_PAGE + ((type - COMMAND_SMB0) * 0x10));
+					instance.reset(*this);
+					address.word = 0xaa;
+					m_memory.at(address.word) = _MASK(type - COMMAND_SMB0);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					save_state(state);
+					m_memory.at(address.word) = index;
+					m_memory.at(address.word + 1) = 0xaa;
+					command = COMMAND(index);
+					ASSERT(instance.step(*this) == (command.cycle + 2));
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+					ASSERT(MASK_CHECK(m_memory.at(0xaa), type - COMMAND_SMB0));
+				}
 
 				instance.uninitialize();
 

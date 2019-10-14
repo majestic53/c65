@@ -192,11 +192,11 @@ namespace c65 {
 					break;
 				case COMMAND_PLY:
 					// TODO
-					break;
+					break;*/
 				case COMMAND_RMB0 ... COMMAND_RMB7:
-					// TODO
+					result = execute_reset_bit(bus, command, value);
 					break;
-				case COMMAND_ROL:
+				/*case COMMAND_ROL:
 					// TODO
 					break;
 				case COMMAND_ROR:
@@ -216,10 +216,10 @@ namespace c65 {
 				case COMMAND_SEI:
 					result = execute_set(bus, command, value);
 					break;
-				/*case COMMAND_SMB0 ... COMMAND_SMB7:
-					// TODO
+				case COMMAND_SMB0 ... COMMAND_SMB7:
+					result = execute_set_bit(bus, command, value);
 					break;
-				case COMMAND_STA:
+				/*case COMMAND_STA:
 					// TODO
 					break;*/
 				case COMMAND_STP:
@@ -440,6 +440,37 @@ namespace c65 {
 		}
 
 		uint8_t
+		processor::execute_reset_bit(
+			__in c65::interface::bus &bus,
+			__in const command_t &command,
+			__in c65_word_t value
+			)
+		{
+			uint8_t result = 0;
+			c65_address_t address;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &command, value, value);
+
+			address.word = (value & UINT8_MAX);
+			value = read_byte(bus, address);
+
+			switch(command.type) {
+				case COMMAND_RMB0 ... COMMAND_RMB7:
+					MASK_CLEAR(value, command.type - COMMAND_RMB0);
+					write_byte(bus, address, value);
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
+						"%u(%s)", command.type, COMMAND_STRING(command.type));
+			}
+
+			result = (command.cycle + CYCLE_READ_MODIFY_WRITE);
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
 		processor::execute_set(
 			__in c65::interface::bus &bus,
 			__in const command_t &command,
@@ -466,6 +497,37 @@ namespace c65 {
 			}
 
 			result = command.cycle;
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_set_bit(
+			__in c65::interface::bus &bus,
+			__in const command_t &command,
+			__in c65_word_t value
+			)
+		{
+			uint8_t result = 0;
+			c65_address_t address;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &command, value, value);
+
+			address.word = (value & UINT8_MAX);
+			value = read_byte(bus, address);
+
+			switch(command.type) {
+				case COMMAND_SMB0 ... COMMAND_SMB7:
+					MASK_SET(value, command.type - COMMAND_SMB0);
+					write_byte(bus, address, value);
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
+						"%u(%s)", command.type, COMMAND_STRING(command.type));
+			}
+
+			result = (command.cycle + CYCLE_READ_MODIFY_WRITE);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;

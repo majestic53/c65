@@ -77,7 +77,11 @@ namespace c65 {
 
 					void test_execute_no_operation(void);
 
+					void test_execute_reset_bit(void);
+
 					void test_execute_set(void);
+
+					void test_execute_set_bit(void);
 
 					void test_execute_stop(void);
 
