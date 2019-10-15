@@ -75,7 +75,15 @@ namespace c65 {
 
 					void test_execute_clear(void);
 
+					void test_execute_decrement_index(void);
+
+					void test_execute_increment_index(void);
+
 					void test_execute_no_operation(void);
+
+					void test_execute_pull(void);
+
+					void test_execute_push(void);
 
 					void test_execute_reset_bit(void);
 

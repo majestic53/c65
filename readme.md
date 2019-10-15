@@ -18,6 +18,16 @@ About
 
 C65 emulates the 65C02 microprocessor in a small sandbox environment, and is designed to be binarily compatible with programs generated using [skilldrick's Easy6502 assembler](https://skilldrick.github.io/easy6502/).
 
+#### Features
+
+The project sandbox has the following features:
+
+* 1.2MHz operating frequency (20,000 cycles/frame)
+* Support for all instructions/addressing-modes, as documented in the [W65C02S datasheet](http://www.westerndesigncenter.com/wdc/documentation/w65c02s.pdf)
+	* All illegal/undocumented instructions are automatically converted to NOP instructions
+* 65536 bytes (64 KB) of accesssible memory
+	* MMIO for video display output, keyboard input and random input
+
 #### Memory Map
 
 The project uses the following memory map. Keep in-mind that some of the memory locations, such as IO, are read-only:
@@ -150,6 +160,13 @@ $ make TRACE=3
 Changelog
 =
 
+Version 0.1.1942
+-
+
+*Updated: 10/14/2019*
+
+* Added dex/dey/inx/iny/pha/php/phx/phy/pla/plp/plx/ply processor command handlers
+
 Version 0.1.1941
 -
 
@@ -184,34 +201,5 @@ Version 0.1.1941
 
 * Added debug console tab completion
 * Added additional processor test cases
-
-Version 0.1.1940
--
-
-*Updated: 10/6/2019*
-
-* Added processor system regression tests
-
-*Updated: 10/5/2019*
-
-* Added runtime/memory system regression tests <s>(incomplete)</s>
-
-*Updated: 10/4/2019*
-
-* Added buffer type regression tests
-* Minor code cleanup
-
-*Updated: 10/3/2019*
-
-* Added regression test infrastructure
-
-*Updated: 10/1-2/2019*
-
-* Added processor commands <s>(incomplete)</s>
-
-*Updated: 9/30/2019*
-
-* Added dump action
-* Minor code cleanup
 
 *Changelog truncated (see file history for full log)*
