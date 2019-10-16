@@ -219,8 +219,10 @@ namespace c65 {
 						ASSERT(response.data.low == value.low);
 						break;
 					case C65_REGISTER_PROGRAM_COUNTER:
-					case C65_REGISTER_STACK_POINTER:
 						ASSERT(response.data.word == value.word);
+						break;
+					case C65_REGISTER_STACK_POINTER:
+						ASSERT(response.data.low == value.low);
 						break;
 					default:
 						break;

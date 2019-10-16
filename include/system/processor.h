@@ -133,6 +133,16 @@ namespace c65 {
 					__in c65_word_t value
 					);
 
+				uint8_t execute_return_interrupt(
+					__in c65::interface::bus &bus,
+					__in const command_t &command
+					);
+
+				uint8_t execute_return_subroutine(
+					__in c65::interface::bus &bus,
+					__in const command_t &command
+					);
+
 				uint8_t execute_set(
 					__in const command_t &command
 					);
@@ -144,6 +154,10 @@ namespace c65 {
 					);
 
 				uint8_t execute_stop(
+					__in const command_t &command
+					);
+
+				uint8_t execute_transfer(
 					__in const command_t &command
 					);
 
@@ -164,11 +178,11 @@ namespace c65 {
 					__in c65_byte_t value
 					) override;
 
-				c65_byte_t pop_byte(
+				c65_byte_t pull_byte(
 					__in const c65::interface::bus &bus
 					);
 
-				c65_word_t pop_word(
+				c65_word_t pull_word(
 					__in const c65::interface::bus &bus
 					);
 

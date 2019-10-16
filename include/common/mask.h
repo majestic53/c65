@@ -19,14 +19,14 @@
 #ifndef C65_COMMON_MASK_H_
 #define C65_COMMON_MASK_H_
 
-#define _MASK(_BIT_) \
+#define MASK(_BIT_) \
 	(1 << (_BIT_))
 
 #define MASK_CLEAR(_MASK_, _BIT_) \
-	((_MASK_) &= ~_MASK(_BIT_))
+	((_MASK_) &= ~MASK(_BIT_))
 #define MASK_CHECK(_MASK_, _BIT_) \
-	(((_MASK_) & _MASK(_BIT_)) == _MASK(_BIT_))
+	(((_MASK_) & MASK(_BIT_)) == MASK(_BIT_))
 #define MASK_SET(_MASK_, _BIT_) \
-	((_MASK_) |= _MASK(_BIT_))
+	((_MASK_) |= MASK(_BIT_))
 
 #endif // C65_COMMON_MASK_H_

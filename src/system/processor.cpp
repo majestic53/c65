@@ -185,14 +185,14 @@ namespace c65 {
 					break;
 				case COMMAND_ROR:
 					// TODO
-					break;
+					break;*/
 				case COMMAND_RTI:
-					// TODO
+					result = execute_return_interrupt(bus, command);
 					break;
 				case COMMAND_RTS:
-					// TODO
+					result = execute_return_subroutine(bus, command);
 					break;
-				case COMMAND_SBC:
+				/*case COMMAND_SBC:
 					// TODO
 					break;*/
 				case COMMAND_SEC:
@@ -217,29 +217,19 @@ namespace c65 {
 					break;
 				case COMMAND_STZ:
 					// TODO
-					break;
+					break;*/
 				case COMMAND_TAX:
-					// TODO
-					break;
 				case COMMAND_TAY:
-					// TODO
+				case COMMAND_TSX:
+				case COMMAND_TXA:
+				case COMMAND_TXS:
+				case COMMAND_TYA:
+					result = execute_transfer(command);
 					break;
-				case COMMAND_TRB:
+				/*case COMMAND_TRB:
 					// TODO
 					break;
 				case COMMAND_TSB:
-					// TODO
-					break;
-				case COMMAND_TSX:
-					// TODO
-					break;
-				case COMMAND_TXA:
-					// TODO
-					break;
-				case COMMAND_TXS:
-					// TODO
-					break;
-				case COMMAND_TYA:
 					// TODO
 					break;*/
 				case COMMAND_WAI:
@@ -488,20 +478,20 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &command);
 
-			value = pop_byte(bus);
+			value = pull_byte(bus);
 
 			switch(command.type) {
 				case COMMAND_PLA:
-					m_accumulator.word = value;
+					m_accumulator.low = value;
 					break;
 				case COMMAND_PLP:
 					m_status.raw = value;
 					break;
 				case COMMAND_PLX:
-					m_index_x.word = value;
+					m_index_x.low = value;
 					break;
 				case COMMAND_PLY:
-					m_index_y.word = value;
+					m_index_y.low = value;
 					break;
 				default:
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
@@ -587,6 +577,43 @@ namespace c65 {
 		}
 
 		uint8_t
+		processor::execute_return_interrupt(
+			__in c65::interface::bus &bus,
+			__in const command_t &command
+			)
+		{
+			uint8_t result;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &command);
+
+			m_status.raw = pull_byte(bus);
+			m_program_counter.word = pull_word(bus);
+
+			result = command.cycle;
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_return_subroutine(
+			__in c65::interface::bus &bus,
+			__in const command_t &command
+			)
+		{
+			uint8_t result;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &command);
+
+			m_program_counter.word = (pull_word(bus) + 1);
+
+			result = command.cycle;
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
 		processor::execute_set(
 			__in const command_t &command
 			)
@@ -642,6 +669,57 @@ namespace c65 {
 			}
 
 			result = (command.cycle + CYCLE_READ_MODIFY_WRITE);
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_transfer(
+			__in const command_t &command
+			)
+		{
+			c65_byte_t value;
+			uint8_t result = 0;
+
+			TRACE_ENTRY_FORMAT("Command=%p", &command);
+
+			switch(command.type) {
+				case COMMAND_TAX:
+					value = m_accumulator.low;
+					m_index_x.low = value;
+					break;
+				case COMMAND_TAY:
+					value = m_accumulator.low;
+					m_index_y.low = value;
+					break;
+				case COMMAND_TSX:
+					value = m_stack_pointer.low;
+					m_index_x.low = value;
+					break;
+				case COMMAND_TXA:
+					value = m_index_x.low;
+					m_accumulator.low = value;
+					break;
+				case COMMAND_TXS:
+					value = m_index_x.low;
+					m_stack_pointer.low = value;
+					break;
+				case COMMAND_TYA:
+					value = m_index_y.low;
+					m_accumulator.low = value;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
+						"%u(%s)", command.type, COMMAND_STRING(command.type));
+			}
+
+			if(command.type != COMMAND_TXS) {
+				m_status.negative = MASK_CHECK(value, CHAR_BIT - 1);
+				m_status.zero = !value;
+			}
+
+			result = command.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -828,7 +906,7 @@ namespace c65 {
 		}
 
 		c65_byte_t
-		processor::pop_byte(
+		processor::pull_byte(
 			__in const c65::interface::bus &bus
 			)
 		{
@@ -844,7 +922,7 @@ namespace c65 {
 		}
 
 		c65_word_t
-		processor::pop_word(
+		processor::pull_word(
 			__in const c65::interface::bus &bus
 			)
 		{
@@ -1127,19 +1205,19 @@ namespace c65 {
 
 			switch(type) {
 				case C65_REGISTER_ACCUMULATOR:
-					m_accumulator = value;
+					m_accumulator.low = value.low;
 					break;
 				case C65_REGISTER_INDEX_X:
-					m_index_x = value;
+					m_index_x.low = value.low;
 					break;
 				case C65_REGISTER_INDEX_Y:
-					m_index_y = value;
+					m_index_y.low = value.low;
 					break;
 				case C65_REGISTER_PROGRAM_COUNTER:
 					m_program_counter = value;
 					break;
 				case C65_REGISTER_STACK_POINTER:
-					m_stack_pointer = value;
+					m_stack_pointer.low = value.low;
 					break;
 				default:
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_REGISTER_INVALID,

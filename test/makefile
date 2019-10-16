@@ -21,7 +21,8 @@ DIR_ROOT=./
 DIR_SRC=./src/
 DIR_TOOL=./tool/
 JOB_SLOTS=4
-TEST=./c65-test -q
+TEST=./c65-test
+TEST_FLAGS=
 TRACE?=0
 TRACE_FLAGS_DBG=TRACE_FLAGS=-DTRACE_COLOR\ -DTRACE=
 TRACE_FLAGS_REL=TRACE_FLAGS=-DTRACE_COLOR\ -DTRACE=
@@ -95,7 +96,7 @@ run_test:
 	@echo '============================================'
 	@echo ''
 	@echo '--- RUNNING TESTS --------------------------'
-	@cd $(DIR_BUILD) && if $(TEST); \
+	@cd $(DIR_BUILD) && if $(TEST) $(TEST_FLAGS); \
 	then \
 		echo '--- PASSED ---------------------------------'; \
 	else \

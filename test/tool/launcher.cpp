@@ -196,8 +196,6 @@ namespace c65 {
 
 						TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher runtime request");
 
-						TRACE_DISABLE();
-
 						fixtures.insert(std::make_pair("c65::runtime", &runtime));
 						fixtures.insert(std::make_pair("c65::system::memory", &memory));
 						fixtures.insert(std::make_pair("c65::system::processor", &processor));
@@ -236,8 +234,6 @@ namespace c65 {
 								error.clear();
 							}
 						}
-
-						TRACE_ENABLE();
 
 						TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 						return result;
@@ -317,10 +313,15 @@ main(
 {
 	int result;
 
+	TRACE_DISABLE();
+
 	TRACE_ENTRY_FORMAT("Argument[%i]=%p", argc, argv);
 
 	result = c65::test::tool::launcher::instance().run(argc, argv);
 
 	TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+
+	TRACE_DISABLE();
+
 	return result;
 }

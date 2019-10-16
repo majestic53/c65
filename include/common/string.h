@@ -19,7 +19,8 @@
 #ifndef C65_COMMON_STRING_H_
 #define C65_COMMON_STRING_H_
 
-#define COLUMN_WIDTH 24
+#define COLUMN_WIDTH 20
+#define COLUMN_WIDTH_SHORT 12
 
 #define FLOAT_PRECISION 2
 
@@ -38,6 +39,8 @@
 	std::left << std::setw(_WIDTH_)
 #define STRING_COLUMN() \
 	_STRING_COLUMN(COLUMN_WIDTH)
+#define STRING_COLUMN_SHORT() \
+	_STRING_COLUMN(COLUMN_WIDTH_SHORT)
 
 #define _STRING_FLOAT(_PRECISION_, _VALUE_) \
 	std::right << std::setprecision(_PRECISION_) << std::fixed << (_VALUE_) << std::defaultfloat

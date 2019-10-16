@@ -23,7 +23,7 @@ namespace c65 {
 
 	namespace type {
 
-		bool trace::g_enabled = true;
+		bool trace::g_enabled = false;
 
 		void
 		trace::enable(

@@ -643,7 +643,7 @@ namespace c65 {
 					index = (COMMAND_TYPE_BBR0_ZERO_PAGE_RELATIVE + ((type - COMMAND_BBR0) * 0x10));
 					instance.reset(*this);
 					address.word = 0xaa;
-					m_memory.at(address.word) = _MASK(type - COMMAND_BBR0);
+					m_memory.at(address.word) = MASK(type - COMMAND_BBR0);
 					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
 					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
 					save_state(state);
@@ -687,7 +687,7 @@ namespace c65 {
 					index = (COMMAND_TYPE_BBS0_ZERO_PAGE_RELATIVE + ((type - COMMAND_BBS0) * 0x10));
 					instance.reset(*this);
 					address.word = 0xaa;
-					m_memory.at(address.word) = _MASK(type - COMMAND_BBS0);
+					m_memory.at(address.word) = MASK(type - COMMAND_BBS0);
 					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
 					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
 					save_state(state);
@@ -732,8 +732,8 @@ namespace c65 {
 				state.status.break_instruction = false;
 				instance.write_status(state.status);
 				save_state(state);
-				m_memory.at(address.word) = COMMAND_TYPE_BRK_STACK;
-				command = COMMAND(COMMAND_TYPE_BRK_STACK);
+				m_memory.at(address.word) = COMMAND_TYPE_BRK_INTERRUPT;
+				command = COMMAND(COMMAND_TYPE_BRK_INTERRUPT);
 				ASSERT(instance.step(*this) == command.cycle);
 				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
@@ -883,7 +883,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_ZERO)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #3: DEX with index-x = 0
 				instance.reset(*this);
@@ -898,7 +898,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_NEGATIVE)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE)));
 
 				// Test #4: DEY with index-y > 1
 				instance.reset(*this);
@@ -928,7 +928,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == (state.index_y.word - 1));
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_ZERO)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #6: DEY with index-y = 0
 				instance.reset(*this);
@@ -943,7 +943,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == (uint8_t)(state.index_y.word - 1));
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_NEGATIVE)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE)));
 
 				instance.uninitialize();
 
@@ -993,7 +993,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_NEGATIVE)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE)));
 
 				// Test #3: INX with index-x = 255
 				instance.reset(*this);
@@ -1008,7 +1008,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_ZERO)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #4: INY with index-y < 127
 				instance.reset(*this);
@@ -1038,7 +1038,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == (state.index_y.word + 1));
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_NEGATIVE)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE)));
 
 				// Test #6: INY with index-y = 255
 				instance.reset(*this);
@@ -1053,7 +1053,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == (uint8_t)(state.index_y.word + 1));
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_ZERO)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				instance.uninitialize();
 
@@ -1144,7 +1144,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (program_counter.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == (state.stack_pointer.word + 1));
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_ZERO)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #3: PLA negative
 				value = 0x80;
@@ -1162,7 +1162,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (program_counter.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == (state.stack_pointer.word + 1));
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_NEGATIVE)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE)));
 
 				// Test #4: PLP
 				value = 10;
@@ -1215,7 +1215,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (program_counter.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == (state.stack_pointer.word + 1));
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_ZERO)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #7: PLX negative
 				value = 0x80;
@@ -1233,7 +1233,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (program_counter.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == (state.stack_pointer.word + 1));
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_NEGATIVE)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE)));
 
 				// Test #8: PLY positive
 				value = 10;
@@ -1269,7 +1269,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).low == value);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (program_counter.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == (state.stack_pointer.word + 1));
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_ZERO)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #10: PLY negative
 				value = 0x80;
@@ -1287,7 +1287,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).low == value);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (program_counter.word + command.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == (state.stack_pointer.word + 1));
-				ASSERT(instance.read_status().raw == (state.status.raw | _MASK(FLAG_NEGATIVE)));
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE)));
 
 				instance.uninitialize();
 
@@ -1420,7 +1420,7 @@ namespace c65 {
 					index = (COMMAND_TYPE_RMB0_ZERO_PAGE + ((type - COMMAND_RMB0) * 0x10));
 					instance.reset(*this);
 					address.word = 0xaa;
-					m_memory.at(address.word) = _MASK(type - COMMAND_RMB0);
+					m_memory.at(address.word) = MASK(type - COMMAND_RMB0);
 					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
 					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
 					save_state(state);
@@ -1556,7 +1556,7 @@ namespace c65 {
 					index = (COMMAND_TYPE_SMB0_ZERO_PAGE + ((type - COMMAND_SMB0) * 0x10));
 					instance.reset(*this);
 					address.word = 0xaa;
-					m_memory.at(address.word) = _MASK(type - COMMAND_SMB0);
+					m_memory.at(address.word) = MASK(type - COMMAND_SMB0);
 					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
 					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
 					save_state(state);
@@ -1688,7 +1688,7 @@ namespace c65 {
 							instance.write_register(C65_REGISTER_STACK_POINTER, stack);
 							instance.interrupt(type);
 							ASSERT(instance.step(*this) == (COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED)
-								+ COMMAND_CYCLE_INTERRUPT));
+								+ COMMAND_MODE_CYCLE(COMMAND_MODE_INTERRUPT)));
 							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
 								== (INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_NON_MASKABLE) + 1));
 							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word
@@ -1718,7 +1718,7 @@ namespace c65 {
 							instance.write_register(C65_REGISTER_STACK_POINTER, stack);
 							instance.interrupt(type);
 							ASSERT(instance.step(*this) == (COMMAND_MODE_CYCLE(COMMAND_MODE_IMPLIED)
-								+ COMMAND_CYCLE_INTERRUPT));
+								+ COMMAND_MODE_CYCLE(COMMAND_MODE_INTERRUPT)));
 							ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word
 								== (INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_MASKABLE) + 1));
 							ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word
@@ -2006,8 +2006,10 @@ namespace c65 {
 							ASSERT(instance.read_register(type).low == value.low);
 							break;
 						case C65_REGISTER_PROGRAM_COUNTER:
-						case C65_REGISTER_STACK_POINTER:
 							ASSERT(instance.read_register(type).word == value.word);
+							break;
+						case C65_REGISTER_STACK_POINTER:
+							ASSERT(instance.read_register(type).low == value.low);
 							break;
 						default:
 							break;

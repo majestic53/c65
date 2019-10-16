@@ -24,11 +24,11 @@ The following arguments are available:
 ```
 c65 [args] [path]
 
--b|--base               <address>               Define base address
--d|--debug                                      Enable debug mode
--h|--help                                       Display help information
--q|--quiet                                      Enable quiet mode
--v|--version                                    Display version information
+-b|--base           <address>           Define base address
+-d|--debug                              Enable debug mode
+-h|--help                               Display help information
+-q|--quiet                              Enable quiet mode
+-v|--version                            Display version information
 ```
 
 #### Examples
@@ -62,27 +62,28 @@ $ ./bin/c65 -b 600 file.bin
 The following arguments are available:
 
 ```
-c|cycle                                         Display cycle information
-da|disassemble          <address> <count>       Disassemble memory contents
-d|dump                  <address> <count>       Dump memory contents
-q|exit                                          Exit console
-?|help                                          Display help information
-i|interrupt             <type>                  Interrupt processor
-l|load                  <path> <address>        Load data into memory
-p|processor                                     Display processor information
-rb|read-byte            <address>               Read byte from memory
-rr|read-register        <register>              Read register value
-rs|read-status                                  Read status value
-rw|read-word            <address>               Read word from memory
-rt|reset                                        Reset processor
-r|run                                           Run processor
-s|step                                          Step processor
-u|unload                <address> <length>      Unload data from memory
-v|version                                       Display version information
-wb|write-byte           <address> <value>       Write byte to memory
-wr|write-register       <register> <value>      Write register value
-ws|write-status         <value>                 Write status value
-ww|write-word           <address> <value>       Write word to memory
+c|cycle                                 Display cycle information
+da|disassemble      <address> <count>   Disassemble memory contents
+d|dump              <address> <count>   Dump memory contents
+q|exit                                  Exit console
+?|help                                  Display help information
+i|interrupt         <type>              Interrupt processor
+l|load              <path> <address>    Load data into memory
+p|processor                             Display processor information
+rb|read-byte        <address>           Read byte from memory
+rr|read-register    <register>          Read register value
+rs|read-status                          Read status value
+rw|read-word        <address>           Read word from memory
+rt|reset                                Reset processor
+r|run                                   Run processor
+st|stack                                Dump stack contents
+s|step                                  Step processor
+u|unload            <address> <length>  Unload data from memory
+v|version                               Display version information
+wb|write-byte       <address> <value>   Write byte to memory
+wr|write-register   <register> <value>  Write register value
+ws|write-status     <value>             Write status value
+ww|write-word       <address> <value>   Write word to memory
 ```
 
 #### Examples

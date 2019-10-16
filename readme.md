@@ -163,6 +163,11 @@ Changelog
 Version 0.1.1942
 -
 
+*Updated: 10/15/2019*
+
+* Added return/transfer processor command handlers
+* Added debug stack command
+
 *Updated: 10/14/2019*
 
 * Added dex/dey/inx/iny/pha/php/phx/phy/pla/plp/plx/ply processor command handlers

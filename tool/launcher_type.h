@@ -80,6 +80,7 @@ namespace c65 {
 			ACTION_READ_WORD,
 			ACTION_RESET,
 			ACTION_RUN,
+			ACTION_STACK,
 			ACTION_STEP,
 			ACTION_UNLOAD,
 			ACTION_VERSION,
@@ -106,6 +107,7 @@ namespace c65 {
 			1, // ACTION_READ_WORD
 			0, // ACTION_RESET
 			0, // ACTION_RUN
+			0, // ACTION_STACK
 			0, // ACTION_STEP
 			2, // ACTION_UNLOAD
 			0, // ACTION_VERSION
@@ -134,6 +136,7 @@ namespace c65 {
 			"<address>", // ACTION_READ_WORD
 			"", // ACTION_RESET
 			"", // ACTION_RUN
+			"", // ACTION_STACK
 			"", // ACTION_STEP
 			"<address> <length>", // ACTION_UNLOAD
 			"", // ACTION_VERSION
@@ -162,6 +165,7 @@ namespace c65 {
 			"Read word from memory", // ACTION_READ_WORD
 			"Reset processor", // ACTION_RESET
 			"Run processor", // ACTION_RUN
+			"Dump stack contents", // ACTION_STACK
 			"Step processor", // ACTION_STEP
 			"Unload data from memory", // ACTION_UNLOAD
 			"Display version information", // ACTION_VERSION
@@ -190,6 +194,7 @@ namespace c65 {
 			"read-word", // ACTION_READ_WORD
 			"reset", // ACTION_RESET
 			"run", // ACTION_RUN
+			"stack", // ACTION_STACK
 			"step", // ACTION_STEP
 			"unload", // ACTION_UNLOAD
 			"version", // ACTION_VERSION
@@ -218,6 +223,7 @@ namespace c65 {
 			"rw", // ACTION_READ_WORD
 			"rt", // ACTION_RESET
 			"r", // ACTION_RUN
+			"st", // ACTION_STEP
 			"s", // ACTION_STEP
 			"u", // ACTION_UNLOAD
 			"v", // ACTION_VERSION
@@ -246,6 +252,7 @@ namespace c65 {
 			std::make_pair(ACTION_LONG_STRING(ACTION_READ_WORD), ACTION_READ_WORD), // ACTION_READ_WORD
 			std::make_pair(ACTION_LONG_STRING(ACTION_RESET), ACTION_RESET), // ACTION_RESET
 			std::make_pair(ACTION_LONG_STRING(ACTION_RUN), ACTION_RUN), // ACTION_RUN
+			std::make_pair(ACTION_LONG_STRING(ACTION_STACK), ACTION_STACK), // ACTION_STACK
 			std::make_pair(ACTION_LONG_STRING(ACTION_STEP), ACTION_STEP), // ACTION_STEP
 			std::make_pair(ACTION_LONG_STRING(ACTION_UNLOAD), ACTION_UNLOAD), // ACTION_UNLOAD
 			std::make_pair(ACTION_LONG_STRING(ACTION_VERSION), ACTION_VERSION), // ACTION_VERSION
@@ -267,6 +274,7 @@ namespace c65 {
 			std::make_pair(ACTION_SHORT_STRING(ACTION_READ_WORD), ACTION_READ_WORD), // ACTION_READ_WORD
 			std::make_pair(ACTION_SHORT_STRING(ACTION_RESET), ACTION_RESET), // ACTION_RESET
 			std::make_pair(ACTION_SHORT_STRING(ACTION_RUN), ACTION_RUN), // ACTION_RUN
+			std::make_pair(ACTION_SHORT_STRING(ACTION_STACK), ACTION_STACK), // ACTION_STACK
 			std::make_pair(ACTION_SHORT_STRING(ACTION_STEP), ACTION_STEP), // ACTION_STEP
 			std::make_pair(ACTION_SHORT_STRING(ACTION_UNLOAD), ACTION_UNLOAD), // ACTION_UNLOAD
 			std::make_pair(ACTION_SHORT_STRING(ACTION_VERSION), ACTION_VERSION), // ACTION_VERSION

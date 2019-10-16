@@ -319,6 +319,9 @@ namespace c65 {
 								case ACTION_RUN:
 									debug_action_run();
 									break;
+								case ACTION_STACK:
+									debug_action_stack();
+									break;
 								case ACTION_STEP:
 									debug_action_step();
 									break;
@@ -869,9 +872,52 @@ namespace c65 {
 					TRACE_EXIT();
 				}
 
+				void debug_action_stack(void)
+				{
+					c65_word_t depth;
+					std::stringstream result;
+					c65_action_t request = {}, response = {};
+
+					TRACE_ENTRY();
+
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Stack");
+
+					request.type = C65_ACTION_READ_REGISTER;
+					request.address.word = C65_REGISTER_STACK_POINTER;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					request.type = C65_ACTION_READ_BYTE;
+					depth = (response.data.word - ADDRESS_MEMORY_STACK_END);
+
+					result << "[" << STRING_HEXIDECIMAL(c65_word_t, response.data.word) << ", " << (int)depth << " depth]"
+						<< std::endl;
+
+					while(depth) {
+						request.address.word = (ADDRESS_MEMORY_STACK_END - depth);
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+						}
+
+						result << std::endl << "[" << STRING_HEXIDECIMAL(c65_word_t, request.address.word)
+							<< STRING_COLUMN_SHORT() << "]" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+
+						--depth;
+					};
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str()	<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
+
+					TRACE_EXIT();
+				}
+
 				void debug_action_step(void)
 				{
+					int flag = FLAG_MAX;
 					c65_address_t address;
+					std::stringstream result, stream;
 					c65_action_t request = {}, response = {};
 
 					TRACE_ENTRY();
@@ -886,12 +932,57 @@ namespace c65 {
 					}
 
 					address.word = response.data.word;
-					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << disassemble(address) << LEVEL_COLOR(LEVEL_NONE)
-						<< std::endl;
+					stream << disassemble(address);
 
 					if(c65_step() != EXIT_SUCCESS) {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
+
+					result << stream.str() << STRING_COLUMN_SHORT() << " " << "A=";
+
+					request.address.word = C65_REGISTER_ACCUMULATOR;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					request.address.word = C65_REGISTER_INDEX_X;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << ", X=" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					request.address.word = C65_REGISTER_INDEX_Y;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << ", Y=" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					request.address.word = C65_REGISTER_STACK_POINTER;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << ", SP=" << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+
+					request.type = C65_ACTION_READ_STATUS;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << ", P=" << STRING_HEXIDECIMAL(c65_byte_t, response.status.raw) << " [";
+
+					for(; flag >= 0; flag--) {
+						result << FLAG_STRING(MASK_CHECK(response.status.raw, flag) ? flag : FLAG_UNUSED);
+					}
+
+					result << "]";
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
 
 					TRACE_EXIT();
 				}
@@ -1079,6 +1170,7 @@ namespace c65 {
 					__inout c65_address_t &address
 					)
 				{
+					size_t pad;
 					std::vector<c65_byte_t> data;
 					std::stringstream result, stream;
 					std::vector<c65_byte_t>::iterator byte;
@@ -1089,7 +1181,7 @@ namespace c65 {
 					stream.clear();
 					stream.str(std::string());
 					stream << STRING_HEXIDECIMAL(c65_word_t, address.word);
-					result << STRING_COLUMN() << stream.str();
+					result << STRING_COLUMN_SHORT() << stream.str();
 
 					request.type = C65_ACTION_READ_BYTE;
 					request.address = address;
@@ -1106,7 +1198,7 @@ namespace c65 {
 					stream.clear();
 					stream.str(std::string());
 					stream << COMMAND_MODE_STRING(command.mode);
-					result << COMMAND_STRING(command.type) << " " << STRING_COLUMN() << stream.str();
+					result << COMMAND_STRING(command.type) << " " << STRING_COLUMN_SHORT() << stream.str();
 
 					switch(command.length) {
 						case COMMAND_LENGTH_BYTE:
@@ -1130,7 +1222,7 @@ namespace c65 {
 								stream << " (" << STRING_HEXIDECIMAL(c65_word_t, offset) << ")";
 							}
 
-							result << STRING_COLUMN() << stream.str();
+							result << STRING_COLUMN_SHORT() << stream.str();
 							break;
 						case COMMAND_LENGTH_WORD:
 							request.type = C65_ACTION_READ_WORD;
@@ -1158,10 +1250,10 @@ namespace c65 {
 								stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
 							}
 
-							result << STRING_COLUMN() << stream.str();
+							result << STRING_COLUMN_SHORT() << stream.str();
 							break;
 						default:
-							result << STRING_COLUMN() << " ";
+							result << STRING_COLUMN_SHORT() << " ";
 							break;
 					}
 
@@ -1172,6 +1264,10 @@ namespace c65 {
 					}
 
 					result << " }";
+
+					for(pad = data.size(); pad < (COMMAND_LENGTH_WORD + 1); ++pad) {
+						result << "   ";
+					}
 
 					TRACE_EXIT();
 					return result.str();
@@ -1384,10 +1480,15 @@ main(
 {
 	int result;
 
+	TRACE_ENABLE();
+
 	TRACE_ENTRY_FORMAT("Argument[%i]=%p", argc, argv);
 
 	result = c65::tool::launcher::instance().run(argc, argv);
 
 	TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+
+	TRACE_DISABLE();
+
 	return result;
 }
