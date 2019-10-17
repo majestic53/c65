@@ -92,7 +92,7 @@ namespace c65 {
 						} catch(c65::type::exception &exc) {
 
 							if(!m_quiet) {
-								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error: " << exc.to_string() << std::endl
+								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error! " << exc.to_string() << std::endl
 									<< LEVEL_COLOR(LEVEL_NONE);
 							}
 
@@ -100,7 +100,7 @@ namespace c65 {
 						} catch(std::exception &exc) {
 
 							if(!m_quiet) {
-								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error: " << exc.what() << std::endl
+								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error! " << exc.what() << std::endl
 									<< LEVEL_COLOR(LEVEL_NONE);
 							}
 
@@ -1193,15 +1193,15 @@ namespace c65 {
 					}
 
 					data.push_back(response.data.low);
-					const command_t &command = COMMAND(data.back());
+					const instruction_t &instruction = INSTRUCTION(data.back());
 
 					stream.clear();
 					stream.str(std::string());
-					stream << COMMAND_MODE_STRING(command.mode);
-					result << COMMAND_STRING(command.type) << " " << STRING_COLUMN_SHORT() << stream.str();
+					stream << INSTRUCTION_MODE_STRING(instruction.mode);
+					result << INSTRUCTION_STRING(instruction.type) << " " << STRING_COLUMN_SHORT() << stream.str();
 
-					switch(command.length) {
-						case COMMAND_LENGTH_BYTE:
+					switch(instruction.length) {
+						case INSTRUCTION_LENGTH_BYTE:
 							request.type = C65_ACTION_READ_BYTE;
 							request.address = address;
 							++address.word;
@@ -1217,17 +1217,17 @@ namespace c65 {
 							stream.str(std::string());
 							stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
 
-							if(command.mode == COMMAND_MODE_RELATIVE) {
+							if(instruction.mode == INSTRUCTION_MODE_RELATIVE) {
 								c65_word_t offset = (address.word + (int8_t)response.data.low);
 								stream << " (" << STRING_HEXIDECIMAL(c65_word_t, offset) << ")";
 							}
 
 							result << STRING_COLUMN_SHORT() << stream.str();
 							break;
-						case COMMAND_LENGTH_WORD:
+						case INSTRUCTION_LENGTH_WORD:
 							request.type = C65_ACTION_READ_WORD;
 							request.address = address;
-							address.word += COMMAND_LENGTH_WORD;
+							address.word += INSTRUCTION_LENGTH_WORD;
 
 							if(c65_action(&request, &response) != EXIT_SUCCESS) {
 								THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
@@ -1240,7 +1240,7 @@ namespace c65 {
 							stream.clear();
 							stream.str(std::string());
 
-							if(command.mode == COMMAND_MODE_ZERO_PAGE_RELATIVE) {
+							if(instruction.mode == INSTRUCTION_MODE_ZERO_PAGE_RELATIVE) {
 								c65_word_t offset = (address.word + (int8_t)response.data.high);
 
 								stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low) << ", "
@@ -1257,7 +1257,7 @@ namespace c65 {
 							break;
 					}
 
-					result << "[" << (int)command.cycle << "] {";
+					result << "[" << (int)instruction.cycle << "] {";
 
 					for(byte = data.begin(); byte != data.end(); ++byte) {
 						result << " " << STRING_HEXIDECIMAL(c65_byte_t, *byte);
@@ -1265,7 +1265,7 @@ namespace c65 {
 
 					result << " }";
 
-					for(pad = data.size(); pad < (COMMAND_LENGTH_WORD + 1); ++pad) {
+					for(pad = data.size(); pad < (INSTRUCTION_LENGTH_WORD + 1); ++pad) {
 						result << "   ";
 					}
 

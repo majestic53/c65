@@ -3,7 +3,7 @@ C65
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Build Status](https://travis-ci.com/majestic53/c65.svg?branch=master)](https://travis-ci.com/majestic53/c65)
 
-A small 65C02 based emulator, written in C++
+A small 65C02 emulator and debugger, written in C++
 
 Table of Contents
 =
@@ -24,9 +24,8 @@ The project sandbox has the following features:
 
 * 1.2MHz operating frequency (20,000 cycles/frame)
 * Support for all instructions/addressing-modes, as documented in the [W65C02S datasheet](http://www.westerndesigncenter.com/wdc/documentation/w65c02s.pdf)
-	* All illegal/undocumented instructions are automatically converted to NOP instructions
 * 65536 bytes (64 KB) of accesssible memory
-	* MMIO for video display output, keyboard input and random input
+* MMIO for video display output, keyboard input and random input
 
 #### Memory Map
 
@@ -162,6 +161,10 @@ Changelog
 
 Version 0.1.1942
 -
+
+*Updated: 10/16/2019*
+
+* Minor code cleanup
 
 *Updated: 10/15/2019*
 

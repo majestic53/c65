@@ -86,83 +86,83 @@ namespace c65 {
 					);
 
 				uint8_t execute_branch(
-					__in const command_t &command,
+					__in const instruction_t &instruction,
 					__in c65_word_t value
 					);
 
 				uint8_t execute_branch_bit(
 					__in c65::interface::bus &bus,
-					__in const command_t &command,
+					__in const instruction_t &instruction,
 					__in c65_word_t value
 					);
 
 				uint8_t execute_break(
 					__in c65::interface::bus &bus,
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_clear(
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_decrement_index(
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_increment_index(
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_no_operation(
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_pull(
 					__in c65::interface::bus &bus,
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_push(
 					__in c65::interface::bus &bus,
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_reset_bit(
 					__in c65::interface::bus &bus,
-					__in const command_t &command,
+					__in const instruction_t &instruction,
 					__in c65_word_t value
 					);
 
 				uint8_t execute_return_interrupt(
 					__in c65::interface::bus &bus,
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_return_subroutine(
 					__in c65::interface::bus &bus,
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_set(
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_set_bit(
 					__in c65::interface::bus &bus,
-					__in const command_t &command,
+					__in const instruction_t &instruction,
 					__in c65_word_t value
 					);
 
 				uint8_t execute_stop(
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_transfer(
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_wait(
-					__in const command_t &command
+					__in const instruction_t &instruction
 					);
 
 				void on_initialize(void) override;

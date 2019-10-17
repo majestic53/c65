@@ -106,13 +106,13 @@ namespace c65 {
 			ASSERT(response.data.low);
 
 			// Test #3: Read byte action
-			ASSERT(c65_load((c65_byte_t *)&value.low, COMMAND_LENGTH_BYTE, address) == EXIT_SUCCESS);
+			ASSERT(c65_load((c65_byte_t *)&value.low, INSTRUCTION_LENGTH_BYTE, address) == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_BYTE;
 			request.address = address;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_READ_BYTE);
 			ASSERT(response.data.low == value.low);
-			ASSERT(c65_unload(address, COMMAND_LENGTH_BYTE) == EXIT_SUCCESS);
+			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_BYTE) == EXIT_SUCCESS);
 
 			// Test #4: Read register action
 			ASSERT(c65_reset() == EXIT_SUCCESS);
@@ -151,13 +151,13 @@ namespace c65 {
 			ASSERT(response.status.raw == status.raw);
 
 			// Test #6: Read word action
-			ASSERT(c65_load((c65_byte_t *)&value.word, COMMAND_LENGTH_WORD, address) == EXIT_SUCCESS);
+			ASSERT(c65_load((c65_byte_t *)&value.word, INSTRUCTION_LENGTH_WORD, address) == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_WORD;
 			request.address = address;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_READ_WORD);
 			ASSERT(response.data.word == value.word);
-			ASSERT(c65_unload(address, COMMAND_LENGTH_WORD) == EXIT_SUCCESS);
+			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_WORD) == EXIT_SUCCESS);
 
 			// Test #7: Stopped action
 			request.type = C65_ACTION_STOPPED;
@@ -183,7 +183,7 @@ namespace c65 {
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_READ_BYTE);
 			ASSERT(response.data.low == value.low);
-			ASSERT(c65_unload(address, COMMAND_LENGTH_BYTE) == EXIT_SUCCESS);
+			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_BYTE) == EXIT_SUCCESS);
 
 			// Test #10: Write register action
 			for(type = 0; type <= C65_REGISTER_MAX; ++type) {
@@ -252,7 +252,7 @@ namespace c65 {
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_READ_WORD);
 			ASSERT(response.data.word == value.word);
-			ASSERT(c65_unload(address, COMMAND_LENGTH_WORD) == EXIT_SUCCESS);
+			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_WORD) == EXIT_SUCCESS);
 
 			TRACE_EXIT();
 		}
@@ -316,13 +316,13 @@ namespace c65 {
 			// Test #2: Invalid load
 			try {
 				address.word = ADDRESS_RANDOM;
-				c65_load((c65_byte_t *)&data[0], COMMAND_LENGTH_BYTE, address);
+				c65_load((c65_byte_t *)&data[0], INSTRUCTION_LENGTH_BYTE, address);
 				ASSERT(false);
 			} catch(...) { }
 
 			try {
 				address.word = ADDRESS_KEY;
-				c65_load((c65_byte_t *)&data[0], COMMAND_LENGTH_BYTE, address);
+				c65_load((c65_byte_t *)&data[0], INSTRUCTION_LENGTH_BYTE, address);
 				ASSERT(false);
 			} catch(...) { }
 
@@ -385,13 +385,13 @@ namespace c65 {
 			// Test #2: Invalid unload
 			try {
 				address.word = ADDRESS_RANDOM;
-				c65_unload(address, COMMAND_LENGTH_BYTE);
+				c65_unload(address, INSTRUCTION_LENGTH_BYTE);
 				ASSERT(false);
 			} catch(...) { }
 
 			try {
 				address.word = ADDRESS_KEY;
-				c65_unload(address, COMMAND_LENGTH_BYTE);
+				c65_unload(address, INSTRUCTION_LENGTH_BYTE);
 				ASSERT(false);
 			} catch(...) { }
 

@@ -57,20 +57,20 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
-			const command_t &command = COMMAND(read_byte(bus, m_program_counter));
+			const instruction_t &instruction = INSTRUCTION(read_byte(bus, m_program_counter));
 
-			TRACE_MESSAGE_FORMAT(LEVEL_VERBOSE, "Opcode", "[%04x] %s %s", m_program_counter.word, COMMAND_STRING(command.type),
-				COMMAND_MODE_STRING(command.mode));
+			TRACE_MESSAGE_FORMAT(LEVEL_VERBOSE, "Opcode", "[%04x] %s %s", m_program_counter.word, INSTRUCTION_STRING(instruction.type),
+				INSTRUCTION_MODE_STRING(instruction.mode));
 
 			++m_program_counter.word;
 
-			switch(command.length) {
-				case COMMAND_LENGTH_BYTE:
+			switch(instruction.length) {
+				case INSTRUCTION_LENGTH_BYTE:
 					value = read_byte(bus, m_program_counter);
 
 					TRACE_MESSAGE_FORMAT(LEVEL_VERBOSE, "Operand", "[%04x] %u(%02x)", m_program_counter.word, value, value);
 					break;
-				case COMMAND_LENGTH_WORD:
+				case INSTRUCTION_LENGTH_WORD:
 					value = read_word(bus, m_program_counter);
 
 					TRACE_MESSAGE_FORMAT(LEVEL_VERBOSE, "Operand", "[%04x] %u(%04x)", m_program_counter.word, value, value);
@@ -79,164 +79,164 @@ namespace c65 {
 					break;
 			}
 
-			m_program_counter.word += command.length;
+			m_program_counter.word += instruction.length;
 
-			switch(command.type) {
-				/*case COMMAND_ADC:
+			switch(instruction.type) {
+				/*case INSTRUCTION_ADC:
 					// TODO
 					break;
-				case COMMAND_AND:
+				case INSTRUCTION_AND:
 					// TODO
 					break;
-				case COMMAND_ASL:
-					// TODO
-					break;*/
-				case COMMAND_BBR0 ... COMMAND_BBR7:
-				case COMMAND_BBS0 ... COMMAND_BBS7:
-					result = execute_branch_bit(bus, command, value);
-					break;
-				case COMMAND_BCC:
-				case COMMAND_BCS:
-				case COMMAND_BEQ:
-				case COMMAND_BMI:
-				case COMMAND_BNE:
-				case COMMAND_BPL:
-				case COMMAND_BRA:
-				case COMMAND_BVC:
-				case COMMAND_BVS:
-					result = execute_branch(command, value);
-					break;
-				/*case COMMAND_BIT:
+				case INSTRUCTION_ASL:
 					// TODO
 					break;*/
-				case COMMAND_BRK:
-					result = execute_break(bus, command);
+				case INSTRUCTION_BBR0 ... INSTRUCTION_BBR7:
+				case INSTRUCTION_BBS0 ... INSTRUCTION_BBS7:
+					result = execute_branch_bit(bus, instruction, value);
 					break;
-				case COMMAND_CLC:
-				case COMMAND_CLD:
-				case COMMAND_CLI:
-				case COMMAND_CLV:
-					result = execute_clear(command);
+				case INSTRUCTION_BCC:
+				case INSTRUCTION_BCS:
+				case INSTRUCTION_BEQ:
+				case INSTRUCTION_BMI:
+				case INSTRUCTION_BNE:
+				case INSTRUCTION_BPL:
+				case INSTRUCTION_BRA:
+				case INSTRUCTION_BVC:
+				case INSTRUCTION_BVS:
+					result = execute_branch(instruction, value);
 					break;
-				/*case COMMAND_CMP:
-					// TODO
-					break;
-				case COMMAND_CPX:
-					// TODO
-					break;
-				case COMMAND_CPY:
-					// TODO
-					break;
-				case COMMAND_DEC:
+				/*case INSTRUCTION_BIT:
 					// TODO
 					break;*/
-				case COMMAND_DEX:
-				case COMMAND_DEY:
-					result = execute_decrement_index(command);
+				case INSTRUCTION_BRK:
+					result = execute_break(bus, instruction);
 					break;
-				/*case COMMAND_EOR:
+				case INSTRUCTION_CLC:
+				case INSTRUCTION_CLD:
+				case INSTRUCTION_CLI:
+				case INSTRUCTION_CLV:
+					result = execute_clear(instruction);
+					break;
+				/*case INSTRUCTION_CMP:
 					// TODO
 					break;
-				case COMMAND_INC:
-					// TODO
-					break;*/
-				case COMMAND_INX:
-				case COMMAND_INY:
-					result = execute_increment_index(command);
-					break;
-				/*case COMMAND_JMP:
+				case INSTRUCTION_CPX:
 					// TODO
 					break;
-				case COMMAND_JSR:
+				case INSTRUCTION_CPY:
 					// TODO
 					break;
-				case COMMAND_LDA:
-					// TODO
-					break;
-				case COMMAND_LDX:
-					// TODO
-					break;
-				case COMMAND_LDY:
-					// TODO
-					break;
-				case COMMAND_LSR:
-					// TODO
-					break;
-				case COMMAND_ORA:
+				case INSTRUCTION_DEC:
 					// TODO
 					break;*/
-				case COMMAND_PHA:
-				case COMMAND_PHP:
-				case COMMAND_PHX:
-				case COMMAND_PHY:
-					result = execute_push(bus, command);
+				case INSTRUCTION_DEX:
+				case INSTRUCTION_DEY:
+					result = execute_decrement_index(instruction);
 					break;
-				case COMMAND_PLA:
-				case COMMAND_PLP:
-				case COMMAND_PLX:
-				case COMMAND_PLY:
-					result = execute_pull(bus, command);
-					break;
-				case COMMAND_RMB0 ... COMMAND_RMB7:
-					result = execute_reset_bit(bus, command, value);
-					break;
-				/*case COMMAND_ROL:
+				/*case INSTRUCTION_EOR:
 					// TODO
 					break;
-				case COMMAND_ROR:
+				case INSTRUCTION_INC:
 					// TODO
 					break;*/
-				case COMMAND_RTI:
-					result = execute_return_interrupt(bus, command);
+				case INSTRUCTION_INX:
+				case INSTRUCTION_INY:
+					result = execute_increment_index(instruction);
 					break;
-				case COMMAND_RTS:
-					result = execute_return_subroutine(bus, command);
+				/*case INSTRUCTION_JMP:
+					// TODO
 					break;
-				/*case COMMAND_SBC:
+				case INSTRUCTION_JSR:
+					// TODO
+					break;
+				case INSTRUCTION_LDA:
+					// TODO
+					break;
+				case INSTRUCTION_LDX:
+					// TODO
+					break;
+				case INSTRUCTION_LDY:
+					// TODO
+					break;
+				case INSTRUCTION_LSR:
+					// TODO
+					break;
+				case INSTRUCTION_ORA:
 					// TODO
 					break;*/
-				case COMMAND_SEC:
-				case COMMAND_SED:
-				case COMMAND_SEI:
-					result = execute_set(command);
+				case INSTRUCTION_PHA:
+				case INSTRUCTION_PHP:
+				case INSTRUCTION_PHX:
+				case INSTRUCTION_PHY:
+					result = execute_push(bus, instruction);
 					break;
-				case COMMAND_SMB0 ... COMMAND_SMB7:
-					result = execute_set_bit(bus, command, value);
+				case INSTRUCTION_PLA:
+				case INSTRUCTION_PLP:
+				case INSTRUCTION_PLX:
+				case INSTRUCTION_PLY:
+					result = execute_pull(bus, instruction);
 					break;
-				/*case COMMAND_STA:
+				case INSTRUCTION_RMB0 ... INSTRUCTION_RMB7:
+					result = execute_reset_bit(bus, instruction, value);
+					break;
+				/*case INSTRUCTION_ROL:
+					// TODO
+					break;
+				case INSTRUCTION_ROR:
 					// TODO
 					break;*/
-				case COMMAND_STP:
-					result = execute_stop(command);
+				case INSTRUCTION_RTI:
+					result = execute_return_interrupt(bus, instruction);
 					break;
-				/*case COMMAND_STX:
-					// TODO
+				case INSTRUCTION_RTS:
+					result = execute_return_subroutine(bus, instruction);
 					break;
-				case COMMAND_STY:
-					// TODO
-					break;
-				case COMMAND_STZ:
+				/*case INSTRUCTION_SBC:
 					// TODO
 					break;*/
-				case COMMAND_TAX:
-				case COMMAND_TAY:
-				case COMMAND_TSX:
-				case COMMAND_TXA:
-				case COMMAND_TXS:
-				case COMMAND_TYA:
-					result = execute_transfer(command);
+				case INSTRUCTION_SEC:
+				case INSTRUCTION_SED:
+				case INSTRUCTION_SEI:
+					result = execute_set(instruction);
 					break;
-				/*case COMMAND_TRB:
-					// TODO
+				case INSTRUCTION_SMB0 ... INSTRUCTION_SMB7:
+					result = execute_set_bit(bus, instruction, value);
 					break;
-				case COMMAND_TSB:
+				/*case INSTRUCTION_STA:
 					// TODO
 					break;*/
-				case COMMAND_WAI:
-					result = execute_wait(command);
+				case INSTRUCTION_STP:
+					result = execute_stop(instruction);
+					break;
+				/*case INSTRUCTION_STX:
+					// TODO
+					break;
+				case INSTRUCTION_STY:
+					// TODO
+					break;
+				case INSTRUCTION_STZ:
+					// TODO
+					break;*/
+				case INSTRUCTION_TAX:
+				case INSTRUCTION_TAY:
+				case INSTRUCTION_TSX:
+				case INSTRUCTION_TXA:
+				case INSTRUCTION_TXS:
+				case INSTRUCTION_TYA:
+					result = execute_transfer(instruction);
+					break;
+				/*case INSTRUCTION_TRB:
+					// TODO
+					break;
+				case INSTRUCTION_TSB:
+					// TODO
+					break;*/
+				case INSTRUCTION_WAI:
+					result = execute_wait(instruction);
 					break;
 				default:
-					result = execute_no_operation(command);
+					result = execute_no_operation(instruction);
 					break;
 			}
 
@@ -246,49 +246,49 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_branch(
-			__in const command_t &command,
+			__in const instruction_t &instruction,
 			__in c65_word_t value
 			)
 		{
 			uint8_t result;
 			bool taken = false;
 
-			TRACE_ENTRY_FORMAT("Command=%p, Value=%u(%04x)", &command, value, value);
+			TRACE_ENTRY_FORMAT("Command=%p, Value=%u(%04x)", &instruction, value, value);
 
-			switch(command.type) {
-				case COMMAND_BCC:
+			switch(instruction.type) {
+				case INSTRUCTION_BCC:
 					taken = !m_status.carry;
 					break;
-				case COMMAND_BCS:
+				case INSTRUCTION_BCS:
 					taken = m_status.carry;
 					break;
-				case COMMAND_BEQ:
+				case INSTRUCTION_BEQ:
 					taken = m_status.zero;
 					break;
-				case COMMAND_BMI:
+				case INSTRUCTION_BMI:
 					taken = m_status.negative;
 					break;
-				case COMMAND_BNE:
+				case INSTRUCTION_BNE:
 					taken = !m_status.zero;
 					break;
-				case COMMAND_BPL:
+				case INSTRUCTION_BPL:
 					taken = !m_status.negative;
 					break;
-				case COMMAND_BRA:
+				case INSTRUCTION_BRA:
 					taken = true;
 					break;
-				case COMMAND_BVC:
+				case INSTRUCTION_BVC:
 					taken = !m_status.overflow;
 					break;
-				case COMMAND_BVS:
+				case INSTRUCTION_BVS:
 					taken = m_status.overflow;
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			if(taken) {
 				c65_address_t address = {};
@@ -309,7 +309,7 @@ namespace c65 {
 		uint8_t
 		processor::execute_branch_bit(
 			__in c65::interface::bus &bus,
-			__in const command_t &command,
+			__in const instruction_t &instruction,
 			__in c65_word_t value
 			)
 		{
@@ -317,23 +317,23 @@ namespace c65 {
 			bool taken = false;
 			c65_address_t address;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &command, value, value);
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &instruction, value, value);
 
 			address.word = (value & UINT8_MAX);
 
-			switch(command.type) {
-				case COMMAND_BBR0 ... COMMAND_BBR7:
-					taken = !MASK_CHECK(read_byte(bus, address), command.type - COMMAND_BBR0);
+			switch(instruction.type) {
+				case INSTRUCTION_BBR0 ... INSTRUCTION_BBR7:
+					taken = !MASK_CHECK(read_byte(bus, address), instruction.type - INSTRUCTION_BBR0);
 					break;
-				case COMMAND_BBS0 ... COMMAND_BBS7:
-					taken = MASK_CHECK(read_byte(bus, address), command.type - COMMAND_BBS0);
+				case INSTRUCTION_BBS0 ... INSTRUCTION_BBS7:
+					taken = MASK_CHECK(read_byte(bus, address), instruction.type - INSTRUCTION_BBS0);
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			if(taken) {
 				m_program_counter.word += (int8_t)(value >> CHAR_BIT);
@@ -346,12 +346,12 @@ namespace c65 {
 		uint8_t
 		processor::execute_break(
 			__in c65::interface::bus &bus,
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &command);
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
 
 			result = service_interrupt(bus, m_maskable, true);
 
@@ -361,32 +361,32 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_clear(
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &command);
+			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
 
-			switch(command.type) {
-				case COMMAND_CLC:
+			switch(instruction.type) {
+				case INSTRUCTION_CLC:
 					m_status.carry = false;
 					break;
-				case COMMAND_CLD:
+				case INSTRUCTION_CLD:
 					m_status.decimal_mode = false;
 					break;
-				case COMMAND_CLI:
+				case INSTRUCTION_CLI:
 					m_status.interrupt_disable = false;
 					break;
-				case COMMAND_CLV:
+				case INSTRUCTION_CLV:
 					m_status.overflow = false;
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -394,29 +394,29 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_decrement_index(
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 			c65_byte_t value = 0;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &command);
+			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
 
-			switch(command.type) {
-				case COMMAND_DEX:
+			switch(instruction.type) {
+				case INSTRUCTION_DEX:
 					value = --m_index_x.low;
 					break;
-				case COMMAND_DEY:
+				case INSTRUCTION_DEY:
 					value = --m_index_y.low;
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
 			m_status.negative = MASK_CHECK(value, CHAR_BIT - 1);
 			m_status.zero = !value;
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -424,29 +424,29 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_increment_index(
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 			c65_byte_t value = 0;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &command);
+			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
 
-			switch(command.type) {
-				case COMMAND_INX:
+			switch(instruction.type) {
+				case INSTRUCTION_INX:
 					value = ++m_index_x.low;
 					break;
-				case COMMAND_INY:
+				case INSTRUCTION_INY:
 					value = ++m_index_y.low;
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
 			m_status.negative = MASK_CHECK(value, CHAR_BIT - 1);
 			m_status.zero = !value;
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -454,14 +454,14 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_no_operation(
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &command);
+			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -470,40 +470,40 @@ namespace c65 {
 		uint8_t
 		processor::execute_pull(
 			__in c65::interface::bus &bus,
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 			c65_byte_t value;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &command);
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
 
 			value = pull_byte(bus);
 
-			switch(command.type) {
-				case COMMAND_PLA:
+			switch(instruction.type) {
+				case INSTRUCTION_PLA:
 					m_accumulator.low = value;
 					break;
-				case COMMAND_PLP:
+				case INSTRUCTION_PLP:
 					m_status.raw = value;
 					break;
-				case COMMAND_PLX:
+				case INSTRUCTION_PLX:
 					m_index_x.low = value;
 					break;
-				case COMMAND_PLY:
+				case INSTRUCTION_PLY:
 					m_index_y.low = value;
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
-			if(command.type != COMMAND_PLP) {
+			if(instruction.type != INSTRUCTION_PLP) {
 				m_status.negative = MASK_CHECK(value, CHAR_BIT - 1);
 				m_status.zero = !value;
 			}
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -512,34 +512,34 @@ namespace c65 {
 		uint8_t
 		processor::execute_push(
 			__in c65::interface::bus &bus,
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 			c65_byte_t value = 0;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &command);
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
 
-			switch(command.type) {
-				case COMMAND_PHA:
+			switch(instruction.type) {
+				case INSTRUCTION_PHA:
 					value = m_accumulator.low;
 					break;
-				case COMMAND_PHP:
+				case INSTRUCTION_PHP:
 					value = m_status.raw;
 					break;
-				case COMMAND_PHX:
+				case INSTRUCTION_PHX:
 					value = m_index_x.low;
 					break;
-				case COMMAND_PHY:
+				case INSTRUCTION_PHY:
 					value = m_index_y.low;
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
 			push_byte(bus, value);
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -548,29 +548,29 @@ namespace c65 {
 		uint8_t
 		processor::execute_reset_bit(
 			__in c65::interface::bus &bus,
-			__in const command_t &command,
+			__in const instruction_t &instruction,
 			__in c65_word_t value
 			)
 		{
 			uint8_t result = 0;
 			c65_address_t address;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &command, value, value);
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &instruction, value, value);
 
 			address.word = (value & UINT8_MAX);
 			value = read_byte(bus, address);
 
-			switch(command.type) {
-				case COMMAND_RMB0 ... COMMAND_RMB7:
-					MASK_CLEAR(value, command.type - COMMAND_RMB0);
+			switch(instruction.type) {
+				case INSTRUCTION_RMB0 ... INSTRUCTION_RMB7:
+					MASK_CLEAR(value, instruction.type - INSTRUCTION_RMB0);
 					write_byte(bus, address, value);
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
-			result = (command.cycle + CYCLE_READ_MODIFY_WRITE);
+			result = (instruction.cycle + CYCLE_READ_MODIFY_WRITE);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -579,17 +579,17 @@ namespace c65 {
 		uint8_t
 		processor::execute_return_interrupt(
 			__in c65::interface::bus &bus,
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &command);
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
 
 			m_status.raw = pull_byte(bus);
 			m_program_counter.word = pull_word(bus);
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -598,16 +598,16 @@ namespace c65 {
 		uint8_t
 		processor::execute_return_subroutine(
 			__in c65::interface::bus &bus,
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &command);
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
 
 			m_program_counter.word = (pull_word(bus) + 1);
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -615,29 +615,29 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_set(
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &command);
+			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
 
-			switch(command.type) {
-				case COMMAND_SEC:
+			switch(instruction.type) {
+				case INSTRUCTION_SEC:
 					m_status.carry = true;
 					break;
-				case COMMAND_SED:
+				case INSTRUCTION_SED:
 					m_status.decimal_mode = true;
 					break;
-				case COMMAND_SEI:
+				case INSTRUCTION_SEI:
 					m_status.interrupt_disable = true;
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -646,29 +646,29 @@ namespace c65 {
 		uint8_t
 		processor::execute_set_bit(
 			__in c65::interface::bus &bus,
-			__in const command_t &command,
+			__in const instruction_t &instruction,
 			__in c65_word_t value
 			)
 		{
 			uint8_t result = 0;
 			c65_address_t address;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &command, value, value);
+			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &instruction, value, value);
 
 			address.word = (value & UINT8_MAX);
 			value = read_byte(bus, address);
 
-			switch(command.type) {
-				case COMMAND_SMB0 ... COMMAND_SMB7:
-					MASK_SET(value, command.type - COMMAND_SMB0);
+			switch(instruction.type) {
+				case INSTRUCTION_SMB0 ... INSTRUCTION_SMB7:
+					MASK_SET(value, instruction.type - INSTRUCTION_SMB0);
 					write_byte(bus, address, value);
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
-			result = (command.cycle + CYCLE_READ_MODIFY_WRITE);
+			result = (instruction.cycle + CYCLE_READ_MODIFY_WRITE);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -676,50 +676,50 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_transfer(
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			c65_byte_t value;
 			uint8_t result = 0;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &command);
+			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
 
-			switch(command.type) {
-				case COMMAND_TAX:
+			switch(instruction.type) {
+				case INSTRUCTION_TAX:
 					value = m_accumulator.low;
 					m_index_x.low = value;
 					break;
-				case COMMAND_TAY:
+				case INSTRUCTION_TAY:
 					value = m_accumulator.low;
 					m_index_y.low = value;
 					break;
-				case COMMAND_TSX:
+				case INSTRUCTION_TSX:
 					value = m_stack_pointer.low;
 					m_index_x.low = value;
 					break;
-				case COMMAND_TXA:
+				case INSTRUCTION_TXA:
 					value = m_index_x.low;
 					m_accumulator.low = value;
 					break;
-				case COMMAND_TXS:
+				case INSTRUCTION_TXS:
 					value = m_index_x.low;
 					m_stack_pointer.low = value;
 					break;
-				case COMMAND_TYA:
+				case INSTRUCTION_TYA:
 					value = m_index_y.low;
 					m_accumulator.low = value;
 					break;
 				default:
-					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_COMMAND_INVALID,
-						"%u(%s)", command.type, COMMAND_STRING(command.type));
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
+						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
 
-			if(command.type != COMMAND_TXS) {
+			if(instruction.type != INSTRUCTION_TXS) {
 				m_status.negative = MASK_CHECK(value, CHAR_BIT - 1);
 				m_status.zero = !value;
 			}
 
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -727,15 +727,15 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_stop(
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &command);
+			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
 
 			m_stop = true;
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -743,15 +743,15 @@ namespace c65 {
 
 		uint8_t
 		processor::execute_wait(
-			__in const command_t &command
+			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &command);
+			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
 
 			m_wait = true;
-			result = command.cycle;
+			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -1155,10 +1155,10 @@ namespace c65 {
 				if(!m_wait) {
 					result += execute(bus);
 				} else {
-					result += execute_no_operation(COMMAND(COMMAND_TYPE_NOP_IMPLIED));
+					result += execute_no_operation(INSTRUCTION(INSTRUCTION_TYPE_NOP_IMPLIED));
 				}
 			} else {
-				result += execute_no_operation(COMMAND(COMMAND_TYPE_NOP_IMPLIED));
+				result += execute_no_operation(INSTRUCTION(INSTRUCTION_TYPE_NOP_IMPLIED));
 			}
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
