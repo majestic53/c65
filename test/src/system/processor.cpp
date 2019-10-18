@@ -68,9 +68,12 @@ namespace c65 {
 				test_execute_push();
 				test_execute_no_operation();
 				test_execute_reset_bit();
+				test_execute_return_interrupt();
+				test_execute_return_subroutine();
 				test_execute_set();
 				test_execute_set_bit();
 				test_execute_stop();
+				test_execute_transfer();
 				test_execute_wait();
 				test_interrupt();
 				test_interrupt_pending();
@@ -151,10 +154,10 @@ namespace c65 {
 			void
 			processor::test_execute_branch(void)
 			{
-				instruction_t instruction;
 				c65_status_t status;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -606,9 +609,9 @@ namespace c65 {
 			{
 				int type;
 				c65_byte_t index;
-				instruction_t instruction;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -712,9 +715,9 @@ namespace c65 {
 			void
 			processor::test_execute_break(void)
 			{
-				instruction_t instruction;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -754,10 +757,10 @@ namespace c65 {
 			void
 			processor::test_execute_clear(void)
 			{
-				instruction_t instruction;
 				c65_status_t status;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -843,9 +846,9 @@ namespace c65 {
 			void
 			processor::test_execute_decrement_index(void)
 			{
-				instruction_t instruction;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -953,9 +956,9 @@ namespace c65 {
 			void
 			processor::test_execute_increment_index(void)
 			{
-				instruction_t instruction;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -1063,9 +1066,9 @@ namespace c65 {
 			void
 			processor::test_execute_no_operation(void)
 			{
-				instruction_t instruction;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -1097,8 +1100,8 @@ namespace c65 {
 			processor::test_execute_pull(void)
 			{
 				c65_byte_t value;
-				instruction_t instruction;
 				processor_state_t state;
+				instruction_t instruction;
 				c65_address_t program_counter, stack_pointer;
 
 				TRACE_ENTRY();
@@ -1179,7 +1182,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (program_counter.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == (state.stack_pointer.word + 1));
-				ASSERT(instance.read_status().raw == value);
+				ASSERT(instance.read_status().raw == (value | MASK(FLAG_BREAK_INSTRUCTION)));
 
 				// Test #5: PLX positive
 				value = 10;
@@ -1297,9 +1300,9 @@ namespace c65 {
 			void
 			processor::test_execute_push(void)
 			{
-				instruction_t instruction;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -1443,12 +1446,89 @@ namespace c65 {
 			}
 
 			void
+			processor::test_execute_return_interrupt(void)
+			{
+				c65_status_t status;
+				processor_state_t state;
+				instruction_t instruction;
+				c65_address_t address, value;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				instance.reset(*this);
+				status.raw = std::rand();
+				value.word = std::rand();
+				address.word = ADDRESS_MEMORY_STACK_END;
+				m_memory.at(address.word--) = value.high;
+				m_memory.at(address.word--) = value.low;
+				m_memory.at(address.word--) = status.raw;
+				instance.write_register(C65_REGISTER_STACK_POINTER, address);
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_RTI_RETURN;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_RTI_RETURN);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == value.word);
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == ADDRESS_MEMORY_STACK_END);
+				ASSERT(instance.read_status().raw == (status.raw | MASK(FLAG_BREAK_INSTRUCTION)));
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_return_subroutine(void)
+			{
+				processor_state_t state;
+				instruction_t instruction;
+				c65_address_t address, value;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				instance.reset(*this);
+				value.word = std::rand();
+				address.word = ADDRESS_MEMORY_STACK_END;
+				m_memory.at(address.word--) = value.high;
+				m_memory.at(address.word--) = value.low;
+				instance.write_register(C65_REGISTER_STACK_POINTER, address);
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_RTS_RETURN;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_RTS_RETURN);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (value.word + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == ADDRESS_MEMORY_STACK_END);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
 			processor::test_execute_set(void)
 			{
-				instruction_t instruction;
 				c65_status_t status;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -1581,9 +1661,9 @@ namespace c65 {
 			void
 			processor::test_execute_stop(void)
 			{
-				instruction_t instruction;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 
@@ -1613,11 +1693,289 @@ namespace c65 {
 			}
 
 			void
+			processor::test_execute_transfer(void)
+			{
+				processor_state_t state;
+				instruction_t instruction;
+				c65_address_t address, value;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+
+				// Test #1.a: TAX positive
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 10;
+				instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TAX_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TAX_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #1.b: TAX zero
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 0;
+				instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TAX_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TAX_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO)));
+
+				// Test #1.c: TAX negative
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = -10;
+				instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TAX_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TAX_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE) & ~MASK(FLAG_ZERO)));
+
+				// Test #2.a: TAY positive
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 10;
+				instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TAY_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TAY_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #2.b: TAY zero
+				value.word = 0;
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 0;
+				instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TAY_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TAY_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO)));
+
+				// Test #2.c: TAY negative
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = -10;
+				instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TAY_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TAY_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE) & ~MASK(FLAG_ZERO)));
+
+				// Test #3.a: TSX positive
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 10;
+				instance.write_register(C65_REGISTER_STACK_POINTER, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TSX_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TSX_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.stack_pointer.low);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #3.b: TSX zero
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 0;
+				instance.write_register(C65_REGISTER_STACK_POINTER, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TSX_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TSX_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.stack_pointer.low);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO)));
+
+				// Test #3.c: TSX negative
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = -10;
+				instance.write_register(C65_REGISTER_STACK_POINTER, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TSX_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TSX_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.stack_pointer.low);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE) & ~MASK(FLAG_ZERO)));
+
+				// Test #4.a: TXA positive
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 10;
+				instance.write_register(C65_REGISTER_INDEX_X, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TXA_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TXA_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #4.b: TXA zero
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 0;
+				instance.write_register(C65_REGISTER_INDEX_X, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TXA_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TXA_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO)));
+
+				// Test #4.c: TXA negative
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = -10;
+				instance.write_register(C65_REGISTER_INDEX_X, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TXA_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TXA_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE) & ~MASK(FLAG_ZERO)));
+
+				// Test #5: TXS
+				value.word = std::rand();
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				instance.write_register(C65_REGISTER_INDEX_X, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TXS_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TXS_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).high == state.stack_pointer.high);
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).low == value.low);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #6.a: TYA positive
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 10;
+				instance.write_register(C65_REGISTER_INDEX_Y, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TYA_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TYA_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #6.b: TYA zero
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = 0;
+				instance.write_register(C65_REGISTER_INDEX_Y, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TYA_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TYA_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO)));
+
+				// Test #6.c: TYA negative
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+				value.word = -10;
+				instance.write_register(C65_REGISTER_INDEX_Y, value);
+				save_state(state);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_TYA_IMPLIED;
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_TYA_IMPLIED);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE) & ~MASK(FLAG_ZERO)));
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
 			processor::test_execute_wait(void)
 			{
-				instruction_t instruction;
 				c65_address_t address;
 				processor_state_t state;
+				instruction_t instruction;
 
 				TRACE_ENTRY();
 

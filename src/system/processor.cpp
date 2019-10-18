@@ -485,7 +485,7 @@ namespace c65 {
 					m_accumulator.low = value;
 					break;
 				case INSTRUCTION_PLP:
-					m_status.raw = value;
+					m_status.raw = (value | MASK(FLAG_BREAK_INSTRUCTION));
 					break;
 				case INSTRUCTION_PLX:
 					m_index_x.low = value;
@@ -586,7 +586,7 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
 
-			m_status.raw = pull_byte(bus);
+			m_status.raw = (pull_byte(bus) | MASK(FLAG_BREAK_INSTRUCTION));
 			m_program_counter.word = pull_word(bus);
 
 			result = instruction.cycle;
