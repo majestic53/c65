@@ -62,6 +62,9 @@ $ ./bin/c65 -b 600 file.bin
 The following arguments are available:
 
 ```
+b|break             <address>           Set breakpoint
+bc|break-clear      <address>           Clear breakpoints
+bl|break-list                           List breakpoints
 c|cycle                                 Display cycle information
 da|disassemble      <address> <count>   Disassemble memory contents
 d|dump              <address> <count>   Dump memory contents
@@ -80,6 +83,9 @@ st|stack                                Dump stack contents
 s|step                                  Step processor
 u|unload            <address> <length>  Unload data from memory
 v|version                               Display version information
+w|watch             <address>           Set watch
+wc|watch-clear      <address>           Clear watches
+wl|watch-list                           List watches
 wb|write-byte       <address> <value>   Write byte to memory
 wr|write-register   <register> <value>  Write register value
 ws|write-status     <value>             Write status value

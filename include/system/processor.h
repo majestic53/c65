@@ -91,13 +91,13 @@ namespace c65 {
 
 				uint8_t execute_branch(
 					__in const instruction_t &instruction,
-					__in c65_word_t value
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_branch_bit(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
-					__in c65_word_t value
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_break(
@@ -120,13 +120,13 @@ namespace c65 {
 				uint8_t execute_jump(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
-					__in c65_word_t value
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_jump_subroutine(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
-					__in c65_word_t value
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_no_operation(
@@ -146,7 +146,7 @@ namespace c65 {
 				uint8_t execute_reset_bit(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
-					__in c65_word_t value
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_return_interrupt(
@@ -166,10 +166,11 @@ namespace c65 {
 				uint8_t execute_set_bit(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
-					__in c65_word_t value
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_stop(
+					__in const c65::interface::bus &bus,
 					__in const instruction_t &instruction
 					);
 
@@ -178,10 +179,15 @@ namespace c65 {
 					);
 
 				uint8_t execute_wait(
+					__in const c65::interface::bus &bus,
 					__in const instruction_t &instruction
 					);
 
 				void on_initialize(void) override;
+
+				void on_notify(
+					__in const c65_event_t &event
+					) const override;
 
 				c65_byte_t on_read(
 					__in c65_address_t address

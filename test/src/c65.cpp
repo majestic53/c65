@@ -19,6 +19,13 @@
 #include "../include/c65.h"
 #include "./c65_type.h"
 
+static void c65_event_handler(
+	__in const c65_event_t *event
+	)
+{
+	return;
+}
+
 namespace c65 {
 
 	namespace test {
@@ -42,6 +49,7 @@ namespace c65 {
 
 			test_action();
 			test_cleanup();
+			test_event_handler();
 			test_interrupt();
 			test_load();
 			test_reset();
@@ -80,7 +88,30 @@ namespace c65 {
 						+ ADDRESS_MEMORY_HIGH_BEGIN);
 			value.word = std::rand();
 
-			// Test #1: Cycle action
+			// Test #1: Breakpoint clear action
+			request.type = C65_ACTION_BREAKPOINT_CLEAR;
+			ASSERT(c65_action(&request, &response) == EXIT_FAILURE);
+			ASSERT(response.type == C65_ACTION_BREAKPOINT_CLEAR);
+			request.type = C65_ACTION_BREAKPOINT_SET;
+			request.address.word = value.word;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_BREAKPOINT_SET);
+			request.type = C65_ACTION_BREAKPOINT_CLEAR;
+			request.address.word = value.word;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_BREAKPOINT_CLEAR);
+
+			// Test #2: Breakpoint set action
+			request.type = C65_ACTION_BREAKPOINT_SET;
+			request.address.word = value.word;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_BREAKPOINT_SET);
+			request.type = C65_ACTION_BREAKPOINT_SET;
+			request.address.word = value.word;
+			ASSERT(c65_action(&request, &response) == EXIT_FAILURE);
+			ASSERT(response.type == C65_ACTION_BREAKPOINT_SET);
+
+			// Test #3: Cycle action
 			request.type = C65_ACTION_CYCLE;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_CYCLE);
@@ -91,7 +122,7 @@ namespace c65 {
 			ASSERT(response.type == C65_ACTION_CYCLE);
 			ASSERT(response.cycle);
 
-			// Test #2: Interrupt pending action
+			// Test #4: Interrupt pending action
 			request.type = C65_ACTION_INTERRUPT_PENDING;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_INTERRUPT_PENDING);
@@ -105,7 +136,7 @@ namespace c65 {
 			ASSERT(response.type == C65_ACTION_INTERRUPT_PENDING);
 			ASSERT(response.data.low);
 
-			// Test #3: Read byte action
+			// Test #5: Read byte action
 			ASSERT(c65_load((c65_byte_t *)&value.low, INSTRUCTION_LENGTH_BYTE, address) == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_BYTE;
 			request.address = address;
@@ -114,7 +145,7 @@ namespace c65 {
 			ASSERT(response.data.low == value.low);
 			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_BYTE) == EXIT_SUCCESS);
 
-			// Test #4: Read register action
+			// Test #6: Read register action
 			ASSERT(c65_reset() == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_REGISTER;
 
@@ -140,7 +171,7 @@ namespace c65 {
 				}
 			}
 
-			// Test #5: Read status action
+			// Test #7: Read status action
 			ASSERT(c65_reset() == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_STATUS;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
@@ -150,7 +181,7 @@ namespace c65 {
 			status.unused = true;
 			ASSERT(response.status.raw == status.raw);
 
-			// Test #6: Read word action
+			// Test #8: Read word action
 			ASSERT(c65_load((c65_byte_t *)&value.word, INSTRUCTION_LENGTH_WORD, address) == EXIT_SUCCESS);
 			request.type = C65_ACTION_READ_WORD;
 			request.address = address;
@@ -159,31 +190,54 @@ namespace c65 {
 			ASSERT(response.data.word == value.word);
 			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_WORD) == EXIT_SUCCESS);
 
-			// Test #7: Stack overflow action
+			// Test #9: Stack overflow action
 			request.type = C65_ACTION_STACK_OVERFLOW;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_STACK_OVERFLOW);
 			ASSERT(!response.data.low);
 
-			// Test #8: Stack underflow action
+			// Test #10: Stack underflow action
 			request.type = C65_ACTION_STACK_UNDERFLOW;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_STACK_UNDERFLOW);
 			ASSERT(!response.data.low);
 
-			// Test #9: Stopped action
+			// Test #11: Stopped action
 			request.type = C65_ACTION_STOPPED;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_STOPPED);
 			ASSERT(!response.data.low);
 
-			// Test #10: Waiting action
+			// Test #12: Waiting action
 			request.type = C65_ACTION_WAITING;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_WAITING);
 			ASSERT(!response.data.low);
 
-			// Test #11: Write byte action
+			// Test #13: Watch clear action
+			request.type = C65_ACTION_WATCH_CLEAR;
+			ASSERT(c65_action(&request, &response) == EXIT_FAILURE);
+			ASSERT(response.type == C65_ACTION_WATCH_CLEAR);
+			request.type = C65_ACTION_WATCH_SET;
+			request.address.word = value.word;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_WATCH_SET);
+			request.type = C65_ACTION_WATCH_CLEAR;
+			request.address.word = value.word;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_WATCH_CLEAR);
+
+			// Test #14: Watch set action
+			request.type = C65_ACTION_WATCH_SET;
+			request.address.word = value.word;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_WATCH_SET);
+			request.type = C65_ACTION_WATCH_SET;
+			request.address.word = value.word;
+			ASSERT(c65_action(&request, &response) == EXIT_FAILURE);
+			ASSERT(response.type == C65_ACTION_WATCH_SET);
+
+			// Test #15: Write byte action
 			request.type = C65_ACTION_WRITE_BYTE;
 			request.address = address;
 			request.data.low = value.low;
@@ -197,7 +251,7 @@ namespace c65 {
 			ASSERT(response.data.low == value.low);
 			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_BYTE) == EXIT_SUCCESS);
 
-			// Test #12: Write register action
+			// Test #16: Write register action
 			for(type = 0; type <= C65_REGISTER_MAX; ++type) {
 				request.type = C65_ACTION_WRITE_REGISTER;
 				request.address.word = type;
@@ -241,7 +295,7 @@ namespace c65 {
 				}
 			}
 
-			// Test #13: Write status action
+			// Test #17: Write status action
 			request.type = C65_ACTION_WRITE_STATUS;
 			request.status.raw = value.low;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
@@ -252,7 +306,7 @@ namespace c65 {
 			ASSERT(response.type == C65_ACTION_READ_STATUS);
 			ASSERT(response.status.raw == value.low);
 
-			// Test #14: Write word action
+			// Test #18: Write word action
 			request.type = C65_ACTION_WRITE_WORD;
 			request.address = address;
 			request.data = value;
@@ -275,6 +329,26 @@ namespace c65 {
 			TRACE_ENTRY();
 
 			c65_cleanup();
+
+			TRACE_EXIT();
+		}
+
+		void
+		runtime::test_event_handler(void)
+		{
+			int type = 0;
+
+			TRACE_ENTRY();
+
+			// Test #1: Valid event
+			for(; type <= C65_EVENT_MAX; ++type) {
+				ASSERT(c65_event_handler(type, nullptr) == EXIT_SUCCESS);
+				ASSERT(c65_event_handler(type, c65_event_handler) == EXIT_SUCCESS);
+			}
+
+			// Test #2: Invalid event
+			ASSERT(c65_event_handler(type, nullptr) == EXIT_FAILURE);
+			ASSERT(c65_event_handler(type, c65_event_handler) == EXIT_FAILURE);
 
 			TRACE_EXIT();
 		}

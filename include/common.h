@@ -29,6 +29,7 @@
 #include <map>
 #include <random>
 #include <ratio>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -56,6 +57,7 @@
 #include "./common/action.h"
 #include "./common/address.h"
 #include "./common/color.h"
+#include "./common/event.h"
 #include "./common/exception.h"
 #include "./common/flag.h"
 #include "./common/instruction.h"

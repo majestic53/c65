@@ -117,6 +117,15 @@ namespace c65 {
 			TRACE_EXIT();
 		}
 
+		void
+		video::on_notify(
+			__in const c65_event_t &event
+			) const
+		{
+			TRACE_ENTRY_FORMAT("Event=%p", &event);
+			TRACE_EXIT();
+		}
+
 		c65_byte_t
 		video::on_read(
 			__in c65_address_t address

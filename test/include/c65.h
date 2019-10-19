@@ -52,6 +52,8 @@ namespace c65 {
 
 				void test_action(void);
 
+				void test_event_handler(void);
+
 				void test_cleanup(void);
 
 				void test_interrupt(void);

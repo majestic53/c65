@@ -30,8 +30,14 @@
 
 enum {
 
+	// Breakpoint clear
+	C65_ACTION_BREAKPOINT_CLEAR = 0,
+
+	// Breakpoint set
+	C65_ACTION_BREAKPOINT_SET,
+
 	// Cycle count
-	C65_ACTION_CYCLE = 0,
+	C65_ACTION_CYCLE,
 
 	// Interrupt pending state
 	C65_ACTION_INTERRUPT_PENDING,
@@ -60,6 +66,12 @@ enum {
 	// Wait status
 	C65_ACTION_WAITING,
 
+	// Watch clear
+	C65_ACTION_WATCH_CLEAR,
+
+	// Watch set
+	C65_ACTION_WATCH_SET,
+
 	// Write memory byte
 	C65_ACTION_WRITE_BYTE,
 
@@ -74,6 +86,50 @@ enum {
 };
 
 #define C65_ACTION_MAX C65_ACTION_WRITE_WORD
+
+enum {
+
+	// Breakpoint event
+	C65_EVENT_BREAKPOINT = 0,
+
+	// Illegal instruction event
+	C65_EVENT_ILLEGAL_INSTRUCTION,
+
+	// Interrupt entry event
+	C65_EVENT_INTERRUPT_ENTRY,
+
+	// Interrupt exit event
+	C65_EVENT_INTERRUPT_EXIT,
+
+	// Stack overflow event
+	C65_EVENT_STACK_OVERFLOW,
+
+	// Stack underflow event
+	C65_EVENT_STACK_UNDERFLOW,
+
+	// Stop entry event
+	C65_EVENT_STOP_ENTRY,
+
+	// Stop exit event
+	C65_EVENT_STOP_EXIT,
+
+	// Subroutine entry event
+	C65_EVENT_SUBROUTINE_ENTRY,
+
+	// Subroutine exit event
+	C65_EVENT_SUBROUTINE_EXIT,
+
+	// Wait entry event
+	C65_EVENT_WAIT_ENTRY,
+
+	// Wait exit event
+	C65_EVENT_WAIT_EXIT,
+
+	// Memory watch event
+	C65_EVENT_WATCH,
+};
+
+#define C65_EVENT_MAX C65_EVENT_WATCH
 
 enum {
 
@@ -168,6 +224,10 @@ typedef struct {
 	};
 } __attribute__((packed)) c65_action_t;
 
+typedef c65_action_t c65_event_t;
+
+typedef void (*c65_event_hdlr)(const c65_event_t *);
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -188,6 +248,14 @@ int c65_action(const c65_action_t *request, c65_action_t *response);
  * Cleanup emulator
  */
 void c65_cleanup(void);
+
+/**
+ * Register emulator event handler
+ * @param type Event type
+ * @param handler Event handler
+ * @return EXIT_SUCCESS on success
+ */
+int c65_event_handler(int type, c65_event_hdlr handler);
 
 /**
  * Interrupt emulator

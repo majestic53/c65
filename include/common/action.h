@@ -20,6 +20,8 @@
 #define C65_COMMON_ACTION_H_
 
 static const std::string ACTION_STR[] = {
+	"Breakpoint-Clear", // C65_ACTION_BREAKPOINT_CLEAR
+	"Breakpoint-Set", // C65_ACTION_BREAKPOINT_SET
 	"Cycle", // C65_ACTION_CYCLE
 	"Interrupt-Pending", // C65_ACTION_INTERRUPT_PENDING
 	"Read-Byte", // C65_ACTION_READ_BYTE
@@ -30,6 +32,8 @@ static const std::string ACTION_STR[] = {
 	"Stack-Underflow", // C65_ACTION_STACK_UNDERFLOW
 	"Stopped", // C65_ACTION_STOPPED
 	"Waiting", // C65_ACTION_WAITING
+	"Watch-Clear", // C65_ACTION_WATCH_CLEAR
+	"Watch-Set", // C65_ACTION_WATCH_SET
 	"Write-Byte", // C65_ACTION_WRITE_BYTE
 	"Write-Register", // C65_ACTION_WRITE_REGISTER
 	"Write-Status", // C65_ACTION_WRITE_STATUS

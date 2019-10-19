@@ -48,6 +48,10 @@ namespace c65 {
 						__in const processor &other
 						) = delete;
 
+					void on_notify(
+						__in const c65_event_t &event
+						) const override;
+
 					c65_byte_t on_read(
 						__in c65_address_t address
 						) const override;

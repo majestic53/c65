@@ -30,6 +30,41 @@ namespace c65 {
 
 			public:
 
+				void notify(
+					__in int type,
+					__in c65_address_t address
+					) const
+				{
+					c65_event_t event = {};
+
+					TRACE_ENTRY_FORMAT("Type=%i(%s), Address=%u(%04x)", type, EVENT_STRING(type), address.word, address.word);
+
+					event.type = type;
+					event.address = address;
+					on_notify(event);
+
+					TRACE_EXIT();
+				}
+
+				void notify(
+					__in int type,
+					__in c65_address_t address,
+					__in c65_word_t value
+					) const
+				{
+					c65_event_t event = {};
+
+					TRACE_ENTRY_FORMAT("Type=%i(%s), Address=%u(%04x), Value=%u(%04x)", type, EVENT_STRING(type),
+						address.word, address.word, value, value);
+
+					event.type = type;
+					event.address = address;
+					event.data.word = value;
+					on_notify(event);
+
+					TRACE_EXIT();
+				}
+
 				c65_byte_t read(
 					__in c65_address_t address
 					) const
@@ -57,6 +92,10 @@ namespace c65 {
 				}
 
 			protected:
+
+				virtual void on_notify(
+					__in const c65_event_t &event
+					) const = 0;
 
 				virtual c65_byte_t on_read(
 					__in c65_address_t address

@@ -162,6 +162,11 @@ Changelog
 Version 0.1.1942
 -
 
+*Updated: 10/19/2019*
+
+* Added breakpoint/watch debug commands
+* Added asynchronous event support
+
 *Updated: 10/18/2019*
 
 * Added jmp/jsr processor instruction handlers (incomplete)

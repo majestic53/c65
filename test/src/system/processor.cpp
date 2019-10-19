@@ -38,6 +38,15 @@ namespace c65 {
 				TRACE_EXIT();
 			}
 
+			void
+			processor::on_notify(
+				__in const c65_event_t &event
+				) const
+			{
+				TRACE_ENTRY_FORMAT("Event=%p", &event);
+				TRACE_EXIT();
+			}
+
 			c65_byte_t
 			processor::on_read(
 				__in c65_address_t address

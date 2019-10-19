@@ -72,7 +72,7 @@ namespace c65 {
 											<< STRING_COLUMN() << "Base" << m_base.word << "("
 												<< STRING_HEXIDECIMAL(c65_word_t, m_base.word)
 												<< ")"
-											<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
+											<< LEVEL_COLOR(LEVEL_NONE) << std::endl << std::endl;
 									}
 
 									load(m_path, m_base);
@@ -85,23 +85,23 @@ namespace c65 {
 								}
 
 								if(!m_quiet) {
-									std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << "Exiting." << std::endl
-										<< LEVEL_COLOR(LEVEL_NONE);
+									std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << "Exiting."
+										<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
 								}
 							}
 						} catch(c65::type::exception &exc) {
 
 							if(!m_quiet) {
-								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error! " << exc.to_string() << std::endl
-									<< LEVEL_COLOR(LEVEL_NONE);
+								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << exc.to_string() << LEVEL_COLOR(LEVEL_NONE)
+									<< std::endl;
 							}
 
 							result = EXIT_FAILURE;
 						} catch(std::exception &exc) {
 
 							if(!m_quiet) {
-								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error! " << exc.what() << std::endl
-									<< LEVEL_COLOR(LEVEL_NONE);
+								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << exc.what() << LEVEL_COLOR(LEVEL_NONE)
+									<< std::endl;
 							}
 
 							result = EXIT_FAILURE;
@@ -217,148 +217,105 @@ namespace c65 {
 
 				int debug(void)
 				{
-					bool complete = false;
 					int result = EXIT_SUCCESS;
 
 					TRACE_ENTRY();
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher console request");
 
-					rl_attempted_completion_function = c65::tool::launcher::command_completion;
-					stifle_history(HISTORY_MAX);
-
-					while(!complete) {
-
-						try {
-							int type;
-							char *input;
-							std::string action;
-							std::stringstream stream;
-							std::vector<std::string> arguments;
-
-							input = readline(PROMPT);
-							if(input) {
-
-								if(std::strlen(input)) {
-									add_history(input);
-									m_command = input;
-								}
-
-								free(input);
-								input = nullptr;
-							}
-
-							stream << m_command;
-
-							if(stream.str().empty()) {
-								continue;
-							}
-
-							stream >> action;
-
-							while(stream) {
-								arguments.push_back(std::string());
-								stream >> arguments.back();
-
-								if(arguments.back().empty()) {
-									arguments.erase(arguments.end() - 1);
-								}
-							}
-
-							if(!ACTION_SUPPORTED(action)) {
-								THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
-									C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID, "%s", STRING(action));
-							}
-
-							type = ACTION_TYPE(action);
-							if(arguments.size() != ACTION_ARGUMENT_LENGTH(type)) {
-								THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
-									C65_TOOL_LAUNCHER_EXCEPTION_ARGUMENT_MISMATCH, "%s", STRING(m_command));
-							}
-
-							switch(type) {
-								case ACTION_CYCLE:
-									debug_action_cycle();
-									break;
-								case ACTION_DISASSEMBLE:
-									debug_action_disassemble(arguments);
-									break;
-								case ACTION_DUMP:
-									debug_action_dump(arguments);
-									break;
-								case ACTION_EXIT:
-									complete = true;
-									break;
-								case ACTION_HELP:
-									debug_action_help();
-									break;
-								case ACTION_INTERRUPT:
-									debug_action_interrupt(arguments);
-									break;
-								case ACTION_LOAD:
-									debug_action_load(arguments);
-									break;
-								case ACTION_PROCESSOR:
-									debug_action_processor();
-									break;
-								case ACTION_READ_BYTE:
-									debug_action_read_byte(arguments);
-									break;
-								case ACTION_READ_REGISTER:
-									debug_action_read_register(arguments);
-									break;
-								case ACTION_READ_STATUS:
-									debug_action_read_status();
-									break;
-								case ACTION_READ_WORD:
-									debug_action_read_word(arguments);
-									break;
-								case ACTION_RESET:
-									debug_action_reset();
-									break;
-								case ACTION_RUN:
-									debug_action_run();
-									break;
-								case ACTION_STACK:
-									debug_action_stack();
-									break;
-								case ACTION_STEP:
-									debug_action_step();
-									break;
-								case ACTION_UNLOAD:
-									debug_action_unload(arguments);
-									break;
-								case ACTION_VERSION:
-									debug_action_version();
-									break;
-								case ACTION_WRITE_BYTE:
-									debug_action_write_byte(arguments);
-									break;
-								case ACTION_WRITE_REGISTER:
-									debug_action_write_register(arguments);
-									break;
-								case ACTION_WRITE_STATUS:
-									debug_action_write_status(arguments);
-									break;
-								case ACTION_WRITE_WORD:
-									debug_action_write_word(arguments);
-									break;
-								default:
-									THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
-										C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID,
-										"%s", STRING(action));
-							}
-						} catch(c65::type::exception &exc) {
-							std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error: " << exc.to_string() << std::endl
-								<< LEVEL_COLOR(LEVEL_NONE);
-						} catch(std::exception &exc) {
-							std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error: " << exc.what() << std::endl
-								<< LEVEL_COLOR(LEVEL_NONE);
-						}
+					result = debug_event_register();
+					if(result == EXIT_SUCCESS) {
+						result = debug_console();
 					}
 
 					TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 					return result;
+				}
+
+				void debug_action_breakpoint(
+					__in const std::vector<std::string> &arguments
+					)
+				{
+					std::stringstream stream;
+					c65_action_t request = {}, response = {};
+
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					stream << std::hex << arguments.front();
+					stream >> request.address.word;
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Breakpoint", "%u(%04x)",
+						request.address.word, request.address.word);
+
+					if(m_breakpoint.find(request.address.word) != m_breakpoint.end()) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_BREAKPOINT_DUPLICATE,
+							"%u(%04x)", request.address.word, request.address.word);
+					}
+
+					request.type = C65_ACTION_BREAKPOINT_SET;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					m_breakpoint.insert(request.address.word);
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_breakpoint_clear(
+					__in const std::vector<std::string> &arguments
+					)
+				{
+					std::stringstream stream;
+					c65_action_t request = {}, response = {};
+					std::set<c65_word_t>::iterator breakpoint;
+
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					stream << std::hex << arguments.front();
+					stream >> request.address.word;
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Breakpoint-Clear", "%u(%04x)",
+						request.address.word, request.address.word);
+
+					breakpoint = m_breakpoint.find(request.address.word);
+					if(breakpoint == m_breakpoint.end()) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_BREAKPOINT_NOT_FOUND,
+							"%u(%04x)", request.address.word, request.address.word);
+					}
+
+					request.type = C65_ACTION_BREAKPOINT_CLEAR;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					m_breakpoint.erase(breakpoint);
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_breakpoint_list(void)
+				{
+					size_t index = 0;
+					std::stringstream result;
+					std::set<c65_word_t>::const_iterator breakpoint;
+
+					TRACE_ENTRY();
+
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Breakpoint-List");
+
+					result << "[" << m_breakpoint.size() << " breakpoints]" << std::endl;
+
+					for(breakpoint = m_breakpoint.begin(); breakpoint != m_breakpoint.end(); ++breakpoint, ++index) {
+						result << std::endl << "[" << index << STRING_COLUMN_SHORT() << "]"
+							<< STRING_HEXIDECIMAL(c65_word_t, *breakpoint);
+					}
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+
+					TRACE_EXIT();
 				}
 
 				void debug_action_cycle(void)
@@ -936,7 +893,8 @@ namespace c65 {
 						request.address.word = (ADDRESS_MEMORY_STACK_END - depth + 1);
 
 						if(c65_action(&request, &response) != EXIT_SUCCESS) {
-							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
 						}
 
 						result << std::endl << "[" << STRING_HEXIDECIMAL(c65_word_t, request.address.word)
@@ -953,6 +911,7 @@ namespace c65 {
 				void debug_action_step(void)
 				{
 					int flag = FLAG_MAX;
+					bool stopped, waiting;
 					c65_address_t address;
 					std::stringstream result, stream;
 					c65_action_t request = {}, response = {};
@@ -961,64 +920,96 @@ namespace c65 {
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Step");
 
-					request.type = C65_ACTION_READ_REGISTER;
-					request.address.word = C65_REGISTER_PROGRAM_COUNTER;
+					request.type = C65_ACTION_STOPPED;
 
 					if(c65_action(&request, &response) != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+							"%s", c65_error());
 					}
 
-					address.word = response.data.word;
-					stream << disassemble(address);
+					stopped = response.data.word;
 
-					if(c65_step() != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
-					}
-
-					result << stream.str() << STRING_COLUMN_SHORT() << " " << "A=";
-
-					request.address.word = C65_REGISTER_ACCUMULATOR;
+					request.type = C65_ACTION_WAITING;
 
 					if(c65_action(&request, &response) != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+							"%s", c65_error());
 					}
 
-					result << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
-					request.address.word = C65_REGISTER_INDEX_X;
+					waiting = response.data.word;
 
-					if(c65_action(&request, &response) != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					if(stopped) {
+						result << "Stopped";
+					} else if(waiting) {
+						result << "Waiting";
+					} else {
+						request.type = C65_ACTION_READ_REGISTER;
+						request.address.word = C65_REGISTER_PROGRAM_COUNTER;
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
+						}
+
+						address.word = response.data.word;
+						stream << disassemble(address);
+
+						if(c65_step() != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
+						}
+
+						result << stream.str() << STRING_COLUMN_SHORT() << " " << "A=";
+
+						request.address.word = C65_REGISTER_ACCUMULATOR;
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
+						}
+
+						result << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+						request.address.word = C65_REGISTER_INDEX_X;
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
+						}
+
+						result << ", X=" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+						request.address.word = C65_REGISTER_INDEX_Y;
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
+						}
+
+						result << ", Y=" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+						request.address.word = C65_REGISTER_STACK_POINTER;
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
+						}
+
+						result << ", SP=" << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+
+						request.type = C65_ACTION_READ_STATUS;
+
+						if(c65_action(&request, &response) != EXIT_SUCCESS) {
+							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL,
+								"%s", c65_error());
+						}
+
+						result << ", P=" << STRING_HEXIDECIMAL(c65_byte_t, response.status.raw) << " [";
+
+						for(; flag >= 0; flag--) {
+							result << FLAG_STRING(MASK_CHECK(response.status.raw, flag) ? flag : FLAG_UNUSED);
+						}
+
+						result << "]";
 					}
 
-					result << ", X=" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
-					request.address.word = C65_REGISTER_INDEX_Y;
-
-					if(c65_action(&request, &response) != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
-					}
-
-					result << ", Y=" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
-					request.address.word = C65_REGISTER_STACK_POINTER;
-
-					if(c65_action(&request, &response) != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
-					}
-
-					result << ", SP=" << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
-
-					request.type = C65_ACTION_READ_STATUS;
-
-					if(c65_action(&request, &response) != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
-					}
-
-					result << ", P=" << STRING_HEXIDECIMAL(c65_byte_t, response.status.raw) << " [";
-
-					for(; flag >= 0; flag--) {
-						result << FLAG_STRING(MASK_CHECK(response.status.raw, flag) ? flag : FLAG_UNUSED);
-					}
-
-					result << "]";
 					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
 
 					TRACE_EXIT();
@@ -1059,6 +1050,91 @@ namespace c65 {
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Version");
 
 					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << c65_version() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_watch(
+					__in const std::vector<std::string> &arguments
+					)
+				{
+					std::stringstream stream;
+					c65_action_t request = {}, response = {};
+
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					stream << std::hex << arguments.front();
+					stream >> request.address.word;
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Watch", "%u(%04x)", request.address.word, request.address.word);
+
+					if(m_watch.find(request.address.word) != m_watch.end()) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_WATCH_DUPLICATE,
+							"%u(%04x)", request.address.word, request.address.word);
+					}
+
+					request.type = C65_ACTION_WATCH_SET;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					m_watch.insert(request.address.word);
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_watch_clear(
+					__in const std::vector<std::string> &arguments
+					)
+				{
+					std::stringstream stream;
+					std::set<c65_word_t>::iterator watch;
+					c65_action_t request = {}, response = {};
+
+					TRACE_ENTRY_FORMAT("Argument[%u]=%p", arguments.size(), &arguments);
+
+					stream << std::hex << arguments.front();
+					stream >> request.address.word;
+
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Watch-Clear", "%u(%04x)",
+						request.address.word, request.address.word);
+
+					watch = m_watch.find(request.address.word);
+					if(watch == m_watch.end()) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_WATCH_NOT_FOUND,
+							"%u(%04x)", request.address.word, request.address.word);
+					}
+
+					request.type = C65_ACTION_WATCH_CLEAR;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					m_watch.erase(watch);
+
+					TRACE_EXIT();
+				}
+
+				void debug_action_watch_list(void)
+				{
+					size_t index = 0;
+					std::stringstream result;
+					std::set<c65_word_t>::const_iterator watch;
+
+					TRACE_ENTRY();
+
+					TRACE_MESSAGE(LEVEL_INFORMATION, "Watch-List");
+
+					result << "[" << m_watch.size() << " watches]" << std::endl;
+
+					for(watch = m_watch.begin(); watch != m_watch.end(); ++watch, ++index) {
+						result << std::endl << "[" << index << STRING_COLUMN_SHORT() << "]"
+							<< STRING_HEXIDECIMAL(c65_word_t, *watch);
+					}
+
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
 
 					TRACE_EXIT();
 				}
@@ -1201,6 +1277,227 @@ namespace c65 {
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Response", "%i(%s)", response.type, ACTION_STRING(response.type));
 
 					TRACE_EXIT();
+				}
+
+				int debug_console(void)
+				{
+					bool complete = false;
+					int result = EXIT_SUCCESS;
+
+					TRACE_ENTRY();
+
+					rl_attempted_completion_function = c65::tool::launcher::command_completion;
+					stifle_history(HISTORY_MAX);
+
+					while(!complete) {
+
+						try {
+							int type;
+							char *input;
+							std::string action;
+							std::stringstream stream;
+							std::vector<std::string> arguments;
+
+							input = readline(PROMPT);
+							if(input) {
+
+								if(std::strlen(input)) {
+									add_history(input);
+									m_command = input;
+								}
+
+								free(input);
+								input = nullptr;
+							}
+
+							stream << m_command;
+
+							if(stream.str().empty()) {
+								continue;
+							}
+
+							stream >> action;
+
+							while(stream) {
+								arguments.push_back(std::string());
+								stream >> arguments.back();
+
+								if(arguments.back().empty()) {
+									arguments.erase(arguments.end() - 1);
+								}
+							}
+
+							if(!ACTION_SUPPORTED(action)) {
+								THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+									C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID, "%s", STRING(action));
+							}
+
+							type = ACTION_TYPE(action);
+							if(arguments.size() != ACTION_ARGUMENT_LENGTH(type)) {
+								THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+									C65_TOOL_LAUNCHER_EXCEPTION_ARGUMENT_MISMATCH, "%s", STRING(m_command));
+							}
+
+							switch(type) {
+								case ACTION_BREAKPOINT:
+									debug_action_breakpoint(arguments);
+									break;
+								case ACTION_BREAKPOINT_CLEAR:
+									debug_action_breakpoint_clear(arguments);
+									break;
+								case ACTION_BREAKPOINT_LIST:
+									debug_action_breakpoint_list();
+									break;
+								case ACTION_CYCLE:
+									debug_action_cycle();
+									break;
+								case ACTION_DISASSEMBLE:
+									debug_action_disassemble(arguments);
+									break;
+								case ACTION_DUMP:
+									debug_action_dump(arguments);
+									break;
+								case ACTION_EXIT:
+									complete = true;
+									break;
+								case ACTION_HELP:
+									debug_action_help();
+									break;
+								case ACTION_INTERRUPT:
+									debug_action_interrupt(arguments);
+									break;
+								case ACTION_LOAD:
+									debug_action_load(arguments);
+									break;
+								case ACTION_PROCESSOR:
+									debug_action_processor();
+									break;
+								case ACTION_READ_BYTE:
+									debug_action_read_byte(arguments);
+									break;
+								case ACTION_READ_REGISTER:
+									debug_action_read_register(arguments);
+									break;
+								case ACTION_READ_STATUS:
+									debug_action_read_status();
+									break;
+								case ACTION_READ_WORD:
+									debug_action_read_word(arguments);
+									break;
+								case ACTION_RESET:
+									debug_action_reset();
+									break;
+								case ACTION_RUN:
+									debug_action_run();
+									break;
+								case ACTION_STACK:
+									debug_action_stack();
+									break;
+								case ACTION_STEP:
+									debug_action_step();
+									break;
+								case ACTION_UNLOAD:
+									debug_action_unload(arguments);
+									break;
+								case ACTION_VERSION:
+									debug_action_version();
+									break;
+								case ACTION_WATCH:
+									debug_action_watch(arguments);
+									break;
+								case ACTION_WATCH_CLEAR:
+									debug_action_watch_clear(arguments);
+									break;
+								case ACTION_WATCH_LIST:
+									debug_action_watch_list();
+									break;
+								case ACTION_WRITE_BYTE:
+									debug_action_write_byte(arguments);
+									break;
+								case ACTION_WRITE_REGISTER:
+									debug_action_write_register(arguments);
+									break;
+								case ACTION_WRITE_STATUS:
+									debug_action_write_status(arguments);
+									break;
+								case ACTION_WRITE_WORD:
+									debug_action_write_word(arguments);
+									break;
+								default:
+									THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+										C65_TOOL_LAUNCHER_EXCEPTION_ACTION_INVALID,
+										"%s", STRING(action));
+							}
+						} catch(c65::type::exception &exc) {
+							std::cerr << LEVEL_COLOR(LEVEL_ERROR) << exc.to_string() << LEVEL_COLOR(LEVEL_NONE)
+								<< std::endl;
+						} catch(std::exception &exc) {
+							std::cerr << LEVEL_COLOR(LEVEL_ERROR) << exc.what() << LEVEL_COLOR(LEVEL_NONE)
+								<< std::endl;
+						}
+					}
+
+					TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+					return result;
+				}
+
+				static void debug_event(
+					__in c65_event_t *event
+					)
+				{
+					TRACE_ENTRY_FORMAT("Event=%p", event);
+
+					if(event) {
+						std::stringstream result;
+
+						result << EVENT_STRING(event->type);
+
+						switch(event->type) {
+							case C65_EVENT_BREAKPOINT:
+							case C65_EVENT_INTERRUPT_ENTRY:
+							case C65_EVENT_INTERRUPT_EXIT:
+							case C65_EVENT_STACK_OVERFLOW:
+							case C65_EVENT_STACK_UNDERFLOW:
+							case C65_EVENT_STOP_ENTRY:
+							case C65_EVENT_STOP_EXIT:
+							case C65_EVENT_SUBROUTINE_ENTRY:
+							case C65_EVENT_SUBROUTINE_EXIT:
+							case C65_EVENT_WAIT_ENTRY:
+							case C65_EVENT_WAIT_EXIT:
+								result << ": " << STRING_HEXIDECIMAL(c65_word_t, event->address.word);
+								break;
+							case C65_EVENT_ILLEGAL_INSTRUCTION:
+							case C65_EVENT_WATCH:
+								result << ": " << STRING_HEXIDECIMAL(c65_word_t, event->address.word) << ", "
+									<< STRING_HEXIDECIMAL(c65_byte_t, event->data.low);
+								break;
+							default:
+								break;
+						}
+
+						std::cout << LEVEL_COLOR(LEVEL_WARNING) << result.str() << LEVEL_COLOR(LEVEL_NONE)
+							<< std::endl;
+					}
+
+					TRACE_EXIT();
+				}
+
+				int debug_event_register(void)
+				{
+					int result = EXIT_SUCCESS, type = 0;
+
+					TRACE_ENTRY();
+
+					for(; type <= C65_EVENT_MAX; ++type) {
+
+						result = c65_event_handler(type, (c65_event_hdlr)&c65::tool::launcher::debug_event);
+						if(result != EXIT_SUCCESS) {
+							break;
+						}
+					}
+
+					TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+					return result;
 				}
 
 				std::string disassemble(
@@ -1357,12 +1654,14 @@ namespace c65 {
 					c65_cleanup();
 
 					m_base = {};
+					m_breakpoint.clear();
 					m_command.clear();
 					m_debug = false;
 					m_help = false;
 					m_path.clear();
 					m_quiet = false;
 					m_version = false;
+					m_watch.clear();
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher uninitialized");
 
@@ -1494,6 +1793,8 @@ namespace c65 {
 
 				c65_address_t m_base;
 
+				std::set<c65_word_t> m_breakpoint;
+
 				std::string m_command;
 
 				bool m_debug;
@@ -1505,6 +1806,8 @@ namespace c65 {
 				bool m_quiet;
 
 				bool m_version;
+
+				std::set<c65_word_t> m_watch;
 		};
 	}
 }

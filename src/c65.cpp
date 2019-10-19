@@ -59,8 +59,15 @@ namespace c65 {
 
 					initialize();
 					std::memset(response, 0, sizeof(*response));
+					response->type = request->type;
 
 					switch(request->type) {
+						case C65_ACTION_BREAKPOINT_CLEAR:
+							result = action_breakpoint_clear(request, response);
+							break;
+						case C65_ACTION_BREAKPOINT_SET:
+							result = action_breakpoint_set(request, response);
+							break;
 						case C65_ACTION_CYCLE:
 							result = action_cycle(request, response);
 							break;
@@ -91,6 +98,12 @@ namespace c65 {
 						case C65_ACTION_WAITING:
 							result = action_waiting(request, response);
 							break;
+						case C65_ACTION_WATCH_CLEAR:
+							result = action_watch_clear(request, response);
+							break;
+						case C65_ACTION_WATCH_SET:
+							result = action_watch_set(request, response);
+							break;
 						case C65_ACTION_WRITE_BYTE:
 							result = action_write_byte(request, response);
 							break;
@@ -107,8 +120,6 @@ namespace c65 {
 							THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_ACTION_INVALID,
 								"%i(%s)", request->type, INTERRUPT_STRING(request->type));
 					}
-
-					response->type = request->type;
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
 					result = EXIT_FAILURE;
@@ -116,6 +127,50 @@ namespace c65 {
 					m_error = exc.what();
 					result = EXIT_FAILURE;
 				}
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_breakpoint_clear(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+				std::set<c65_word_t>::iterator breakpoint;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				breakpoint = m_breakpoint.find(request->address.word);
+				if(breakpoint == m_breakpoint.end()) {
+					THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_BREAKPOINT_INVALID, "%u(%04x)",
+						request->address.word, request->address.word);
+				}
+
+				m_breakpoint.erase(breakpoint);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_breakpoint_set(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+				std::set<c65_word_t>::iterator breakpoint;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				breakpoint = m_breakpoint.find(request->address.word);
+				if(breakpoint != m_breakpoint.end()) {
+					THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_BREAKPOINT_INVALID, "%u(%04x)",
+						request->address.word, request->address.word);
+				}
+
+				m_breakpoint.insert(request->address.word);
 
 				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 				return result;
@@ -275,6 +330,50 @@ namespace c65 {
 				return result;
 			}
 
+			int action_watch_clear(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+				std::set<c65_word_t>::iterator watch;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				watch = m_watch.find(request->address.word);
+				if(watch == m_watch.end()) {
+					THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_WATCH_INVALID, "%u(%04x)",
+						request->address.word, request->address.word);
+				}
+
+				m_watch.erase(watch);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_watch_set(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+				std::set<c65_word_t>::iterator watch;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				watch = m_watch.find(request->address.word);
+				if(watch != m_watch.end()) {
+					THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_WATCH_INVALID, "%u(%04x)",
+						request->address.word, request->address.word);
+				}
+
+				m_watch.insert(request->address.word);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
 			int action_write_byte(
 				__in const c65_action_t *request,
 				__in c65_action_t *response
@@ -348,6 +447,39 @@ namespace c65 {
 				result = STRING(m_error);
 
 				TRACE_EXIT_FORMAT("Result=%p", result);
+				return result;
+			}
+
+			int event_handler(
+				__in int type,
+				__in c65_event_hdlr handler
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Type=%i(%s), Handler=%p", type, EVENT_STRING(type), handler);
+
+				try {
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime event handler registration", "%i(%s), %p",
+						type, EVENT_STRING(type), handler);
+
+					initialize();
+
+					if(type > C65_EVENT_MAX) {
+						THROW_C65_RUNTIME_EXCEPTION_FORMAT(C65_RUNTIME_EXCEPTION_EVENT_INVALID, "%i(%s)",
+							type, EVENT_STRING(type));
+					}
+
+					m_event.at(type) = handler;
+				} catch(c65::type::exception &exc) {
+					m_error = exc.to_string();
+					result = EXIT_FAILURE;
+				} catch(std::exception &exc) {
+					m_error = exc.what();
+					result = EXIT_FAILURE;
+				}
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 				return result;
 			}
 
@@ -459,6 +591,7 @@ namespace c65 {
 
 				try {
 					int remaining = 0;
+					bool interrupted = false;
 					uint32_t begin = 0, current = 0;
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime run request");
@@ -467,7 +600,7 @@ namespace c65 {
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime loop entry");
 
-					for(;;) {
+					while(!interrupted) {
 						float frequency, rate;
 						uint32_t end = SDL_GetTicks();
 
@@ -493,6 +626,15 @@ namespace c65 {
 						remaining = (CYCLES_PER_FRAME - remaining);
 						while(remaining > 0) {
 							uint8_t last;
+
+							if(!m_breakpoint.empty()) {
+
+								interrupted = breakpoint_check();
+								if(interrupted) {
+									TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime loop interrupted");
+									break;
+								}
+							}
 
 							m_random = std::rand();
 							last = m_processor.step(*this);
@@ -526,6 +668,7 @@ namespace c65 {
 
 			int step(void)
 			{
+				bool interrupted = false;
 				int result = EXIT_SUCCESS;
 
 				TRACE_ENTRY();
@@ -535,8 +678,15 @@ namespace c65 {
 
 					initialize();
 
-					m_random = std::rand();
-					m_cycle += m_processor.step(*this);
+					if(!m_breakpoint.empty()) {
+						interrupted = breakpoint_check();
+					}
+
+					if(!interrupted) {
+						m_random = std::rand();
+						m_cycle += m_processor.step(*this);
+					}
+
 					m_video.render();
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
@@ -628,6 +778,24 @@ namespace c65 {
 				__in const runtime &other
 				) = delete;
 
+			bool breakpoint_check(void)
+			{
+				bool result;
+				c65_address_t address;
+
+				TRACE_ENTRY();
+
+				address.word = m_processor.read_register(C65_REGISTER_PROGRAM_COUNTER).word;
+
+				result = (m_breakpoint.find(address.word) != m_breakpoint.end());
+				if(result) {
+					notify(C65_EVENT_BREAKPOINT, address);
+				}
+
+				TRACE_EXIT_FORMAT("Result=%x", result);
+				return result;
+			}
+
 			void on_initialize(void) override
 			{
 				SDL_version version = {};
@@ -647,6 +815,7 @@ namespace c65 {
 				std::srand(std::time(nullptr));
 
 				m_cycle = 0;
+				m_event.resize(C65_EVENT_MAX + 1, nullptr);
 				m_key = 0;
 				m_random = 0;
 
@@ -655,6 +824,24 @@ namespace c65 {
 				m_video.initialize();
 
 				TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime initialized");
+
+				TRACE_EXIT();
+			}
+
+			void on_notify(
+				__in const c65_event_t &event
+				) const override
+			{
+				TRACE_ENTRY_FORMAT("Event=%p", &event);
+
+				try {
+					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime event notification", "%i(%s), %p",
+						event.type, EVENT_STRING(event.type), &event);
+
+					if(m_event.at(event.type)) {
+						m_event.at(event.type)(&event);
+					}
+				} catch(...) { }
 
 				TRACE_EXIT();
 			}
@@ -708,6 +895,7 @@ namespace c65 {
 
 				m_random = 0;
 				m_key = 0;
+				m_event.clear();
 				m_cycle = 0;
 
 				SDL_Quit();
@@ -725,6 +913,10 @@ namespace c65 {
 				) override
 			{
 				TRACE_ENTRY_FORMAT("Address=%u(%04x), Value=%u(%02x)", address.word, address.word, value, value);
+
+				if(!m_watch.empty()) {
+					watch_check(address, value);
+				}
 
 				switch(address.word) {
 					case ADDRESS_MEMORY_HIGH_BEGIN ... ADDRESS_MEMORY_HIGH_END:
@@ -781,9 +973,30 @@ namespace c65 {
 				return result;
 			}
 
+			void watch_check(
+				__in c65_address_t address,
+				__in c65_byte_t value
+				)
+			{
+				std::set<c65_word_t>::const_iterator watch;
+
+				TRACE_ENTRY_FORMAT("Address=%u(%04x), Value=%u(%02x)", address.word, address.word, value, value);
+
+				watch = m_watch.find(address.word);
+				if(watch != m_watch.end()) {
+					notify(C65_EVENT_WATCH, address, value);
+				}
+
+				TRACE_EXIT();
+			}
+
+			std::set<c65_word_t> m_breakpoint;
+
 			c65_dword_t m_cycle;
 
 			std::string m_error;
+
+			std::vector<c65_event_hdlr> m_event;
 
 			c65_byte_t m_key;
 
@@ -794,6 +1007,8 @@ namespace c65 {
 			c65_byte_t m_random;
 
 			c65::system::video &m_video;
+
+			std::set<c65_word_t> m_watch;
 	};
 }
 
@@ -833,6 +1048,19 @@ c65_error(void)
 	result = c65::runtime::instance().error();
 
 	TRACE_EXIT_FORMAT("Result=%p", result);
+	return result;
+}
+
+int
+c65_event_handler(int type, c65_event_hdlr handler)
+{
+	int result;
+
+	TRACE_ENTRY_FORMAT("Type=%i(%s), Handler=%p", type, EVENT_STRING(type), handler);
+
+	result = c65::runtime::instance().event_handler(type, handler);
+
+	TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 	return result;
 }
 
