@@ -27,11 +27,12 @@ namespace c65 {
 			m_accumulator({}),
 			m_index_x({}),
 			m_index_y({}),
-			m_interrupt(0),
+			m_interrupt(INTERRUPT_NONE),
 			m_maskable({}),
 			m_non_maskable({}),
 			m_program_counter({}),
 			m_reset({}),
+			m_stack(STACK_NONE),
 			m_stack_pointer({}),
 			m_status({}),
 			m_stop(false),
@@ -144,13 +145,13 @@ namespace c65 {
 				case INSTRUCTION_INY:
 					result = execute_increment_index(instruction);
 					break;
-				/*case INSTRUCTION_JMP:
-					// TODO
+				case INSTRUCTION_JMP:
+					result = execute_jump(bus, instruction, value);
 					break;
 				case INSTRUCTION_JSR:
-					// TODO
+					result = execute_jump_subroutine(bus, instruction, value);
 					break;
-				case INSTRUCTION_LDA:
+				/*case INSTRUCTION_LDA:
 					// TODO
 					break;
 				case INSTRUCTION_LDX:
@@ -253,7 +254,7 @@ namespace c65 {
 			uint8_t result;
 			bool taken = false;
 
-			TRACE_ENTRY_FORMAT("Command=%p, Value=%u(%04x)", &instruction, value, value);
+			TRACE_ENTRY_FORMAT("Instruction=%p, Value=%u(%04x)", &instruction, value, value);
 
 			switch(instruction.type) {
 				case INSTRUCTION_BCC:
@@ -317,7 +318,7 @@ namespace c65 {
 			bool taken = false;
 			c65_address_t address;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &instruction, value, value);
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Value=%u(%04x)", &bus, &instruction, value, value);
 
 			address.word = (value & UINT8_MAX);
 
@@ -351,7 +352,7 @@ namespace c65 {
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p", &bus, &instruction);
 
 			result = service_interrupt(bus, m_maskable, true);
 
@@ -366,7 +367,7 @@ namespace c65 {
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
+			TRACE_ENTRY_FORMAT("Instruction=%p", &instruction);
 
 			switch(instruction.type) {
 				case INSTRUCTION_CLC:
@@ -400,7 +401,7 @@ namespace c65 {
 			uint8_t result;
 			c65_byte_t value = 0;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
+			TRACE_ENTRY_FORMAT("Instruction=%p", &instruction);
 
 			switch(instruction.type) {
 				case INSTRUCTION_DEX:
@@ -430,7 +431,7 @@ namespace c65 {
 			uint8_t result;
 			c65_byte_t value = 0;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
+			TRACE_ENTRY_FORMAT("Instruction=%p", &instruction);
 
 			switch(instruction.type) {
 				case INSTRUCTION_INX:
@@ -453,13 +454,51 @@ namespace c65 {
 		}
 
 		uint8_t
+		processor::execute_jump(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t value
+			)
+		{
+			uint8_t result;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Value=%u(%04x)", &bus, &instruction, value, value);
+
+			// TODO
+
+			result = instruction.cycle;
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_jump_subroutine(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t value
+			)
+		{
+			uint8_t result;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Value=%u(%04x)", &bus, &instruction, value, value);
+
+			// TODO
+
+			result = instruction.cycle;
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
 		processor::execute_no_operation(
 			__in const instruction_t &instruction
 			)
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
+			TRACE_ENTRY_FORMAT("Instruction=%p", &instruction);
 
 			result = instruction.cycle;
 
@@ -476,7 +515,7 @@ namespace c65 {
 			uint8_t result;
 			c65_byte_t value;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p", &bus, &instruction);
 
 			value = pull_byte(bus);
 
@@ -518,7 +557,7 @@ namespace c65 {
 			uint8_t result;
 			c65_byte_t value = 0;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p", &bus, &instruction);
 
 			switch(instruction.type) {
 				case INSTRUCTION_PHA:
@@ -555,7 +594,7 @@ namespace c65 {
 			uint8_t result = 0;
 			c65_address_t address;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &instruction, value, value);
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Value=%u(%04x)", &bus, &instruction, value, value);
 
 			address.word = (value & UINT8_MAX);
 			value = read_byte(bus, address);
@@ -584,7 +623,7 @@ namespace c65 {
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p", &bus, &instruction);
 
 			m_status.raw = (pull_byte(bus) | MASK(FLAG_BREAK_INSTRUCTION));
 			m_program_counter.word = pull_word(bus);
@@ -603,7 +642,7 @@ namespace c65 {
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p", &bus, &instruction);
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p", &bus, &instruction);
 
 			m_program_counter.word = (pull_word(bus) + 1);
 
@@ -620,7 +659,7 @@ namespace c65 {
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
+			TRACE_ENTRY_FORMAT("Instruction=%p", &instruction);
 
 			switch(instruction.type) {
 				case INSTRUCTION_SEC:
@@ -653,7 +692,7 @@ namespace c65 {
 			uint8_t result = 0;
 			c65_address_t address;
 
-			TRACE_ENTRY_FORMAT("Bus=%p, Command=%p, Value=%u(%04x)", &bus, &instruction, value, value);
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Value=%u(%04x)", &bus, &instruction, value, value);
 
 			address.word = (value & UINT8_MAX);
 			value = read_byte(bus, address);
@@ -682,7 +721,7 @@ namespace c65 {
 			c65_byte_t value;
 			uint8_t result = 0;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
+			TRACE_ENTRY_FORMAT("Instruction=%p", &instruction);
 
 			switch(instruction.type) {
 				case INSTRUCTION_TAX:
@@ -732,7 +771,7 @@ namespace c65 {
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
+			TRACE_ENTRY_FORMAT("Instruction=%p", &instruction);
 
 			m_stop = true;
 			result = instruction.cycle;
@@ -748,7 +787,7 @@ namespace c65 {
 		{
 			uint8_t result;
 
-			TRACE_ENTRY_FORMAT("Command=%p", &instruction);
+			TRACE_ENTRY_FORMAT("Instruction=%p", &instruction);
 
 			m_wait = true;
 			result = instruction.cycle;
@@ -855,11 +894,12 @@ namespace c65 {
 			m_accumulator = {};
 			m_index_x = {};
 			m_index_y = {};
-			m_interrupt = 0;
+			m_interrupt = INTERRUPT_NONE;
 			m_maskable = {};
 			m_non_maskable = {};
 			m_program_counter = {};
 			m_reset = {};
+			m_stack = STACK_NONE;
 			m_stack_pointer = {};
 			m_status = {};
 			m_stop = false;
@@ -910,12 +950,17 @@ namespace c65 {
 			__in const c65::interface::bus &bus
 			)
 		{
-			c65_byte_t result;
+			c65_byte_t previous, result;
 
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
+			previous = m_stack_pointer.low;
 			++m_stack_pointer.low;
 			result = bus.read(m_stack_pointer);
+
+			if(previous > m_stack_pointer.low) {
+				MASK_SET(m_stack, STACK_UNDERFLOW);
+			}
 
 			TRACE_EXIT_FORMAT("Result=%u(%02x)", result, result);
 			return result;
@@ -926,14 +971,19 @@ namespace c65 {
 			__in const c65::interface::bus &bus
 			)
 		{
-			c65_word_t result;
+			c65_word_t previous, result;
 
 			TRACE_ENTRY_FORMAT("Bus=%p", &bus);
 
+			previous = m_stack_pointer.low;
 			++m_stack_pointer.low;
 			result = bus.read(m_stack_pointer);
 			++m_stack_pointer.low;
 			result |= (bus.read(m_stack_pointer) << CHAR_BIT);
+
+			if(previous > m_stack_pointer.low) {
+				MASK_SET(m_stack, STACK_UNDERFLOW);
+			}
 
 			TRACE_EXIT_FORMAT("Result=%u(%04x)", result, result);
 			return result;
@@ -945,10 +995,17 @@ namespace c65 {
 			__in c65_byte_t value
 			)
 		{
+			c65_byte_t previous;
+
 			TRACE_ENTRY_FORMAT("Bus=%p, Value=%u(%02x)", &bus, value, value);
 
+			previous = m_stack_pointer.low;
 			bus.write(m_stack_pointer, value);
 			--m_stack_pointer.low;
+
+			if(previous < m_stack_pointer.low) {
+				MASK_SET(m_stack, STACK_OVERFLOW);
+			}
 
 			TRACE_EXIT();
 		}
@@ -959,12 +1016,19 @@ namespace c65 {
 			__in c65_word_t value
 			)
 		{
+			c65_byte_t previous;
+
 			TRACE_ENTRY_FORMAT("Bus=%p, Value=%u(%04x)", &bus, value, value);
 
+			previous = m_stack_pointer.low;
 			bus.write(m_stack_pointer, value >> CHAR_BIT);
 			--m_stack_pointer.low;
 			bus.write(m_stack_pointer, value);
 			--m_stack_pointer.low;
+
+			if(previous < m_stack_pointer.low) {
+				MASK_SET(m_stack, STACK_OVERFLOW);
+			}
 
 			TRACE_EXIT();
 		}
@@ -1057,8 +1121,9 @@ namespace c65 {
 			m_accumulator = {};
 			m_index_x = {};
 			m_index_y = {};
-			m_interrupt = 0;
+			m_interrupt = INTERRUPT_NONE;
 			m_program_counter = m_reset;
+			m_stack = STACK_NONE;
 			m_stack_pointer.word = RESET_STACK_POINTER;
 			m_status.raw = RESET_STATUS;
 			m_stop = false;
@@ -1140,6 +1205,32 @@ namespace c65 {
 			return result;
 		}
 
+		bool
+		processor::stack_overflow(void) const
+		{
+			bool result;
+
+			TRACE_ENTRY();
+
+			result = MASK_CHECK(m_stack, STACK_OVERFLOW);
+
+			TRACE_EXIT_FORMAT("Result=%x", result);
+			return result;
+		}
+
+		bool
+		processor::stack_underflow(void) const
+		{
+			bool result;
+
+			TRACE_ENTRY();
+
+			result = MASK_CHECK(m_stack, STACK_UNDERFLOW);
+
+			TRACE_EXIT_FORMAT("Result=%x", result);
+			return result;
+		}
+
 		uint8_t
 		processor::step(
 			__in c65::interface::bus &bus
@@ -1217,6 +1308,7 @@ namespace c65 {
 					m_program_counter = value;
 					break;
 				case C65_REGISTER_STACK_POINTER:
+					m_stack = STACK_NONE;
 					m_stack_pointer.low = value.low;
 					break;
 				default:

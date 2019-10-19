@@ -26,6 +26,8 @@ static const std::string ACTION_STR[] = {
 	"Read-Register", // C65_ACTION_READ_REGISTER
 	"Read-Status", // C65_ACTION_READ_STATUS
 	"Read-Word", // C65_ACTION_READ_WORD
+	"Stack-Overflow", // C65_ACTION_STACK_OVERFLOW
+	"Stack-Underflow", // C65_ACTION_STACK_UNDERFLOW
 	"Stopped", // C65_ACTION_STOPPED
 	"Waiting", // C65_ACTION_WAITING
 	"Write-Byte", // C65_ACTION_WRITE_BYTE

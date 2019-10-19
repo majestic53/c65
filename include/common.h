@@ -64,6 +64,7 @@
 #include "./common/mask.h"
 #include "./common/memory.h"
 #include "./common/register.h"
+#include "./common/stack.h"
 #include "./common/string.h"
 #include "./common/trace.h"
 #include "./common/version.h"

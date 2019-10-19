@@ -81,6 +81,8 @@ namespace c65 {
 				test_read_register();
 				test_read_status();
 				test_reset();
+				test_stack_overflow();
+				test_stack_underflow();
 				test_step();
 				test_stopped();
 				test_waiting();
@@ -2250,6 +2252,38 @@ namespace c65 {
 				status.interrupt_disable = true;
 				status.unused = true;
 				ASSERT(instance.read_status().raw == status.raw);
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_stack_overflow(void)
+			{
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				ASSERT(!instance.stack_overflow());
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_stack_underflow(void)
+			{
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				ASSERT(!instance.stack_underflow());
 
 				instance.uninitialize();
 

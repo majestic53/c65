@@ -159,19 +159,31 @@ namespace c65 {
 			ASSERT(response.data.word == value.word);
 			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_WORD) == EXIT_SUCCESS);
 
-			// Test #7: Stopped action
+			// Test #7: Stack overflow action
+			request.type = C65_ACTION_STACK_OVERFLOW;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_STACK_OVERFLOW);
+			ASSERT(!response.data.low);
+
+			// Test #8: Stack underflow action
+			request.type = C65_ACTION_STACK_UNDERFLOW;
+			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
+			ASSERT(response.type == C65_ACTION_STACK_UNDERFLOW);
+			ASSERT(!response.data.low);
+
+			// Test #9: Stopped action
 			request.type = C65_ACTION_STOPPED;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_STOPPED);
 			ASSERT(!response.data.low);
 
-			// Test #8: Waiting action
+			// Test #10: Waiting action
 			request.type = C65_ACTION_WAITING;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_WAITING);
 			ASSERT(!response.data.low);
 
-			// Test #9: Write byte action
+			// Test #11: Write byte action
 			request.type = C65_ACTION_WRITE_BYTE;
 			request.address = address;
 			request.data.low = value.low;
@@ -185,7 +197,7 @@ namespace c65 {
 			ASSERT(response.data.low == value.low);
 			ASSERT(c65_unload(address, INSTRUCTION_LENGTH_BYTE) == EXIT_SUCCESS);
 
-			// Test #10: Write register action
+			// Test #12: Write register action
 			for(type = 0; type <= C65_REGISTER_MAX; ++type) {
 				request.type = C65_ACTION_WRITE_REGISTER;
 				request.address.word = type;
@@ -229,7 +241,7 @@ namespace c65 {
 				}
 			}
 
-			// Test #11: Write status action
+			// Test #13: Write status action
 			request.type = C65_ACTION_WRITE_STATUS;
 			request.status.raw = value.low;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
@@ -240,7 +252,7 @@ namespace c65 {
 			ASSERT(response.type == C65_ACTION_READ_STATUS);
 			ASSERT(response.status.raw == value.low);
 
-			// Test #12: Write word action
+			// Test #14: Write word action
 			request.type = C65_ACTION_WRITE_WORD;
 			request.address = address;
 			request.data = value;

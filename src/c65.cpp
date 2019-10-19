@@ -79,6 +79,12 @@ namespace c65 {
 						case C65_ACTION_READ_WORD:
 							result = action_read_word(request, response);
 							break;
+						case C65_ACTION_STACK_OVERFLOW:
+							result = action_stack_overflow(request, response);
+							break;
+						case C65_ACTION_STACK_UNDERFLOW:
+							result = action_stack_underflow(request, response);
+							break;
 						case C65_ACTION_STOPPED:
 							result = action_stopped(request, response);
 							break;
@@ -204,6 +210,36 @@ namespace c65 {
 				response->data.low = read(address);
 				++address.word;
 				response->data.high = read(address);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_stack_overflow(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->data.word = m_processor.stack_overflow();
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_stack_underflow(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				response->data.word = m_processor.stack_underflow();
 
 				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 				return result;

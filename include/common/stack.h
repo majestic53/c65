@@ -16,18 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef C65_COMMON_INTERRUPT_H_
-#define C65_COMMON_INTERRUPT_H_
+#ifndef C65_COMMON_STACK_H_
+#define C65_COMMON_STACK_H_
 
-#define INTERRUPT_NONE 0
+enum {
+	STACK_NONE = 0,
+	STACK_OVERFLOW,
+	STACK_UNDERFLOW,
+};
 
-static const std::string INTERRUPT_STR[] = {
-	"NMI", // C65_INTERRUPT_NON_MASKABLE
-	"IRQ", // C65_INTERRUPT_MASKABLE
+#define STACK_MAX STACK_UNDERFLOW
+
+static const std::string STACK_STR[] = {
+	"-", // STACK_NONE
+	"O", // STACK_OVERFLOW
+	"U", // STACK_UNDERFLOW
 	};
 
-#define INTERRUPT_STRING(_TYPE_) \
-	(((_TYPE_) > C65_INTERRUPT_MAX) ? STRING_UNKNOWN : \
-		STRING(INTERRUPT_STR[_TYPE_]))
+#define STACK_STRING(_TYPE_) \
+	(((_TYPE_) > STACK_MAX) ? STRING_UNKNOWN : \
+		STRING(STACK_STR[_TYPE_]))
 
-#endif // C65_COMMON_INTERRUPT_H_
+#endif // C65_COMMON_STACK_H_

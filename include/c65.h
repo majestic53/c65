@@ -48,6 +48,12 @@ enum {
 	// Read memory word
 	C65_ACTION_READ_WORD,
 
+	// Stack overflow status
+	C65_ACTION_STACK_OVERFLOW,
+
+	// Stack underflow status
+	C65_ACTION_STACK_UNDERFLOW,
+
 	// Stop status
 	C65_ACTION_STOPPED,
 

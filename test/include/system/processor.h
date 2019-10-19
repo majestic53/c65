@@ -113,6 +113,10 @@ namespace c65 {
 
 					void test_reset(void);
 
+					void test_stack_overflow(void);
+
+					void test_stack_underflow(void);
+
 					void test_step(void);
 
 					void test_stopped(void);

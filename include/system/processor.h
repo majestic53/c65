@@ -50,6 +50,10 @@ namespace c65 {
 					__in c65::interface::bus &bus
 					);
 
+				bool stack_overflow(void) const;
+
+				bool stack_underflow(void) const;
+
 				uint8_t step(
 					__in c65::interface::bus &bus
 					);
@@ -111,6 +115,18 @@ namespace c65 {
 
 				uint8_t execute_increment_index(
 					__in const instruction_t &instruction
+					);
+
+				uint8_t execute_jump(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t value
+					);
+
+				uint8_t execute_jump_subroutine(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t value
 					);
 
 				uint8_t execute_no_operation(
@@ -243,6 +259,8 @@ namespace c65 {
 				c65_register_t m_program_counter;
 
 				c65_address_t m_reset;
+
+				int m_stack;
 
 				c65_register_t m_stack_pointer;
 

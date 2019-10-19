@@ -594,15 +594,6 @@ namespace c65 {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
 
-					request.type = C65_ACTION_INTERRUPT_PENDING;
-
-					if(c65_action(&request, &response) != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
-					}
-
-					result << std::endl << STRING_COLUMN() << "Interrupted" << STRING_COLUMN() << response.data.word
-						<< (response.data.word ? "true" : "false");
-
 					request.type = C65_ACTION_STOPPED;
 
 					if(c65_action(&request, &response) != EXIT_SUCCESS) {
@@ -621,6 +612,15 @@ namespace c65 {
 					result << std::endl << STRING_COLUMN() << "Waiting" << STRING_COLUMN() << response.data.word
 						<< (response.data.word ? "true" : "false");
 
+					request.type = C65_ACTION_INTERRUPT_PENDING;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << std::endl << STRING_COLUMN() << "Interrupted" << STRING_COLUMN() << response.data.word
+						<< (response.data.word ? "true" : "false");
+
 					request.type = C65_ACTION_READ_STATUS;
 
 					if(c65_action(&request, &response) != EXIT_SUCCESS) {
@@ -635,6 +635,34 @@ namespace c65 {
 					}
 
 					request.type = C65_ACTION_READ_REGISTER;
+					request.address.word = C65_REGISTER_STACK_POINTER;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					stream.clear();
+					stream.str(std::string());
+					stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+					result << std::endl << STRING_COLUMN() << "Stack-Pointer" << STRING_COLUMN() << stream.str();
+
+					request.type = C65_ACTION_STACK_OVERFLOW;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << STACK_STRING(response.data.word ? STACK_OVERFLOW : STACK_NONE);
+
+					request.type = C65_ACTION_STACK_UNDERFLOW;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					result << STACK_STRING(response.data.word ? STACK_UNDERFLOW : STACK_NONE);
+
+					request.type = C65_ACTION_READ_REGISTER;
 					request.address.word = C65_REGISTER_PROGRAM_COUNTER;
 
 					if(c65_action(&request, &response) != EXIT_SUCCESS) {
@@ -645,19 +673,6 @@ namespace c65 {
 					stream.str(std::string());
 					stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
 					result << std::endl << STRING_COLUMN() << "Program-Counter" << STRING_COLUMN() << stream.str()
-						<< (int)response.data.word;
-
-					request.type = C65_ACTION_READ_REGISTER;
-					request.address.word = C65_REGISTER_STACK_POINTER;
-
-					if(c65_action(&request, &response) != EXIT_SUCCESS) {
-						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
-					}
-
-					stream.clear();
-					stream.str(std::string());
-					stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
-					result << std::endl << STRING_COLUMN() << "Stack-Pointer" << STRING_COLUMN() << stream.str()
 						<< (int)response.data.word;
 
 					request.type = C65_ACTION_READ_REGISTER;
@@ -889,14 +904,36 @@ namespace c65 {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
 
-					request.type = C65_ACTION_READ_BYTE;
-					depth = (response.data.word - ADDRESS_MEMORY_STACK_END);
+					depth = (ADDRESS_MEMORY_STACK_END - response.data.word);
 
-					result << "[" << STRING_HEXIDECIMAL(c65_word_t, response.data.word) << ", " << (int)depth << " depth]"
-						<< std::endl;
+					result << "[" << STRING_HEXIDECIMAL(c65_word_t, response.data.word) << ", " << (int)depth << " depth";
+
+					request.type = C65_ACTION_STACK_OVERFLOW;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					if(response.data.word) {
+						result << ", Overflow";
+					}
+
+					request.type = C65_ACTION_STACK_UNDERFLOW;
+
+					if(c65_action(&request, &response) != EXIT_SUCCESS) {
+						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+					}
+
+					if(response.data.word) {
+						result << ", Underflow";
+					}
+
+					result << "]" << std::endl;
+
+					request.type = C65_ACTION_READ_BYTE;
 
 					while(depth) {
-						request.address.word = (ADDRESS_MEMORY_STACK_END - depth);
+						request.address.word = (ADDRESS_MEMORY_STACK_END - depth + 1);
 
 						if(c65_action(&request, &response) != EXIT_SUCCESS) {
 							THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
@@ -906,7 +943,7 @@ namespace c65 {
 							<< STRING_COLUMN_SHORT() << "]" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
 
 						--depth;
-					};
+					}
 
 					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str()	<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
 

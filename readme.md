@@ -24,7 +24,6 @@ The project sandbox has the following features:
 
 * 1.2MHz operating frequency (20,000 cycles/frame)
 * Support for all instructions/addressing-modes, as documented in the [W65C02S datasheet](http://www.westerndesigncenter.com/wdc/documentation/w65c02s.pdf)
-	* __NOTE__: While in either STP or WAI modes, the processor will issue NOP instructions. WAI mode will exit on any interrupt (IRQ/NMI), while STP mode will exit only on reset. The RDY pin is not implemented.
 * 65536 bytes (64 KB) of accesssible memory
 * MMIO for video display output, keyboard input and random input
 
@@ -162,6 +161,12 @@ Changelog
 
 Version 0.1.1942
 -
+
+*Updated: 10/18/2019*
+
+* Added jmp/jsr processor instruction handlers (incomplete)
+* Added processor tracking of stack overflows/underflows
+* Fixed bug in stack debug command
 
 *Updated: 10/17/2019*
 
