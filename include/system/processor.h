@@ -85,11 +85,25 @@ namespace c65 {
 					__in const processor &other
 					) = delete;
 
+				c65_address_t derive_address(
+					__in c65::interface::bus &bus,
+					__in int mode,
+					__in c65_word_t value,
+					__inout uint8_t &cycle
+					);
+
 				uint8_t execute(
 					__in c65::interface::bus &bus
 					);
 
+				uint8_t execute_bit(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
 				uint8_t execute_branch(
+					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
 					__in c65_word_t operand
 					);
@@ -128,6 +142,8 @@ namespace c65 {
 					__in const instruction_t &instruction,
 					__in c65_word_t operand
 					);
+
+				uint8_t execute_no_operation(void);
 
 				uint8_t execute_no_operation(
 					__in const instruction_t &instruction
@@ -172,6 +188,18 @@ namespace c65 {
 				uint8_t execute_stop(
 					__in const c65::interface::bus &bus,
 					__in const instruction_t &instruction
+					);
+
+				uint8_t execute_test_reset_bit(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_test_set_bit(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_transfer(

@@ -67,6 +67,7 @@ namespace c65 {
 			{
 				TRACE_ENTRY();
 
+				test_execute_bit();
 				test_execute_branch();
 				test_execute_branch_bit();
 				test_execute_break();
@@ -84,6 +85,8 @@ namespace c65 {
 				test_execute_set();
 				test_execute_set_bit();
 				test_execute_stop();
+				test_execute_test_reset_bit();
+				test_execute_test_set_bit();
 				test_execute_transfer();
 				test_execute_wait();
 				test_interrupt();
@@ -160,6 +163,22 @@ namespace c65 {
 				state.program_counter = instance.read_register(C65_REGISTER_PROGRAM_COUNTER);
 				state.stack_pointer = instance.read_register(C65_REGISTER_STACK_POINTER);
 				state.status = instance.read_status();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_bit(void)
+			{
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// TODO
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
@@ -1817,6 +1836,230 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw == state.status.raw);
 				ASSERT(instance.stopped());
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_test_reset_bit(void)
+			{
+				int type = 0;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				for(; type < CHAR_BIT; ++type) {
+					processor_state_t state;
+					instruction_t instruction;
+					c65_address_t address, value;
+
+					// Test #1.a: TRB absolute found
+					instance.reset(*this);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					value.word = MASK(type);
+					instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+					save_state(state);
+					m_memory.at(address.word++) = INSTRUCTION_TYPE_TRB_ABSOLUTE;
+					m_memory.at(address.word++) = 0x00;
+					m_memory.at(address.word) = 0x10;
+					address.word = 0x1000;
+					m_memory.at(address.word) = 0xff;
+					instruction = INSTRUCTION(INSTRUCTION_TYPE_TRB_ABSOLUTE);
+					ASSERT(instance.step(*this) == (instruction.cycle + 2));
+					ASSERT(m_memory.at(address.word) == (0xff & ~value.low));
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
+
+					// Test #1.b: TRB absolute not found
+					instance.reset(*this);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					value.word = MASK(type);
+					instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+					save_state(state);
+					m_memory.at(address.word++) = INSTRUCTION_TYPE_TRB_ABSOLUTE;
+					m_memory.at(address.word++) = 0x00;
+					m_memory.at(address.word) = 0x10;
+					address.word = 0x1000;
+					m_memory.at(address.word) = (0xff & ~value.low);
+					instruction = INSTRUCTION(INSTRUCTION_TYPE_TRB_ABSOLUTE);
+					ASSERT(instance.step(*this) == (instruction.cycle + 2));
+					ASSERT(m_memory.at(address.word) == (0xff & ~value.low));
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+
+					// Test #2.a: TRB zero page found
+					instance.reset(*this);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					value.word = MASK(type);
+					instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+					save_state(state);
+					m_memory.at(address.word++) = INSTRUCTION_TYPE_TRB_ZERO_PAGE;
+					m_memory.at(address.word) = 0xaa;
+					address.word = 0x00aa;
+					m_memory.at(address.word) = 0xff;
+					instruction = INSTRUCTION(INSTRUCTION_TYPE_TRB_ZERO_PAGE);
+					ASSERT(instance.step(*this) == (instruction.cycle + 2));
+					ASSERT(m_memory.at(address.word) == (0xff & ~value.low));
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
+
+					// Test #2.b: TRB zero page not found
+					instance.reset(*this);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					value.word = MASK(type);
+					instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+					save_state(state);
+					m_memory.at(address.word++) = INSTRUCTION_TYPE_TRB_ZERO_PAGE;
+					m_memory.at(address.word) = 0xaa;
+					address.word = 0x00aa;
+					m_memory.at(address.word) = (0xff & ~value.low);
+					instruction = INSTRUCTION(INSTRUCTION_TYPE_TRB_ZERO_PAGE);
+					ASSERT(instance.step(*this) == (instruction.cycle + 2));
+					ASSERT(m_memory.at(address.word) == (0xff & ~value.low));
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+				}
+
+				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_test_set_bit(void)
+			{
+				int type = 0;
+
+				TRACE_ENTRY();
+
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				for(; type < CHAR_BIT; ++type) {
+					processor_state_t state;
+					instruction_t instruction;
+					c65_address_t address, value;
+
+					// Test #1.a: TSB absolute found
+					instance.reset(*this);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					value.word = MASK(type);
+					instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+					save_state(state);
+					m_memory.at(address.word++) = INSTRUCTION_TYPE_TSB_ABSOLUTE;
+					m_memory.at(address.word++) = 0x00;
+					m_memory.at(address.word) = 0x10;
+					address.word = 0x1000;
+					m_memory.at(address.word) = value.low;
+					instruction = INSTRUCTION(INSTRUCTION_TYPE_TSB_ABSOLUTE);
+					ASSERT(instance.step(*this) == (instruction.cycle + 2));
+					ASSERT(m_memory.at(address.word) == value.low);
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
+
+					// Test #1.b: TSB absolute not found
+					instance.reset(*this);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					value.word = MASK(type);
+					instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+					save_state(state);
+					m_memory.at(address.word++) = INSTRUCTION_TYPE_TSB_ABSOLUTE;
+					m_memory.at(address.word++) = 0x00;
+					m_memory.at(address.word) = 0x10;
+					address.word = 0x1000;
+					m_memory.at(address.word) = 0x00;
+					instruction = INSTRUCTION(INSTRUCTION_TYPE_TSB_ABSOLUTE);
+					ASSERT(instance.step(*this) == (instruction.cycle + 2));
+					ASSERT(m_memory.at(address.word) == value.low);
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+
+					// Test #2.a: TSB zero page found
+					instance.reset(*this);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					value.word = MASK(type);
+					instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+					save_state(state);
+					m_memory.at(address.word++) = INSTRUCTION_TYPE_TSB_ZERO_PAGE;
+					m_memory.at(address.word) = 0xaa;
+					address.word = 0x00aa;
+					m_memory.at(address.word) = value.low;
+					instruction = INSTRUCTION(INSTRUCTION_TYPE_TSB_ZERO_PAGE);
+					ASSERT(instance.step(*this) == (instruction.cycle + 2));
+					ASSERT(m_memory.at(address.word) == value.low);
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
+
+					// Test #2.b: TSB zero page not found
+					instance.reset(*this);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					instance.write_register(C65_REGISTER_PROGRAM_COUNTER, address);
+					value.word = MASK(type);
+					instance.write_register(C65_REGISTER_ACCUMULATOR, value);
+					save_state(state);
+					m_memory.at(address.word++) = INSTRUCTION_TYPE_TSB_ZERO_PAGE;
+					m_memory.at(address.word) = 0xaa;
+					address.word = 0x00aa;
+					m_memory.at(address.word) = 0x00;
+					instruction = INSTRUCTION(INSTRUCTION_TYPE_TSB_ZERO_PAGE);
+					ASSERT(instance.step(*this) == (instruction.cycle + 2));
+					ASSERT(m_memory.at(address.word) == value.low);
+					ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+					ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+					address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+					ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+					ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+					ASSERT(instance.read_status().raw == state.status.raw);
+				}
 
 				instance.uninitialize();
 

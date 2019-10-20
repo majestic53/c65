@@ -56,6 +56,7 @@
 
 #include "./common/action.h"
 #include "./common/address.h"
+#include "./common/bit.h"
 #include "./common/color.h"
 #include "./common/event.h"
 #include "./common/exception.h"

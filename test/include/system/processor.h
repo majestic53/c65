@@ -71,6 +71,8 @@ namespace c65 {
 						__in processor_state_t &state
 						);
 
+					void test_execute_bit(void);
+
 					void test_execute_branch(void);
 
 					void test_execute_branch_bit(void);
@@ -104,6 +106,10 @@ namespace c65 {
 					void test_execute_set_bit(void);
 
 					void test_execute_stop(void);
+
+					void test_execute_test_reset_bit(void);
+
+					void test_execute_test_set_bit(void);
 
 					void test_execute_transfer(void);
 

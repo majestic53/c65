@@ -65,17 +65,21 @@ namespace c65 {
 								}
 
 								if(!m_path.empty()) {
+									size_t length;
+
+									length = load(m_path, m_base);
 
 									if(!m_quiet) {
 										std::cout << std::endl << LEVEL_COLOR(LEVEL_VERBOSE)
-											<< STRING_COLUMN() << "Path" << m_path << std::endl
-											<< STRING_COLUMN() << "Base" << m_base.word << "("
-												<< STRING_HEXIDECIMAL(c65_word_t, m_base.word)
-												<< ")"
+												<< STRING_COLUMN_SHORT() << "Path" << m_path
+											<< std::endl << STRING_COLUMN_SHORT() << "Base"
+												<< m_base.word << "("
+												<< STRING_HEXIDECIMAL(c65_word_t, m_base.word) << ")"
+											<< std::endl << STRING_COLUMN_SHORT() << "Length"
+												<< STRING_FLOAT(length / (float)std::kilo::num)
+												<< " KB (" << length << " bytes)"
 											<< LEVEL_COLOR(LEVEL_NONE) << std::endl << std::endl;
 									}
-
-									load(m_path, m_base);
 								}
 
 								result = (m_debug ? debug() : run());
@@ -1612,16 +1616,18 @@ namespace c65 {
 					return result.str();
 				}
 
-				void load(
+				size_t load(
 					__in const std::string &path,
 					__in c65_address_t base
 					)
 				{
+					size_t result;
 					c65::type::buffer data;
 
 					TRACE_ENTRY_FORMAT("Path[%u]=%s, Base=%u(%04x)", path.size(), STRING(path), base.word, base.word);
 
 					data.load(path);
+					result = data.size();
 
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Load", "%s, %.02f KB (%u bytes), %u(%04x)",
 						STRING(path), data.size() / (float)std::kilo::num, data.size(),
@@ -1631,7 +1637,8 @@ namespace c65 {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
 
-					TRACE_EXIT();
+					TRACE_EXIT_FORMAT("Result=%u", result);
+					return result;
 				}
 
 				void on_initialize(void) override

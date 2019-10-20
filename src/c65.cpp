@@ -668,12 +668,13 @@ namespace c65 {
 
 			int step(void)
 			{
-				bool interrupted = false;
 				int result = EXIT_SUCCESS;
 
 				TRACE_ENTRY();
 
 				try {
+					bool interrupted = false;
+
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Runtime step request");
 
 					initialize();
