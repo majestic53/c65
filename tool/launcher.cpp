@@ -223,7 +223,10 @@ namespace c65 {
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher console request");
 
-					result = debug_event_register();
+					if(!m_quiet) {
+						result = debug_event_register();
+					}
+
 					if(result == EXIT_SUCCESS) {
 						result = debug_console();
 					}
@@ -1010,7 +1013,9 @@ namespace c65 {
 						result << "]";
 					}
 
-					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+					if(!m_quiet) {
+						std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
+					}
 
 					TRACE_EXIT();
 				}
@@ -1450,7 +1455,7 @@ namespace c65 {
 					if(event) {
 						std::stringstream result;
 
-						result << EVENT_STRING(event->type);
+						result << EVENT_STRING(event->type) << " event";
 
 						switch(event->type) {
 							case C65_EVENT_BREAKPOINT:

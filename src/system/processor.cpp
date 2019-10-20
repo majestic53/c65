@@ -472,11 +472,28 @@ namespace c65 {
 			)
 		{
 			uint8_t result;
+			c65_address_t address = {};
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
 
-			// TODO
+			switch(instruction.mode) {
+				case INSTRUCTION_MODE_ABSOLUTE:
+					break;
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_INDIRECT:
+					address.word = (operand + m_index_x.low);
+					operand = read_word(bus, address);
+					break;
+				case INSTRUCTION_MODE_ABSOLUTE_INDIRECT:
+					address.word = operand;
+					operand = read_word(bus, address);
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
+						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
+						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
+			}
 
+			m_program_counter.word = operand;
 			result = instruction.cycle;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
@@ -494,8 +511,8 @@ namespace c65 {
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
 
-			// TODO
-
+			push_word(bus, m_program_counter.word - 1);
+			m_program_counter.word = operand;
 			bus.notify(C65_EVENT_SUBROUTINE_ENTRY, m_program_counter);
 
 			result = instruction.cycle;

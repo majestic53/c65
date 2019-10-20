@@ -169,7 +169,7 @@ Version 0.1.1942
 
 *Updated: 10/18/2019*
 
-* Added jmp/jsr processor instruction handlers (incomplete)
+* Added jmp/jsr processor instruction handlers <s>(incomplete)</s>
 * Added processor tracking of stack overflows/underflows
 * Fixed bug in stack debug command
 
