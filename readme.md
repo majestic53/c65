@@ -164,7 +164,7 @@ Version 0.1.1942
 
 *Updated: 10/20/2019*
 
-* Added bit/trb/tsb instruction handlers (incomplete)
+* Added bit/trb/tsb instruction handlers <s>(incomplete)</s>
 * Added address mode helper routine
 
 *Updated: 10/19/2019*

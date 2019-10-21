@@ -92,10 +92,12 @@ namespace c65 {
 			request.type = C65_ACTION_BREAKPOINT_CLEAR;
 			ASSERT(c65_action(&request, &response) == EXIT_FAILURE);
 			ASSERT(response.type == C65_ACTION_BREAKPOINT_CLEAR);
+
 			request.type = C65_ACTION_BREAKPOINT_SET;
 			request.address.word = value.word;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_BREAKPOINT_SET);
+
 			request.type = C65_ACTION_BREAKPOINT_CLEAR;
 			request.address.word = value.word;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
@@ -106,6 +108,7 @@ namespace c65 {
 			request.address.word = value.word;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_BREAKPOINT_SET);
+
 			request.type = C65_ACTION_BREAKPOINT_SET;
 			request.address.word = value.word;
 			ASSERT(c65_action(&request, &response) == EXIT_FAILURE);
@@ -138,6 +141,7 @@ namespace c65 {
 
 			// Test #5: Read byte action
 			ASSERT(c65_load((c65_byte_t *)&value.low, INSTRUCTION_LENGTH_BYTE, address) == EXIT_SUCCESS);
+
 			request.type = C65_ACTION_READ_BYTE;
 			request.address = address;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
@@ -173,6 +177,7 @@ namespace c65 {
 
 			// Test #7: Read status action
 			ASSERT(c65_reset() == EXIT_SUCCESS);
+
 			request.type = C65_ACTION_READ_STATUS;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_READ_STATUS);
@@ -183,6 +188,7 @@ namespace c65 {
 
 			// Test #8: Read word action
 			ASSERT(c65_load((c65_byte_t *)&value.word, INSTRUCTION_LENGTH_WORD, address) == EXIT_SUCCESS);
+
 			request.type = C65_ACTION_READ_WORD;
 			request.address = address;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
@@ -218,10 +224,12 @@ namespace c65 {
 			request.type = C65_ACTION_WATCH_CLEAR;
 			ASSERT(c65_action(&request, &response) == EXIT_FAILURE);
 			ASSERT(response.type == C65_ACTION_WATCH_CLEAR);
+
 			request.type = C65_ACTION_WATCH_SET;
 			request.address.word = value.word;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_WATCH_SET);
+
 			request.type = C65_ACTION_WATCH_CLEAR;
 			request.address.word = value.word;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
@@ -232,6 +240,7 @@ namespace c65 {
 			request.address.word = value.word;
 			ASSERT(c65_action(&request, &response) == EXIT_SUCCESS);
 			ASSERT(response.type == C65_ACTION_WATCH_SET);
+
 			request.type = C65_ACTION_WATCH_SET;
 			request.address.word = value.word;
 			ASSERT(c65_action(&request, &response) == EXIT_FAILURE);

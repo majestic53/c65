@@ -357,7 +357,7 @@ namespace c65 {
 						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
-			m_status.zero = !BIT_CHECK(m_accumulator.low, value);
+			m_status.zero = BIT_CHECK(m_accumulator.low, value);
 			m_status.overflow = MASK_CHECK(value, FLAG_OVERFLOW);
 			m_status.negative = MASK_CHECK(value, FLAG_NEGATIVE);
 
