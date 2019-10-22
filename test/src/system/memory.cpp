@@ -39,12 +39,14 @@ namespace c65 {
 			}
 
 			void
-			memory::on_run(void)
+			memory::on_run(
+				__in bool quiet
+				)
 			{
-				TRACE_ENTRY();
+				TRACE_ENTRY_FORMAT("Quiet=%x", quiet);
 
-				test_read();
-				test_write();
+				EXECUTE_TEST(test_read, quiet);
+				EXECUTE_TEST(test_write, quiet);
 
 				TRACE_EXIT();
 			}

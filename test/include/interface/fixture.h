@@ -33,15 +33,16 @@ namespace c65 {
 				public:
 
 					int run(
-						__inout std::string &error
+						__inout std::string &error,
+						__in bool quiet
 						)
 					{
 						int result = TEST_INCONCLUSIVE;
 
-						TRACE_ENTRY_FORMAT("Error=%p", &error);
+						TRACE_ENTRY_FORMAT("Error=%p, Quiet=%x", &error, quiet);
 
 						try {
-							on_run();
+							on_run(quiet);
 							result = TEST_SUCCESS;
 						} catch(c65::type::exception &exc) {
 							error = exc.to_string();
@@ -103,7 +104,9 @@ namespace c65 {
 
 				protected:
 
-					virtual void on_run(void) = 0;
+					virtual void on_run(
+						__in bool quiet
+						) = 0;
 
 					virtual void on_setup(void) = 0;
 

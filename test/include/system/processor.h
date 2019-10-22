@@ -56,7 +56,9 @@ namespace c65 {
 						__in c65_address_t address
 						) const override;
 
-					void on_run(void) override;
+					void on_run(
+						__in bool quiet
+						) override;
 
 					void on_setup(void) override;
 
@@ -88,6 +90,12 @@ namespace c65 {
 					void test_execute_jump(void);
 
 					void test_execute_jump_subroutine(void);
+
+					void test_execute_load_accumulator(void);
+
+					void test_execute_load_index_x(void);
+
+					void test_execute_load_index_y(void);
 
 					void test_execute_no_operation(void);
 

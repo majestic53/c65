@@ -46,4 +46,6 @@ typedef struct {
 	c65_status_t status;
 } processor_state_t;
 
+typedef void (*test_t)(void);
+
 #endif // C65_TEST_COMMON_TEST_H_

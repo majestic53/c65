@@ -63,46 +63,51 @@ namespace c65 {
 			}
 
 			void
-			processor::on_run(void)
+			processor::on_run(
+				__in bool quiet
+				)
 			{
-				TRACE_ENTRY();
+				TRACE_ENTRY_FORMAT("Quiet=%x", quiet);
 
-				test_execute_bit();
-				test_execute_branch();
-				test_execute_branch_bit();
-				test_execute_break();
-				test_execute_clear();
-				test_execute_decrement_index();
-				test_execute_increment_index();
-				test_execute_jump();
-				test_execute_jump_subroutine();
-				test_execute_no_operation();
-				test_execute_pull();
-				test_execute_push();
-				test_execute_reset_bit();
-				test_execute_return_interrupt();
-				test_execute_return_subroutine();
-				test_execute_set();
-				test_execute_set_bit();
-				test_execute_stop();
-				test_execute_test_reset_bit();
-				test_execute_test_set_bit();
-				test_execute_transfer();
-				test_execute_wait();
-				test_interrupt();
-				test_interrupt_pending();
-				test_read();
-				test_read_register();
-				test_read_status();
-				test_reset();
-				test_stack_overflow();
-				test_stack_underflow();
-				test_step();
-				test_stopped();
-				test_waiting();
-				test_write();
-				test_write_register();
-				test_write_status();
+				EXECUTE_TEST(test_execute_bit, quiet);
+				EXECUTE_TEST(test_execute_branch, quiet);
+				EXECUTE_TEST(test_execute_branch_bit, quiet);
+				EXECUTE_TEST(test_execute_break, quiet);
+				EXECUTE_TEST(test_execute_clear, quiet);
+				EXECUTE_TEST(test_execute_decrement_index, quiet);
+				EXECUTE_TEST(test_execute_increment_index, quiet);
+				EXECUTE_TEST(test_execute_jump, quiet);
+				EXECUTE_TEST(test_execute_jump_subroutine, quiet);
+				EXECUTE_TEST(test_execute_load_accumulator, quiet);
+				EXECUTE_TEST(test_execute_load_index_x, quiet);
+				EXECUTE_TEST(test_execute_load_index_y, quiet);
+				EXECUTE_TEST(test_execute_no_operation, quiet);
+				EXECUTE_TEST(test_execute_pull, quiet);
+				EXECUTE_TEST(test_execute_push, quiet);
+				EXECUTE_TEST(test_execute_reset_bit, quiet);
+				EXECUTE_TEST(test_execute_return_interrupt, quiet);
+				EXECUTE_TEST(test_execute_return_subroutine, quiet);
+				EXECUTE_TEST(test_execute_set, quiet);
+				EXECUTE_TEST(test_execute_set_bit, quiet);
+				EXECUTE_TEST(test_execute_stop, quiet);
+				EXECUTE_TEST(test_execute_test_reset_bit, quiet);
+				EXECUTE_TEST(test_execute_test_set_bit, quiet);
+				EXECUTE_TEST(test_execute_transfer, quiet);
+				EXECUTE_TEST(test_execute_wait, quiet);
+				EXECUTE_TEST(test_interrupt, quiet);
+				EXECUTE_TEST(test_interrupt_pending, quiet);
+				EXECUTE_TEST(test_read, quiet);
+				EXECUTE_TEST(test_read_register, quiet);
+				EXECUTE_TEST(test_read_status, quiet);
+				EXECUTE_TEST(test_reset, quiet);
+				EXECUTE_TEST(test_stack_overflow, quiet);
+				EXECUTE_TEST(test_stack_underflow, quiet);
+				EXECUTE_TEST(test_step, quiet);
+				EXECUTE_TEST(test_stopped, quiet);
+				EXECUTE_TEST(test_waiting, quiet);
+				EXECUTE_TEST(test_write, quiet);
+				EXECUTE_TEST(test_write_register, quiet);
+				EXECUTE_TEST(test_write_status, quiet);
 
 				TRACE_EXIT();
 			}
@@ -239,6 +244,29 @@ namespace c65 {
 
 				instruction = INSTRUCTION(INSTRUCTION_TYPE_BIT_ABSOLUTE_INDEX_X);
 				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == state.status.raw);
+
+				// Test #2.a: BIT a, x, not found, page cross
+				instance.initialize();
+				instance.reset(*this);
+				address.word = 0xaa;
+				instance.write_register(C65_REGISTER_INDEX_X, address);
+				save_state(state);
+
+				address.word = 0x1154;
+				m_memory.at(address.word) = 0x00;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_BIT_ABSOLUTE_INDEX_X;
+				m_memory.at(address.word + 1) = 0xaa;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_BIT_ABSOLUTE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 1));
 				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
@@ -1478,6 +1506,36 @@ namespace c65 {
 				ASSERT(instance.read_status().raw == state.status.raw);
 
 				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_load_accumulator(void)
+			{
+				TRACE_ENTRY();
+
+				// TODO
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_load_index_x(void)
+			{
+				TRACE_ENTRY();
+
+				// TODO
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_load_index_y(void)
+			{
+				TRACE_ENTRY();
+
+				// TODO
 
 				TRACE_EXIT();
 			}

@@ -208,7 +208,7 @@ namespace c65 {
 
 							if(fixture->second->setup(error) != TEST_SUCCESS) {
 								result = EXIT_FAILURE;
-							} else if(fixture->second->run(error) != TEST_SUCCESS) {
+							} else if(fixture->second->run(error, m_quiet) != TEST_SUCCESS) {
 								result = EXIT_FAILURE;
 							}
 
@@ -219,18 +219,20 @@ namespace c65 {
 							if(!m_quiet) {
 
 								if(result == EXIT_SUCCESS) {
-									std::cout << LEVEL_COLOR(LEVEL_INFORMATION) << "[PASS] ";
+									std::cout << LEVEL_COLOR(LEVEL_INFORMATION) << STRING_COLUMN_SHORT()
+										<< "[PASS]";
 								} else {
-									std::cout << LEVEL_COLOR(LEVEL_ERROR) << "[FAIL] ";
+									std::cout << LEVEL_COLOR(LEVEL_ERROR) << STRING_COLUMN_SHORT()
+										<< "[FAIL]";
 								}
 
 								std::cout << LEVEL_COLOR(LEVEL_INFORMATION) << fixture->first
-									<< std::endl << LEVEL_COLOR(LEVEL_NONE);
+									<< LEVEL_COLOR(LEVEL_NONE) << std::endl;;
 							}
 
 							if(!error.empty()) {
-								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << error << std::endl
-									<< LEVEL_COLOR(LEVEL_NONE);
+								std::cerr << LEVEL_COLOR(LEVEL_ERROR) << error << LEVEL_COLOR(LEVEL_NONE)
+									<< std::endl;
 								error.clear();
 							}
 						}

@@ -46,7 +46,9 @@ namespace c65 {
 						__in const memory &other
 						) = delete;
 
-					void on_run(void) override;
+					void on_run(
+						__in bool quiet
+						) override;
 
 					void on_setup(void) override;
 

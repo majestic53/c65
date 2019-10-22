@@ -159,6 +159,13 @@ $ make TRACE=3
 Changelog
 =
 
+Version 0.1.1943
+-
+
+*Updated: 10/21/2019*
+
+* Added lda/ldx/ldy instruction handlers (incomplete)
+
 Version 0.1.1942
 -
 
@@ -195,40 +202,5 @@ Version 0.1.1942
 *Updated: 10/14/2019*
 
 * Added dex/dey/inx/iny/pha/php/phx/phy/pla/plp/plx/ply processor command handlers
-
-Version 0.1.1941
--
-
-*Updated: 10/13/2019*
-
-* Added additional zero-page-relative addressing mode
-* Added bbr/bbs/rmb/smb processor command handlers
-
-*Updated: 10/12/2019*
-
-* Added processor command handlers
-
-*Updated: 10/11/2019*
-
-* Minor code cleanup/documentation changes
-
-*Updated: 10/10/2019*
-
-* Added launcher load/base arguments
-* Added gdb-like behavior to debug console
-
-*Updated: 10/9/2019*
-
-* Added processor command handler
-* Minor bug fixes
-
-*Updated: 10/8/2019*
-
-* Added cycle, disassemble, processor debug commands
-
-*Updated: 10/7/2019*
-
-* Added debug console tab completion
-* Added additional processor test cases
 
 *Changelog truncated (see file history for full log)*

@@ -43,18 +43,20 @@ namespace c65 {
 		}
 
 		void
-		runtime::on_run(void)
+		runtime::on_run(
+			__in bool quiet
+			)
 		{
-			TRACE_ENTRY();
+			TRACE_ENTRY_FORMAT("Quiet=%x", quiet);
 
-			test_action();
-			test_cleanup();
-			test_event_handler();
-			test_interrupt();
-			test_load();
-			test_reset();
-			test_step();
-			test_unload();
+			EXECUTE_TEST(test_action, quiet);
+			EXECUTE_TEST(test_cleanup, quiet);
+			EXECUTE_TEST(test_event_handler, quiet);
+			EXECUTE_TEST(test_interrupt, quiet);
+			EXECUTE_TEST(test_load, quiet);
+			EXECUTE_TEST(test_reset, quiet);
+			EXECUTE_TEST(test_step, quiet);
+			EXECUTE_TEST(test_unload, quiet);
 
 			TRACE_EXIT();
 		}

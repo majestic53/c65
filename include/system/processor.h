@@ -85,10 +85,10 @@ namespace c65 {
 					__in const processor &other
 					) = delete;
 
-				c65_address_t derive_address(
+				c65_address_t effective_address(
 					__in c65::interface::bus &bus,
+					__in c65_word_t indirect,
 					__in int mode,
-					__in c65_word_t value,
 					__inout uint8_t &cycle
 					);
 
@@ -138,6 +138,24 @@ namespace c65 {
 					);
 
 				uint8_t execute_jump_subroutine(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_load_accumulator(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_load_index_x(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_load_index_y(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
 					__in c65_word_t operand

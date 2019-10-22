@@ -81,11 +81,13 @@ namespace c65 {
 			}
 
 			void
-			buffer::on_run(void)
+			buffer::on_run(
+				__in bool quiet
+				)
 			{
-				TRACE_ENTRY();
+				TRACE_ENTRY_FORMAT("Quiet=%x", quiet);
 
-				test_load_file();
+				EXECUTE_TEST(test_load_file, quiet);
 
 				TRACE_EXIT();
 			}
