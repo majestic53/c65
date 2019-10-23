@@ -208,6 +208,30 @@ namespace c65 {
 					__in const instruction_t &instruction
 					);
 
+				uint8_t execute_store_accumulator(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_store_index_x(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_store_index_y(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_store_zero(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
 				uint8_t execute_test_reset_bit(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,

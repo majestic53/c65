@@ -162,9 +162,13 @@ Changelog
 Version 0.1.1943
 -
 
+*Updated: 10/22/2019*
+
+* Added sta/stx/sty/stz instruction handlers (incomplete)
+
 *Updated: 10/21/2019*
 
-* Added lda/ldx/ldy instruction handlers (incomplete)
+* Added lda/ldx/ldy instruction handlers <s>(incomplete)</s>
 
 Version 0.1.1942
 -

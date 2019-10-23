@@ -29,204 +29,116 @@
  **********************************************/
 
 enum {
-
-	// Breakpoint clear
-	C65_ACTION_BREAKPOINT_CLEAR = 0,
-
-	// Breakpoint set
-	C65_ACTION_BREAKPOINT_SET,
-
-	// Cycle count
-	C65_ACTION_CYCLE,
-
-	// Interrupt pending state
-	C65_ACTION_INTERRUPT_PENDING,
-
-	// Read memory byte
-	C65_ACTION_READ_BYTE,
-
-	// Read processor register
-	C65_ACTION_READ_REGISTER,
-
-	// Read processor status
-	C65_ACTION_READ_STATUS,
-
-	// Read memory word
-	C65_ACTION_READ_WORD,
-
-	// Stack overflow status
-	C65_ACTION_STACK_OVERFLOW,
-
-	// Stack underflow status
-	C65_ACTION_STACK_UNDERFLOW,
-
-	// Stop status
-	C65_ACTION_STOPPED,
-
-	// Wait status
-	C65_ACTION_WAITING,
-
-	// Watch clear
-	C65_ACTION_WATCH_CLEAR,
-
-	// Watch set
-	C65_ACTION_WATCH_SET,
-
-	// Write memory byte
-	C65_ACTION_WRITE_BYTE,
-
-	// Write processor register
-	C65_ACTION_WRITE_REGISTER,
-
-	// Write processor status
-	C65_ACTION_WRITE_STATUS,
-
-	// Write memory word
-	C65_ACTION_WRITE_WORD,
+	C65_ACTION_BREAKPOINT_CLEAR = 0, /* Breakpoint clear */
+	C65_ACTION_BREAKPOINT_SET, /* Breakpoint set */
+	C65_ACTION_CYCLE, /* Cycle count */
+	C65_ACTION_INTERRUPT_PENDING, /* Interrupt pending state */
+	C65_ACTION_READ_BYTE, /* Read memory byte */
+	C65_ACTION_READ_REGISTER, /* Read processor register */
+	C65_ACTION_READ_STATUS, /* Read processor status */
+	C65_ACTION_READ_WORD, /* Read memory word */
+	C65_ACTION_STACK_OVERFLOW, /* Stack overflow status */
+	C65_ACTION_STACK_UNDERFLOW, /* Stack underflow status */
+	C65_ACTION_STOPPED, /* Stop status */
+	C65_ACTION_WAITING, /* Wait status */
+	C65_ACTION_WATCH_CLEAR, /* Watch clear */
+	C65_ACTION_WATCH_SET, /* Watch set */
+	C65_ACTION_WRITE_BYTE, /* Write memory byte */
+	C65_ACTION_WRITE_REGISTER, /* Write processor register */
+	C65_ACTION_WRITE_STATUS, /* Write processor status */
+	C65_ACTION_WRITE_WORD, /* Write memory word */
 };
 
 #define C65_ACTION_MAX C65_ACTION_WRITE_WORD
 
 enum {
-
-	// Breakpoint event
-	C65_EVENT_BREAKPOINT = 0,
-
-	// Illegal instruction event
-	C65_EVENT_ILLEGAL_INSTRUCTION,
-
-	// Interrupt entry event
-	C65_EVENT_INTERRUPT_ENTRY,
-
-	// Interrupt exit event
-	C65_EVENT_INTERRUPT_EXIT,
-
-	// Stack overflow event
-	C65_EVENT_STACK_OVERFLOW,
-
-	// Stack underflow event
-	C65_EVENT_STACK_UNDERFLOW,
-
-	// Stop entry event
-	C65_EVENT_STOP_ENTRY,
-
-	// Stop exit event
-	C65_EVENT_STOP_EXIT,
-
-	// Subroutine entry event
-	C65_EVENT_SUBROUTINE_ENTRY,
-
-	// Subroutine exit event
-	C65_EVENT_SUBROUTINE_EXIT,
-
-	// Wait entry event
-	C65_EVENT_WAIT_ENTRY,
-
-	// Wait exit event
-	C65_EVENT_WAIT_EXIT,
-
-	// Memory watch event
-	C65_EVENT_WATCH,
+	C65_EVENT_BREAKPOINT = 0, /* Breakpoint event */
+	C65_EVENT_ILLEGAL_INSTRUCTION, /* Illegal instruction event */
+	C65_EVENT_INTERRUPT_ENTRY, /* Interrupt entry event */
+	C65_EVENT_INTERRUPT_EXIT, /* Interrupt exit event */
+	C65_EVENT_STACK_OVERFLOW, /* Stack overflow event */
+	C65_EVENT_STACK_UNDERFLOW, /* Stack underflow event */
+	C65_EVENT_STOP_ENTRY, /* Stop entry event */
+	C65_EVENT_STOP_EXIT, /* Stop exit event */
+	C65_EVENT_SUBROUTINE_ENTRY, /* Subroutine entry event */
+	C65_EVENT_SUBROUTINE_EXIT, /* Subroutine exit event */
+	C65_EVENT_WAIT_ENTRY, /* Wait entry event */
+	C65_EVENT_WAIT_EXIT, /* Wait exit event */
+	C65_EVENT_WATCH, /* Memory watch event */
 };
 
 #define C65_EVENT_MAX C65_EVENT_WATCH
 
 enum {
-
-	// Non-maskable interrupt (NMI)
-	C65_INTERRUPT_NON_MASKABLE = 0,
-
-	// Maskable interrupt (IRQ)
-	C65_INTERRUPT_MASKABLE,
+	C65_INTERRUPT_NON_MASKABLE = 0, /* Non-maskable interrupt (NMI) */
+	C65_INTERRUPT_MASKABLE, /* Maskable interrupt (IRQ) */
 };
 
 #define C65_INTERRUPT_MAX C65_INTERRUPT_MASKABLE
 
 enum {
-
-	// Accumulator register (A)
-	C65_REGISTER_ACCUMULATOR = 0,
-
-	// Index-x register (X)
-	C65_REGISTER_INDEX_X,
-
-	// Index-y register (Y)
-	C65_REGISTER_INDEX_Y,
-
-	// Program counter register (PC)
-	C65_REGISTER_PROGRAM_COUNTER,
-
-	// Stack pointer register (SP)
-	C65_REGISTER_STACK_POINTER,
+	C65_REGISTER_ACCUMULATOR = 0, /* Accumulator register (A) */
+	C65_REGISTER_INDEX_X, /* Index-x register (X) */
+	C65_REGISTER_INDEX_Y, /* Index-y register (Y) */
+	C65_REGISTER_PROGRAM_COUNTER, /* Program counter register (PC) */
+	C65_REGISTER_STACK_POINTER, /* Stack pointer register (SP) */
 };
 
 #define C65_REGISTER_MAX C65_REGISTER_STACK_POINTER
 
-// Byte type
-typedef uint8_t c65_byte_t;
+typedef uint8_t c65_byte_t; /* Byte type */
+typedef uint16_t c65_word_t; /* Word type */
+typedef uint32_t c65_dword_t; /* Double-word type */
 
-// Word type
-typedef uint16_t c65_word_t;
-
-// Double-word type
-typedef uint32_t c65_dword_t;
-
+ /* Address structure */
 typedef union {
 
 	struct {
-
-		// Low byte
-		c65_byte_t low;
-
-		// High byte
-		c65_byte_t high;
+		c65_byte_t low; /* Lower byte */
+		c65_byte_t high; /* Upper byte */
 	};
 
-	// Word
-	c65_word_t word;
+	c65_word_t word; /* Raw word */
 } __attribute__((packed)) c65_address_t;
 
+ /* Status structure */
 typedef union {
 
 	struct {
-		c65_byte_t carry : 1;
-		c65_byte_t zero : 1;
-		c65_byte_t interrupt_disable : 1;
-		c65_byte_t decimal_mode : 1;
-		c65_byte_t break_instruction : 1;
-		c65_byte_t unused : 1;
-		c65_byte_t overflow : 1;
-		c65_byte_t negative : 1;
+		c65_byte_t carry : 1; /* Carry flag (C) */
+		c65_byte_t zero : 1; /* Zero flag (Z) */
+		c65_byte_t interrupt_disable : 1; /* Interrupt disable flag (I) */
+		c65_byte_t decimal_mode : 1; /* Decimal mode flag (D) */
+		c65_byte_t break_instruction : 1; /* Break instruction flag (B) */
+		c65_byte_t unused : 1; /* Unused flag (-) */
+		c65_byte_t overflow : 1; /* Overflow flag (V) */
+		c65_byte_t negative : 1; /* Negative flag (N) */
 	};
 
-	c65_byte_t raw;
+	c65_byte_t raw; /* Raw byte */
 } __attribute__((packed)) c65_status_t;
 
-typedef c65_address_t c65_register_t;
+typedef c65_address_t c65_register_t; /* Register structure */
 
+ /* Action structure */
 typedef struct {
-
-	// Action type
-	int type;
-
-	// Action address
-	c65_address_t address;
+	int type; /* Action type */
+	c65_address_t address; /* Action address */
 
 	union {
-		// Action cycle
-		c65_dword_t cycle;
-
-		// Action data
-		c65_register_t data;
-
-		// Action status
-		c65_status_t status;
+		c65_dword_t cycle; /* Action cycle */
+		c65_register_t data; /* Action data */
+		c65_status_t status; /* Action status */
 	};
 } __attribute__((packed)) c65_action_t;
 
-typedef c65_action_t c65_event_t;
+typedef c65_action_t c65_event_t; /* Event structure */
 
-typedef void (*c65_event_hdlr)(const c65_event_t *);
+/**
+ * Event handler
+ * @param event Event structure
+ */
+typedef void (*c65_event_hdlr)(const c65_event_t *event);
 
 #ifdef __cplusplus
 extern "C" {

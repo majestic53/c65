@@ -115,6 +115,14 @@ namespace c65 {
 
 					void test_execute_stop(void);
 
+					void test_execute_store_accumulator(void);
+
+					void test_execute_store_index_x(void);
+
+					void test_execute_store_index_y(void);
+
+					void test_execute_store_zero(void);
+
 					void test_execute_test_reset_bit(void);
 
 					void test_execute_test_set_bit(void);
