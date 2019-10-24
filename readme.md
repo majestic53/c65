@@ -162,9 +162,9 @@ Changelog
 Version 0.1.1943
 -
 
-*Updated: 10/22/2019*
+*Updated: 10/22-23/2019*
 
-* Added sta/stx/sty/stz instruction handlers (incomplete)
+* Added sta/stx/sty/stz instruction handlers <s>(incomplete)</s>
 
 *Updated: 10/21/2019*
 

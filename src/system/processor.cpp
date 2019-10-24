@@ -63,7 +63,6 @@ namespace c65 {
 
 			switch(mode) {
 				case INSTRUCTION_MODE_ABSOLUTE:
-				case INSTRUCTION_MODE_ABSOLUTE_INDIRECT:
 					result.word = indirect;
 					break;
 				case INSTRUCTION_MODE_ABSOLUTE_INDEX_INDIRECT:
@@ -83,6 +82,10 @@ namespace c65 {
 					if(result.high != (indirect >> CHAR_BIT)) {
 						cycle += CYCLE_PAGE_CROSSED;
 					}
+					break;
+				case INSTRUCTION_MODE_ABSOLUTE_INDIRECT:
+					result.word = indirect;
+					result.word = read_word(bus, result);
 					break;
 				case INSTRUCTION_MODE_RELATIVE:
 
