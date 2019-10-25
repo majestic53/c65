@@ -216,20 +216,20 @@ namespace c65 {
 					break;
 				case INSTRUCTION_CPY:
 					// TODO
-					break;
-				case INSTRUCTION_DEC:
-					// TODO
 					break;*/
+				case INSTRUCTION_DEC:
+					result += execute_decrement(bus, instruction, operand);
+					break;
 				case INSTRUCTION_DEX:
 				case INSTRUCTION_DEY:
 					result += execute_decrement_index(instruction);
 					break;
 				/*case INSTRUCTION_EOR:
 					// TODO
-					break;
-				case INSTRUCTION_INC:
-					// TODO
 					break;*/
+				case INSTRUCTION_INC:
+					result += execute_increment(bus, instruction, operand);
+					break;
 				case INSTRUCTION_INX:
 				case INSTRUCTION_INY:
 					result += execute_increment_index(instruction);
@@ -515,6 +515,45 @@ namespace c65 {
 		}
 
 		uint8_t
+		processor::execute_decrement(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+			uint8_t result = 0;
+			c65_byte_t value = 0;
+			c65_address_t address = {};
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			switch(instruction.mode) {
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_X:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_X:
+					address = effective_address(bus, operand, instruction.mode, result);
+					value = read_byte(bus, address);
+					write_byte(bus, address, --value);
+					result += CYCLE_READ_MODIFY_WRITE;
+					break;
+				case INSTRUCTION_MODE_ACCUMULATOR:
+					value = --m_accumulator.word;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
+						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
+						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
+			}
+
+			m_status.zero = !value;
+			m_status.negative = MASK_CHECK(value, CHAR_BIT - 1);
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
 		processor::execute_decrement_index(
 			__in const instruction_t &instruction
 			)
@@ -534,6 +573,45 @@ namespace c65 {
 				default:
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
 						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
+			}
+
+			m_status.zero = !value;
+			m_status.negative = MASK_CHECK(value, CHAR_BIT - 1);
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_increment(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+			uint8_t result = 0;
+			c65_byte_t value = 0;
+			c65_address_t address = {};
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			switch(instruction.mode) {
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_X:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_X:
+					address = effective_address(bus, operand, instruction.mode, result);
+					value = read_byte(bus, address);
+					write_byte(bus, address, ++value);
+					result += CYCLE_READ_MODIFY_WRITE;
+					break;
+				case INSTRUCTION_MODE_ACCUMULATOR:
+					value = ++m_accumulator.word;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
+						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
+						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
 			m_status.zero = !value;
@@ -589,12 +667,8 @@ namespace c65 {
 
 			switch(instruction.mode) {
 				case INSTRUCTION_MODE_ABSOLUTE:
-					break;
 				case INSTRUCTION_MODE_ABSOLUTE_INDEX_INDIRECT:
-					operand = read_word(bus, address);
-					break;
 				case INSTRUCTION_MODE_ABSOLUTE_INDIRECT:
-					operand = read_word(bus, address);
 					break;
 				default:
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
@@ -602,7 +676,7 @@ namespace c65 {
 						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
-			m_program_counter.word = operand;
+			m_program_counter.word = address.word;
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;

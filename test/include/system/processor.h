@@ -83,7 +83,11 @@ namespace c65 {
 
 					void test_execute_clear(void);
 
+					void test_execute_decrement(void);
+
 					void test_execute_decrement_index(void);
+
+					void test_execute_increment(void);
 
 					void test_execute_increment_index(void);
 

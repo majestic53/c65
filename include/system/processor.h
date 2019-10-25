@@ -123,8 +123,20 @@ namespace c65 {
 					__in const instruction_t &instruction
 					);
 
+				uint8_t execute_decrement(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
 				uint8_t execute_decrement_index(
 					__in const instruction_t &instruction
+					);
+
+				uint8_t execute_increment(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_increment_index(

@@ -74,7 +74,9 @@ namespace c65 {
 				EXECUTE_TEST(test_execute_branch_bit, quiet);
 				EXECUTE_TEST(test_execute_break, quiet);
 				EXECUTE_TEST(test_execute_clear, quiet);
+				EXECUTE_TEST(test_execute_decrement, quiet);
 				EXECUTE_TEST(test_execute_decrement_index, quiet);
+				EXECUTE_TEST(test_execute_increment, quiet);
 				EXECUTE_TEST(test_execute_increment_index, quiet);
 				EXECUTE_TEST(test_execute_jump, quiet);
 				EXECUTE_TEST(test_execute_jump_subroutine, quiet);
@@ -1164,6 +1166,16 @@ namespace c65 {
 			}
 
 			void
+			processor::test_execute_decrement(void)
+			{
+				TRACE_ENTRY();
+
+				// TODO
+
+				TRACE_EXIT();
+			}
+
+			void
 			processor::test_execute_decrement_index(void)
 			{
 				c65_address_t address;
@@ -1275,6 +1287,16 @@ namespace c65 {
 				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_NEGATIVE)));
 
 				instance.uninitialize();
+
+				TRACE_EXIT();
+			}
+
+			void
+			processor::test_execute_increment(void)
+			{
+				TRACE_ENTRY();
+
+				// TODO
 
 				TRACE_EXIT();
 			}
@@ -1438,16 +1460,13 @@ namespace c65 {
 				address.word = 0x10af;
 				m_memory.at(address.word) = 0xbb;
 				m_memory.at(address.word + 1) = 0xaa;
-				address.word = 0xaabb;
-				m_memory.at(address.word) = 0xdd;
-				m_memory.at(address.word + 1) = 0xcc;
 
 				instruction = INSTRUCTION(INSTRUCTION_TYPE_JMP_ABSOLUTE_INDEX_INDIRECT);
 				ASSERT(instance.step(*this) == instruction.cycle);
 				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
-				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == 0xccdd);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == 0xaabb);
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw == state.status.raw);
 
@@ -1462,16 +1481,13 @@ namespace c65 {
 				address.word = 0x1000;
 				m_memory.at(address.word) = 0xbb;
 				m_memory.at(address.word + 1) = 0xaa;
-				address.word = 0xaabb;
-				m_memory.at(address.word) = 0xdd;
-				m_memory.at(address.word + 1) = 0xcc;
 
 				instruction = INSTRUCTION(INSTRUCTION_TYPE_JMP_ABSOLUTE_INDIRECT);
 				ASSERT(instance.step(*this) == instruction.cycle);
 				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
-				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == 0xccdd);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == 0xaabb);
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw == state.status.raw);
 
