@@ -4213,7 +4213,7 @@ namespace c65 {
 				m_memory.at(address.word + 2) = 0x10;
 
 				instruction = INSTRUCTION(INSTRUCTION_TYPE_STA_ABSOLUTE_INDEX_X);
-				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.step(*this) == (instruction.cycle + 1));
 				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == 0xaa);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
