@@ -48,6 +48,10 @@ namespace c65 {
 						__in const processor &other
 						) = delete;
 
+					void clear_interrupts(void);
+
+					void clear_memory(void);
+
 					void on_notify(
 						__in const c65_event_t &event
 						) const override;
@@ -73,6 +77,8 @@ namespace c65 {
 						__in processor_state_t &state
 						);
 
+					void test_execute_add(void);
+
 					void test_execute_and(void);
 
 					void test_execute_bit(void);
@@ -84,6 +90,12 @@ namespace c65 {
 					void test_execute_break(void);
 
 					void test_execute_clear(void);
+
+					void test_execute_compare(void);
+
+					void test_execute_compare_index_x(void);
+
+					void test_execute_compare_index_y(void);
 
 					void test_execute_decrement(void);
 
@@ -117,9 +129,17 @@ namespace c65 {
 
 					void test_execute_return_subroutine(void);
 
+					void test_execute_rotate_left(void);
+
+					void test_execute_rotate_right(void);
+
 					void test_execute_set(void);
 
 					void test_execute_set_bit(void);
+
+					void test_execute_shift_left(void);
+
+					void test_execute_shift_right(void);
 
 					void test_execute_stop(void);
 
@@ -130,6 +150,8 @@ namespace c65 {
 					void test_execute_store_index_y(void);
 
 					void test_execute_store_zero(void);
+
+					void test_execute_subtract(void);
 
 					void test_execute_test_reset_bit(void);
 

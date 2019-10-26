@@ -171,15 +171,15 @@ namespace c65 {
 			result = instruction.cycle;
 
 			switch(instruction.type) {
-				/*case INSTRUCTION_ADC:
-					// TODO
-					break;*/
+				case INSTRUCTION_ADC:
+					result += execute_add(bus, instruction, operand);
+					break;
 				case INSTRUCTION_AND:
 					result += execute_and(bus, instruction, operand);
 					break;
-				/*case INSTRUCTION_ASL:
-					// TODO
-					break;*/
+				case INSTRUCTION_ASL:
+					result += execute_shift_left(bus, instruction, operand);
+					break;
 				case INSTRUCTION_BBR0 ... INSTRUCTION_BBR7:
 				case INSTRUCTION_BBS0 ... INSTRUCTION_BBS7:
 					result += execute_branch_bit(bus, instruction, operand);
@@ -208,15 +208,15 @@ namespace c65 {
 				case INSTRUCTION_CLV:
 					result += execute_clear(instruction);
 					break;
-				/*case INSTRUCTION_CMP:
-					// TODO
+				case INSTRUCTION_CMP:
+					result += execute_compare(bus, instruction, operand);
 					break;
 				case INSTRUCTION_CPX:
-					// TODO
+					result += execute_compare_index_x(bus, instruction, operand);
 					break;
 				case INSTRUCTION_CPY:
-					// TODO
-					break;*/
+					result += execute_compare_index_y(bus, instruction, operand);
+					break;
 				case INSTRUCTION_DEC:
 					result += execute_decrement(bus, instruction, operand);
 					break;
@@ -249,9 +249,9 @@ namespace c65 {
 				case INSTRUCTION_LDY:
 					result += execute_load_index_y(bus, instruction, operand);
 					break;
-				/*case INSTRUCTION_LSR:
-					// TODO
-					break;*/
+				case INSTRUCTION_LSR:
+					result += execute_shift_right(bus, instruction, operand);
+					break;
 				case INSTRUCTION_ORA:
 					result += execute_or(bus, instruction, operand);
 					break;
@@ -270,21 +270,21 @@ namespace c65 {
 				case INSTRUCTION_RMB0 ... INSTRUCTION_RMB7:
 					result += execute_reset_bit(bus, instruction, operand);
 					break;
-				/*case INSTRUCTION_ROL:
-					// TODO
+				case INSTRUCTION_ROL:
+					result += execute_rotate_left(bus, instruction, operand);
 					break;
 				case INSTRUCTION_ROR:
-					// TODO
-					break;*/
+					result += execute_rotate_right(bus, instruction, operand);
+					break;
 				case INSTRUCTION_RTI:
 					result += execute_return_interrupt(bus, instruction);
 					break;
 				case INSTRUCTION_RTS:
 					result += execute_return_subroutine(bus, instruction);
 					break;
-				/*case INSTRUCTION_SBC:
-					// TODO
-					break;*/
+				case INSTRUCTION_SBC:
+					result += execute_subtract(bus, instruction, operand);
+					break;
 				case INSTRUCTION_SEC:
 				case INSTRUCTION_SED:
 				case INSTRUCTION_SEI:
@@ -340,6 +340,23 @@ namespace c65 {
 		}
 
 		uint8_t
+		processor::execute_add(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+ 			uint8_t result = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			// TODO
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
 		processor::execute_and(
 			__in c65::interface::bus &bus,
 			__in const instruction_t &instruction,
@@ -347,19 +364,34 @@ namespace c65 {
 			)
 		{
 			uint8_t result = 0;
-			//c65_byte_t value = 0;
+			c65_byte_t value = 0;
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
 
 			switch(instruction.mode) {
-				// TODO
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_X:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_Y:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_X:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT_INDEX:
+					value = read_byte(bus, effective_address(bus, operand, instruction.mode, result));
+					break;
+				case INSTRUCTION_MODE_IMMEDIATE:
+					value = operand;
+					break;
 				default:
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
 						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
 						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
-			// TODO
+			value = (m_accumulator.low & value);
+			m_accumulator.low = value;
+			m_status.zero = !value;
+			m_status.negative = MASK_CHECK(value, FLAG_NEGATIVE);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -535,6 +567,114 @@ namespace c65 {
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
 						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_compare(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+			uint8_t result = 0;
+			c65_byte_t value = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			switch(instruction.mode) {
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_X:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_Y:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_X:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT_INDEX:
+					value = read_byte(bus, effective_address(bus, operand, instruction.mode, result));
+					break;
+				case INSTRUCTION_MODE_IMMEDIATE:
+					value = operand;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
+						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
+						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
+			}
+
+			m_status.carry = (m_accumulator.low >= value);
+			m_status.zero = (m_accumulator.low == value);
+			m_status.negative = MASK_CHECK((m_accumulator.low - value) & UINT8_MAX, FLAG_NEGATIVE);
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_compare_index_x(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+			uint8_t result = 0;
+			c65_byte_t value = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			switch(instruction.mode) {
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+					value = read_byte(bus, effective_address(bus, operand, instruction.mode, result));
+					break;
+				case INSTRUCTION_MODE_IMMEDIATE:
+					value = operand;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
+						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
+						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
+			}
+
+			m_status.carry = (m_index_x.low >= value);
+			m_status.zero = (m_index_x.low == value);
+			m_status.negative = MASK_CHECK((m_index_x.low - value) & UINT8_MAX, FLAG_NEGATIVE);
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_compare_index_y(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+			uint8_t result = 0;
+			c65_byte_t value = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			switch(instruction.mode) {
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+					value = read_byte(bus, effective_address(bus, operand, instruction.mode, result));
+					break;
+				case INSTRUCTION_MODE_IMMEDIATE:
+					value = operand;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
+						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
+						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
+			}
+
+			m_status.carry = (m_index_y.low >= value);
+			m_status.zero = (m_index_y.low == value);
+			m_status.negative = MASK_CHECK((m_index_y.low - value) & UINT8_MAX, FLAG_NEGATIVE);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -872,19 +1012,34 @@ namespace c65 {
 			)
 		{
 			uint8_t result = 0;
-			//c65_byte_t value = 0;
+			c65_byte_t value = 0;
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
 
 			switch(instruction.mode) {
-				// TODO
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_X:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_Y:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_X:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT_INDEX:
+					value = read_byte(bus, effective_address(bus, operand, instruction.mode, result));
+					break;
+				case INSTRUCTION_MODE_IMMEDIATE:
+					value = operand;
+					break;
 				default:
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
 						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
 						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
-			// TODO
+			value = (m_accumulator.low | value);
+			m_accumulator.low = value;
+			m_status.zero = !value;
+			m_status.negative = MASK_CHECK(value, FLAG_NEGATIVE);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -1030,6 +1185,40 @@ namespace c65 {
 		}
 
 		uint8_t
+		processor::execute_rotate_left(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+			uint8_t result = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			// TODO
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_rotate_right(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+ 			uint8_t result = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			// TODO
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
 		processor::execute_set(
 			__in const instruction_t &instruction
 			)
@@ -1081,6 +1270,40 @@ namespace c65 {
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_INVALID,
 						"%u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type));
 			}
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_shift_left(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+			uint8_t result = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			// TODO
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
+		processor::execute_shift_right(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+ 			uint8_t result = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			// TODO
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -1218,6 +1441,23 @@ namespace c65 {
 		}
 
 		uint8_t
+		processor::execute_subtract(
+			__in c65::interface::bus &bus,
+			__in const instruction_t &instruction,
+			__in c65_word_t operand
+			)
+		{
+ 			uint8_t result = 0;
+
+			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
+
+			// TODO
+
+			TRACE_EXIT_FORMAT("Result=%u", result);
+			return result;
+		}
+
+		uint8_t
 		processor::execute_test_reset_bit(
 			__in c65::interface::bus &bus,
 			__in const instruction_t &instruction,
@@ -1337,19 +1577,34 @@ namespace c65 {
 			)
 		{
 			uint8_t result = 0;
-			//c65_byte_t value = 0;
+			c65_byte_t value = 0;
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
 
 			switch(instruction.mode) {
-				// TODO
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_X:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_Y:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_X:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT_INDEX:
+					value = read_byte(bus, effective_address(bus, operand, instruction.mode, result));
+					break;
+				case INSTRUCTION_MODE_IMMEDIATE:
+					value = operand;
+					break;
 				default:
 					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
 						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
 						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
-			// TODO
+			value = (m_accumulator.low ^ value);
+			m_accumulator.low = value;
+			m_status.zero = !value;
+			m_status.negative = MASK_CHECK(value, FLAG_NEGATIVE);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;

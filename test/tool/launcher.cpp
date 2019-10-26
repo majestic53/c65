@@ -63,20 +63,20 @@ namespace c65 {
 
 									if(!m_quiet) {
 										std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << version(true)
-											<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
+											<< LEVEL_COLOR(LEVEL_NONE) << std::endl << std::endl;
 									}
 
 									result = run();
 
 									if(!m_quiet) {
-										std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << TEST_STRING(result)
+										std::cout << std::endl << LEVEL_COLOR(LEVEL_VERBOSE) << TEST_STRING(result)
 											<< std::endl << LEVEL_COLOR(LEVEL_NONE);
 									}
 								}
 							} catch(c65::type::exception &exc) {
 
 								if(!m_quiet) {
-									std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error: " << exc.to_string()
+									std::cerr << std::endl << LEVEL_COLOR(LEVEL_ERROR) << "Error: " << exc.to_string()
 										<< std::endl << LEVEL_COLOR(LEVEL_NONE);
 								}
 
@@ -84,7 +84,7 @@ namespace c65 {
 							} catch(std::exception &exc) {
 
 								if(!m_quiet) {
-									std::cerr << LEVEL_COLOR(LEVEL_ERROR) << "Error: " << exc.what()
+									std::cerr << std::endl << LEVEL_COLOR(LEVEL_ERROR) << "Error: " << exc.what()
 										<< std::endl << LEVEL_COLOR(LEVEL_NONE);
 								}
 

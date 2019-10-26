@@ -96,6 +96,12 @@ namespace c65 {
 					__in c65::interface::bus &bus
 					);
 
+				uint8_t execute_add(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
 				uint8_t execute_and(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
@@ -127,6 +133,24 @@ namespace c65 {
 
 				uint8_t execute_clear(
 					__in const instruction_t &instruction
+					);
+
+				uint8_t execute_compare(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_compare_index_x(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_compare_index_y(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_decrement(
@@ -217,11 +241,35 @@ namespace c65 {
 					__in const instruction_t &instruction
 					);
 
+				uint8_t execute_rotate_left(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_rotate_right(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
 				uint8_t execute_set(
 					__in const instruction_t &instruction
 					);
 
 				uint8_t execute_set_bit(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_shift_left(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_shift_right(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
 					__in c65_word_t operand
@@ -251,6 +299,12 @@ namespace c65 {
 					);
 
 				uint8_t execute_store_zero(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
+				uint8_t execute_subtract(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
 					__in c65_word_t operand

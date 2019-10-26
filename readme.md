@@ -164,7 +164,7 @@ Version 0.1.1943
 
 *Updated: 10/26/2019*
 
-* Added and/or/xor instruction handlers (incomplete)
+* Added adc/and/asl/cmp/cpx/cpy/eor/lsr/ora/rol/ror/sbc instruction handlers (incomplete)
 
 *Updated: 10/24/2019*
 
