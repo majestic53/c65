@@ -96,6 +96,12 @@ namespace c65 {
 					__in c65::interface::bus &bus
 					);
 
+				uint8_t execute_and(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
+					);
+
 				uint8_t execute_bit(
 					__in c65::interface::bus &bus,
 					__in const instruction_t &instruction,
@@ -177,6 +183,12 @@ namespace c65 {
 
 				uint8_t execute_no_operation(
 					__in const instruction_t &instruction
+					);
+
+				uint8_t execute_or(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
 					);
 
 				uint8_t execute_pull(
@@ -263,6 +275,12 @@ namespace c65 {
 				uint8_t execute_wait(
 					__in const c65::interface::bus &bus,
 					__in const instruction_t &instruction
+					);
+
+				uint8_t execute_xor(
+					__in c65::interface::bus &bus,
+					__in const instruction_t &instruction,
+					__in c65_word_t operand
 					);
 
 				void on_initialize(void) override;

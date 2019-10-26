@@ -26,6 +26,7 @@ namespace c65 {
 		video::video(void) :
 			m_changed(false),
 			m_renderer(nullptr),
+			m_shown(false),
 			m_texture(nullptr),
 			m_window(nullptr)
 		{
@@ -40,33 +41,13 @@ namespace c65 {
 		}
 
 		void
-		video::frame_rate(
-			__in float rate
-			)
-		{
-			std::stringstream result;
-
-			TRACE_ENTRY_FORMAT("Rate=%.02f", rate);
-
-			result << m_title << " [" << (int)rate << " fps]";
-			SDL_SetWindowTitle(m_window, STRING(result.str()));
-
-			TRACE_EXIT();
-		}
-
-		void
-		video::on_initialize(void)
+		video::create_display(void)
 		{
 			color_t background = COLOR(BACKGROUND_COLOR);
 
 			TRACE_ENTRY();
 
-			TRACE_MESSAGE(LEVEL_INFORMATION, "Video initializing");
-
 			m_changed = true;
-			m_color.resize(WINDOW_WIDTH * WINDOW_WIDTH, BACKGROUND_COLOR);
-			m_pixel.resize(WINDOW_WIDTH * WINDOW_WIDTH, background);
-			m_title = WINDOW_TITLE;
 
 			m_window = SDL_CreateWindow(STRING(m_title), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 					WINDOW_WIDTH * WINDOW_SCALE, WINDOW_WIDTH * WINDOW_SCALE, SDL_WINDOW_FLAGS);
@@ -112,6 +93,64 @@ namespace c65 {
 
 			SDL_RenderPresent(m_renderer);
 
+			TRACE_EXIT();
+		}
+
+		void
+		video::destroy_display(void)
+		{
+			TRACE_ENTRY();
+
+			if(m_texture) {
+				SDL_DestroyTexture(m_texture);
+				m_texture = nullptr;
+			}
+
+			if(m_renderer) {
+				SDL_DestroyRenderer(m_renderer);
+				m_renderer = nullptr;
+			}
+
+			if(m_window) {
+				SDL_DestroyWindow(m_window);
+				m_window = nullptr;
+			}
+
+			TRACE_EXIT();
+		}
+
+		void
+		video::frame_rate(
+			__in float rate
+			)
+		{
+			std::stringstream result;
+
+			TRACE_ENTRY_FORMAT("Rate=%.02f", rate);
+
+			result << m_title << " [" << (int)rate << " fps]";
+			SDL_SetWindowTitle(m_window, STRING(result.str()));
+
+			TRACE_EXIT();
+		}
+
+		void
+		video::on_initialize(void)
+		{
+			TRACE_ENTRY();
+
+			TRACE_MESSAGE(LEVEL_INFORMATION, "Video initializing");
+
+			m_changed = false;
+			m_color.resize(WINDOW_WIDTH * WINDOW_WIDTH, BACKGROUND_COLOR);
+			m_pixel.resize(WINDOW_WIDTH * WINDOW_WIDTH, COLOR(BACKGROUND_COLOR));
+			m_title = WINDOW_TITLE;
+
+			m_shown = DISPLAY_SHOWN;
+			if(m_shown) {
+				create_display();
+			}
+
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Video initialized");
 
 			TRACE_EXIT();
@@ -155,22 +194,10 @@ namespace c65 {
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Video uninitializing");
 
-			if(m_texture) {
-				SDL_DestroyTexture(m_texture);
-				m_texture = nullptr;
-			}
-
-			if(m_renderer) {
-				SDL_DestroyRenderer(m_renderer);
-				m_renderer = nullptr;
-			}
-
-			if(m_window) {
-				SDL_DestroyWindow(m_window);
-				m_window = nullptr;
-			}
+			destroy_display();
 
 			m_title.clear();
+			m_shown = false;
 			m_pixel.clear();
 			m_color.clear();
 			m_changed = false;
@@ -210,26 +237,49 @@ namespace c65 {
 		{
 			TRACE_ENTRY();
 
-			if(m_changed) {
-				m_changed = false;
+			if(m_shown) {
 
-				if(SDL_UpdateTexture(m_texture, nullptr, &m_pixel[0], WINDOW_WIDTH * sizeof(color_t))) {
+				if(m_changed) {
+					m_changed = false;
+
+					if(SDL_UpdateTexture(m_texture, nullptr, &m_pixel[0], WINDOW_WIDTH * sizeof(color_t))) {
+						THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_EXTERNAL,
+							"SDL_UpdateTexture failed! %s", SDL_GetError());
+					}
+				}
+
+				if(SDL_RenderClear(m_renderer)) {
 					THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_EXTERNAL,
-						"SDL_UpdateTexture failed! %s", SDL_GetError());
+						"SDL_RenderClear failed! %s", SDL_GetError());
+				}
+
+				if(SDL_RenderCopy(m_renderer, m_texture, nullptr, nullptr)) {
+					THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_EXTERNAL,
+						"SDL_RenderCopy failed! %s", SDL_GetError());
+				}
+
+				SDL_RenderPresent(m_renderer);
+			}
+
+			TRACE_EXIT();
+		}
+
+		void
+		video::show(
+			__in bool shown
+			)
+		{
+			TRACE_ENTRY_FORMAT("Shown=%x", shown);
+
+			if(m_shown != shown) {
+
+				m_shown = shown;
+				if(m_shown) {
+					create_display();
+				} else {
+					destroy_display();
 				}
 			}
-
-			if(SDL_RenderClear(m_renderer)) {
-				THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_EXTERNAL,
-					"SDL_RenderClear failed! %s", SDL_GetError());
-			}
-
-			if(SDL_RenderCopy(m_renderer, m_texture, nullptr, nullptr)) {
-				THORW_C65_SYSTEM_VIDEO_EXCEPTION_FORMAT(C65_SYSTEM_VIDEO_EXCEPTION_EXTERNAL,
-					"SDL_RenderCopy failed! %s", SDL_GetError());
-			}
-
-			SDL_RenderPresent(m_renderer);
 
 			TRACE_EXIT();
 		}

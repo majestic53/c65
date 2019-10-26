@@ -73,6 +73,8 @@ namespace c65 {
 						__in processor_state_t &state
 						);
 
+					void test_execute_and(void);
+
 					void test_execute_bit(void);
 
 					void test_execute_branch(void);
@@ -102,6 +104,8 @@ namespace c65 {
 					void test_execute_load_index_y(void);
 
 					void test_execute_no_operation(void);
+
+					void test_execute_or(void);
 
 					void test_execute_pull(void);
 
@@ -134,6 +138,8 @@ namespace c65 {
 					void test_execute_transfer(void);
 
 					void test_execute_wait(void);
+
+					void test_execute_xor(void);
 
 					void test_interrupt(void);
 

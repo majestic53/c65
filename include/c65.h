@@ -43,6 +43,7 @@ enum {
 	C65_ACTION_WAITING, /* Wait status */
 	C65_ACTION_WATCH_CLEAR, /* Watch clear */
 	C65_ACTION_WATCH_SET, /* Watch set */
+	C65_ACTION_WINDOW_SHOW, /* Show window */
 	C65_ACTION_WRITE_BYTE, /* Write memory byte */
 	C65_ACTION_WRITE_REGISTER, /* Write processor register */
 	C65_ACTION_WRITE_STATUS, /* Write processor status */

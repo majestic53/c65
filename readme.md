@@ -162,9 +162,13 @@ Changelog
 Version 0.1.1943
 -
 
+*Updated: 10/26/2019*
+
+* Added and/or/xor instruction handlers (incomplete)
+
 *Updated: 10/24/2019*
 
-* Added dec/inc instruction handlers (incomplete)
+* Added dec/inc instruction handlers <s>(incomplete)</s>
 
 *Updated: 10/22-23/2019*
 

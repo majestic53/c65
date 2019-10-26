@@ -40,6 +40,10 @@ namespace c65 {
 
 				void render(void);
 
+				void show(
+					__in bool state
+					);
+
 			protected:
 
 				friend class c65::interface::singleton<c65::system::video>;
@@ -53,6 +57,10 @@ namespace c65 {
 				video &operator=(
 					__in const video &other
 					) = delete;
+
+				void create_display(void);
+
+				void destroy_display(void);
 
 				void on_initialize(void) override;
 
@@ -78,6 +86,8 @@ namespace c65 {
 				std::vector<color_t> m_pixel;
 
 				SDL_Renderer *m_renderer;
+
+				bool m_shown;
 
 				SDL_Texture *m_texture;
 

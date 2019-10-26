@@ -34,6 +34,7 @@ static const std::string ACTION_STR[] = {
 	"Waiting", // C65_ACTION_WAITING
 	"Watch-Clear", // C65_ACTION_WATCH_CLEAR
 	"Watch-Set", // C65_ACTION_WATCH_SET
+	"Window-Show", // C65_ACTION_WINDOW_SHOW
 	"Write-Byte", // C65_ACTION_WRITE_BYTE
 	"Write-Register", // C65_ACTION_WRITE_REGISTER
 	"Write-Status", // C65_ACTION_WRITE_STATUS

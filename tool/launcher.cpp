@@ -74,11 +74,31 @@ namespace c65 {
 												<< STRING_COLUMN_SHORT() << "Path" << m_path
 											<< std::endl << STRING_COLUMN_SHORT() << "Base"
 												<< m_base.word << "("
-												<< STRING_HEXIDECIMAL(c65_word_t, m_base.word) << ")"
+												<< STRING_HEXIDECIMAL(c65_word_t, m_base.word)
+												<< ")"
 											<< std::endl << STRING_COLUMN_SHORT() << "Length"
 												<< STRING_FLOAT(length / (float)std::kilo::num)
 												<< " KB (" << length << " bytes)"
 											<< LEVEL_COLOR(LEVEL_NONE) << std::endl << std::endl;
+									}
+								}
+
+								if(!m_window) {
+									c65_action_t request = {}, response = {};
+
+									request.type = C65_ACTION_WINDOW_SHOW;
+									request.data.word = m_window;
+
+									result = c65_action(&request, &response);
+									if(result != EXIT_SUCCESS) {
+										THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(
+											C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
+									}
+
+									if(!m_quiet) {
+										std::cout << std::endl << LEVEL_COLOR(LEVEL_VERBOSE)
+											<< "Window hidden." << LEVEL_COLOR(LEVEL_NONE)
+											<< std::endl;
 									}
 								}
 
@@ -89,7 +109,7 @@ namespace c65 {
 								}
 
 								if(!m_quiet) {
-									std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << "Exiting."
+									std::cout << std::endl << LEVEL_COLOR(LEVEL_VERBOSE) << "Exiting."
 										<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
 								}
 							}
@@ -129,7 +149,8 @@ namespace c65 {
 					m_debug(false),
 					m_help(false),
 					m_quiet(false),
-					m_version(false)
+					m_version(false),
+					m_window(true)
 				{
 					TRACE_ENTRY();
 					TRACE_EXIT();
@@ -1674,6 +1695,7 @@ namespace c65 {
 					m_quiet = false;
 					m_version = false;
 					m_watch.clear();
+					m_window = true;
 
 					TRACE_MESSAGE(LEVEL_INFORMATION, "Launcher uninitialized");
 
@@ -1710,6 +1732,9 @@ namespace c65 {
 									break;
 								case ARGUMENT_HELP:
 									m_help = true;
+									break;
+								case ARGUMENT_NO_GUI:
+									m_window = false;
 									break;
 								case ARGUMENT_QUIET:
 									m_quiet = true;
@@ -1820,6 +1845,8 @@ namespace c65 {
 				bool m_version;
 
 				std::set<c65_word_t> m_watch;
+
+				bool m_window;
 		};
 	}
 }

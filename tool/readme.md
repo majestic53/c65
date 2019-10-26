@@ -27,6 +27,7 @@ c65 [args] [path]
 -b|--base           <address>           Define base address
 -d|--debug                              Enable debug mode
 -h|--help                               Display help information
+-n|--no-gui                             Hide window
 -q|--quiet                              Enable quiet mode
 -v|--version                            Display version information
 ```

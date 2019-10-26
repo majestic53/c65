@@ -104,6 +104,9 @@ namespace c65 {
 						case C65_ACTION_WATCH_SET:
 							result = action_watch_set(request, response);
 							break;
+						case C65_ACTION_WINDOW_SHOW:
+							result = action_window_show(request, response);
+							break;
 						case C65_ACTION_WRITE_BYTE:
 							result = action_write_byte(request, response);
 							break;
@@ -369,6 +372,21 @@ namespace c65 {
 				}
 
 				m_watch.insert(request->address.word);
+
+				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
+				return result;
+			}
+
+			int action_window_show(
+				__in const c65_action_t *request,
+				__in c65_action_t *response
+				)
+			{
+				int result = EXIT_SUCCESS;
+
+				TRACE_ENTRY_FORMAT("Request=%p, Response=%p", request, response);
+
+				m_video.show(request->data.word);
 
 				TRACE_EXIT_FORMAT("Result=%i(%x)", result, result);
 				return result;
@@ -836,7 +854,7 @@ namespace c65 {
 				TRACE_ENTRY_FORMAT("Event=%p", &event);
 
 				try {
-					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Runtime event notification", "%i(%s), %p",
+					TRACE_MESSAGE_FORMAT(LEVEL_VERBOSE, "Runtime event notification", "%i(%s), %p",
 						event.type, EVENT_STRING(event.type), &event);
 
 					if(m_event.at(event.type)) {
