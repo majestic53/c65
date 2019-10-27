@@ -588,6 +588,7 @@ namespace c65 {
 
 					initialize();
 					m_processor.reset(*this);
+					m_video.clear();
 					m_cycle = 0;
 				} catch(c65::type::exception &exc) {
 					m_error = exc.to_string();
@@ -973,6 +974,18 @@ namespace c65 {
 						case SDL_KEYUP:
 
 							if(!event.key.repeat) {
+
+								switch(event.key.keysym.scancode) {
+									case KEY_BREAK:
+										result = false;
+										break;
+									case KEY_RESET:
+										reset();
+										break;
+									default:
+										break;
+								}
+
 								m_key = SDL_GetKeyFromScancode(event.key.keysym.scancode);
 							}
 							break;

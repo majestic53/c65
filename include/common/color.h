@@ -72,7 +72,8 @@ static const color_t COL[] = {
 	};
 
 #define COLOR(_TYPE_) \
-	(((_TYPE_) > COLOR_MAX) ? COL[COLOR_BLACK] : \
-		COL[_TYPE_])
+	COL[(_TYPE_) % COLOR_MAX]
+
+#define BACKGROUND_COLOR COLOR_BLACK
 
 #endif // C65_COMMON_COLOR_H_

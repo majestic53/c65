@@ -34,6 +34,8 @@ namespace c65 {
 
 				~video(void);
 
+				void clear(void);
+
 				void frame_rate(
 					__in float rate
 					);

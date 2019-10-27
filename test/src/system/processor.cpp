@@ -514,7 +514,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == state.status.raw);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #1.b: BIT a, found
 				instance.initialize();
@@ -538,7 +538,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw
-					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) | MASK(FLAG_ZERO)));
+					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) & ~MASK(FLAG_ZERO)));
 
 				// Test #2.a: BIT a, x, not found
 				instance.initialize();
@@ -561,7 +561,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == state.status.raw);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #2.a: BIT a, x, not found, page cross
 				instance.initialize();
@@ -584,7 +584,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == state.status.raw);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #2.b: BIT a, x, found
 				instance.initialize();
@@ -610,7 +610,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw
-					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) | MASK(FLAG_ZERO)));
+					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) & ~MASK(FLAG_ZERO)));
 
 				// Test #3.a: BIT imm, not found
 				instance.initialize();
@@ -628,7 +628,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == state.status.raw);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #3.b: BIT imm, found
 				instance.initialize();
@@ -649,7 +649,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw
-					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) | MASK(FLAG_ZERO)));
+					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) & ~MASK(FLAG_ZERO)));
 
 				// Test #4.a: BIT zp, not found
 				instance.initialize();
@@ -669,7 +669,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == state.status.raw);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #4.b: BIT zp, found
 				instance.initialize();
@@ -692,7 +692,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw
-					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) | MASK(FLAG_ZERO)));
+					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) & ~MASK(FLAG_ZERO)));
 
 				// Test #5.a: BIT zp, x, not found
 				instance.initialize();
@@ -714,7 +714,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
-				ASSERT(instance.read_status().raw == state.status.raw);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_ZERO)));
 
 				// Test #5.b: BIT zp, x, found
 				instance.initialize();
@@ -739,7 +739,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw
-					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) | MASK(FLAG_ZERO)));
+					== (state.status.raw | MASK(FLAG_NEGATIVE) | MASK(FLAG_OVERFLOW) & ~MASK(FLAG_ZERO)));
 
 				instance.uninitialize();
 

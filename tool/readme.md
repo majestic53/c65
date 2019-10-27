@@ -58,6 +58,15 @@ The following example shows how to launch C65 with an input file, loaded at a sp
 $ ./bin/c65 -b 600 file.bin
 ```
 
+#### System keys
+
+The following system keys are available:
+
+|Key|Description       |
+|---|------------------|
+|Esc|Power off emulator|
+|F1 |Reset emulator    |
+
 #### Debug Mode
 
 The following arguments are available:

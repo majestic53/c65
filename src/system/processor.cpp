@@ -48,6 +48,29 @@ namespace c65 {
 			TRACE_EXIT();
 		}
 
+		void
+		processor::calculate_sum(
+			__in uint8_t value
+			)
+		{
+			uint16_t sum;
+
+			TRACE_ENTRY_FORMAT("Value=%u(%02x)", value, value);
+
+			if(m_status.decimal_mode) {
+				// TODO: Decimal mode arithmetic
+			}
+
+			sum = (m_accumulator.low + value + m_status.carry);
+			m_status.carry = (sum > UINT8_MAX);
+			m_status.overflow = MASK_CHECK(((m_accumulator.low ^ sum) & (value ^ sum) & MASK(FLAG_NEGATIVE)), FLAG_NEGATIVE);
+			m_accumulator.low = sum;
+			m_status.zero = !m_accumulator.low;
+			m_status.negative = MASK_CHECK(m_accumulator.low, FLAG_NEGATIVE);
+
+			TRACE_EXIT();
+		}
+
 		c65_address_t
 		processor::effective_address(
 			__in c65::interface::bus &bus,
@@ -347,10 +370,31 @@ namespace c65 {
 			)
 		{
  			uint8_t result = 0;
+			c65_byte_t value = 0;
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
 
-			// TODO
+			switch(instruction.mode) {
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_X:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_Y:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_X:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT_INDEX:
+					value = read_byte(bus, effective_address(bus, operand, instruction.mode, result));
+					break;
+				case INSTRUCTION_MODE_IMMEDIATE:
+					value = operand;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
+						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
+						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
+			}
+
+			calculate_sum(value);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -425,7 +469,7 @@ namespace c65 {
 						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
-			m_status.zero = BIT_CHECK(m_accumulator.low, value);
+			m_status.zero = !BIT_CHECK(m_accumulator.low, value);
 			m_status.overflow = MASK_CHECK(value, FLAG_OVERFLOW);
 			m_status.negative = MASK_CHECK(value, FLAG_NEGATIVE);
 
@@ -1564,10 +1608,31 @@ namespace c65 {
 			)
 		{
  			uint8_t result = 0;
+			c65_byte_t value = 0;
 
 			TRACE_ENTRY_FORMAT("Bus=%p, Instruction=%p, Operand=%u(%04x)", &bus, &instruction, operand, operand);
 
-			// TODO
+			switch(instruction.mode) {
+				case INSTRUCTION_MODE_ABSOLUTE:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_X:
+				case INSTRUCTION_MODE_ABSOLUTE_INDEX_Y:
+				case INSTRUCTION_MODE_ZERO_PAGE:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDEX_X:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT:
+				case INSTRUCTION_MODE_ZERO_PAGE_INDIRECT_INDEX:
+					value = read_byte(bus, effective_address(bus, operand, instruction.mode, result));
+					break;
+				case INSTRUCTION_MODE_IMMEDIATE:
+					value = operand;
+					break;
+				default:
+					THROW_C65_SYSTEM_PROCESSOR_EXCEPTION_FORMAT(C65_SYSTEM_PROCESSOR_EXCEPTION_INSTRUCTION_MODE_INVALID,
+						"%u(%s), %u(%s)", instruction.type, INSTRUCTION_STRING(instruction.type),
+						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
+			}
+
+			calculate_sum(~value);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;

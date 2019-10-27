@@ -32,7 +32,7 @@ archive:
 	@echo ''
 	@echo '--- BUILDING LIBRARY -----------------------'
 	ar rcs $(DIR_BUILD)$(LIB) $(DIR_BUILD)base_c65.o \
-		$(DIR_BUILD)system_memory.o $(DIR_BUILD)system_processor.o \
+		$(DIR_BUILD)system_memory.o $(DIR_BUILD)system_processor.o $(DIR_BUILD)system_video.o \
 		$(DIR_BUILD)type_buffer.o
 	@echo '--- DONE -----------------------------------'
 
@@ -47,13 +47,16 @@ base_c65.o: $(DIR_SRC)c65.cpp $(DIR_INC)c65.h
 
 ### TYPE ###
 
-build_system: system_memory.o system_processor.o
+build_system: system_memory.o system_processor.o system_video.o
 
 system_memory.o: $(DIR_SRC_SYSTEM)memory.cpp $(DIR_INC_SYSTEM)memory.h
 	$(CXX) $(FLAGS) $(BUILD_FLAGS) $(TRACE_FLAGS) -c $(DIR_SRC_SYSTEM)memory.cpp -o $(DIR_BUILD)system_memory.o
 
 system_processor.o: $(DIR_SRC_SYSTEM)processor.cpp $(DIR_INC_SYSTEM)processor.h
 	$(CXX) $(FLAGS) $(BUILD_FLAGS) $(TRACE_FLAGS) -c $(DIR_SRC_SYSTEM)processor.cpp -o $(DIR_BUILD)system_processor.o
+
+system_video.o: $(DIR_SRC_SYSTEM)video.cpp $(DIR_INC_SYSTEM)video.h
+	$(CXX) $(FLAGS) $(BUILD_FLAGS) $(TRACE_FLAGS) -c $(DIR_SRC_SYSTEM)video.cpp -o $(DIR_BUILD)system_video.o
 
 ### TYPE ###
 

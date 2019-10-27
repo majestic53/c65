@@ -22,7 +22,6 @@ C65 emulates the 65C02 microprocessor in a small sandbox environment, and is des
 
 The project sandbox has the following features:
 
-* 1.2MHz operating frequency (20,000 cycles/frame)
 * Support for all instructions/addressing-modes, as documented in the [W65C02S datasheet](http://www.westerndesigncenter.com/wdc/documentation/w65c02s.pdf)
 * 65536 bytes (64 KB) of accesssible memory
 * MMIO for video display output, keyboard input and random input
@@ -58,7 +57,7 @@ The project supports basic IO through a series of memory-mapped (MMIO) registers
 
 The project supports video output onto a 32x32 pixel screen. The pixels are stored in VRAM at addresses 0200 - 05FF, where each byte represents a pixel.
 
-__NOTE__: Any pixels that exceed the color values in the table below will be converted to black.
+__NOTE__: Any pixels that exceed the color values in the table will wrap around (modulo 16).
 
 The following colors are supported:
 
@@ -165,6 +164,7 @@ Version 0.1.1943
 *Updated: 10/26/2019*
 
 * Added adc/and/asl/cmp/cpx/cpy/eor/lsr/ora/rol/ror/sbc instruction handlers (incomplete)
+* Added video regression tests
 
 *Updated: 10/24/2019*
 

@@ -85,6 +85,10 @@ namespace c65 {
 					__in const processor &other
 					) = delete;
 
+				void calculate_sum(
+					__in uint8_t value
+					);
+
 				c65_address_t effective_address(
 					__in c65::interface::bus &bus,
 					__in c65_word_t indirect,

@@ -41,6 +41,20 @@ namespace c65 {
 		}
 
 		void
+		video::clear(void)
+		{
+			TRACE_ENTRY();
+
+			m_changed = true;
+			m_color.clear();
+			m_color.resize(WINDOW_WIDTH * WINDOW_WIDTH, BACKGROUND_COLOR);
+			m_pixel.clear();
+			m_pixel.resize(WINDOW_WIDTH * WINDOW_WIDTH, COLOR(BACKGROUND_COLOR));
+
+			TRACE_EXIT();
+		}
+
+		void
 		video::create_display(void)
 		{
 			color_t background = COLOR(BACKGROUND_COLOR);
@@ -141,15 +155,13 @@ namespace c65 {
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Video initializing");
 
-			m_changed = false;
-			m_color.resize(WINDOW_WIDTH * WINDOW_WIDTH, BACKGROUND_COLOR);
-			m_pixel.resize(WINDOW_WIDTH * WINDOW_WIDTH, COLOR(BACKGROUND_COLOR));
-			m_title = WINDOW_TITLE;
-
 			m_shown = DISPLAY_SHOWN;
 			if(m_shown) {
 				create_display();
 			}
+
+			m_title = WINDOW_TITLE;
+			clear();
 
 			TRACE_MESSAGE(LEVEL_INFORMATION, "Video initialized");
 
