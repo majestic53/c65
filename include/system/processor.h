@@ -85,7 +85,7 @@ namespace c65 {
 					__in const processor &other
 					) = delete;
 
-				void calculate_sum(
+				void add_carry(
 					__in uint8_t value
 					);
 

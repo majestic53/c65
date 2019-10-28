@@ -51,4 +51,9 @@
 	std::right << std::setw(sizeof(_TYPE_) * 2) << std::setfill('0') << std::hex << (uintmax_t) ((_TYPE_) (_VALUE_)) \
 		<< std::dec << std::setfill(' ')
 
+#define STRING_BYTE(_VALUE_) \
+	STRING_HEXIDECIMAL(c65_byte_t, _VALUE_)
+#define STRING_WORD(_VALUE_) \
+	STRING_HEXIDECIMAL(c65_word_t, _VALUE_)
+
 #endif // C65_COMMON_STRING_H_

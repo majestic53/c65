@@ -74,7 +74,7 @@ namespace c65 {
 												<< STRING_COLUMN_SHORT() << "Path" << m_path
 											<< std::endl << STRING_COLUMN_SHORT() << "Base"
 												<< m_base.word << "("
-												<< STRING_HEXIDECIMAL(c65_word_t, m_base.word)
+												<< STRING_WORD(m_base.word)
 												<< ")"
 											<< std::endl << STRING_COLUMN_SHORT() << "Length"
 												<< STRING_FLOAT(length / (float)std::kilo::num)
@@ -338,7 +338,7 @@ namespace c65 {
 
 					for(breakpoint = m_breakpoint.begin(); breakpoint != m_breakpoint.end(); ++breakpoint, ++index) {
 						result << std::endl << "[" << index << STRING_COLUMN_SHORT() << "]"
-							<< STRING_HEXIDECIMAL(c65_word_t, *breakpoint);
+							<< STRING_WORD(*breakpoint);
 					}
 
 					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
@@ -386,7 +386,7 @@ namespace c65 {
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Disassemble", "%u(%04x), %u", address.word, address.word,
 						count);
 
-					result << "[" << STRING_HEXIDECIMAL(c65_word_t, address.word) << ", " << count << " instructions]"
+					result << "[" << STRING_WORD(address.word) << ", " << count << " instructions]"
 						<< std::endl;
 
 					while(count--) {
@@ -428,13 +428,13 @@ namespace c65 {
 						end - 1, end - 1);
 
 					offset = (end - address.word);
-					result << "[" << STRING_HEXIDECIMAL(c65_word_t, address.word) << "-"
-						<< STRING_HEXIDECIMAL(c65_word_t, end - 1) << "] -- "
+					result << "[" << STRING_WORD(address.word) << "-"
+						<< STRING_WORD(end - 1) << "] -- "
 						<< STRING_FLOAT(offset / (float)std::kilo::num) << " KB (" << offset << " bytes)"
 						<< std::endl << std::endl << "      ";
 
 					for(offset = 0; offset < BLOCK_WIDTH; ++offset) {
-						result << " " << STRING_HEXIDECIMAL(c65_byte_t, offset);
+						result << " " << STRING_BYTE(offset);
 					}
 
 					result << std::endl << "      ";
@@ -454,7 +454,7 @@ namespace c65 {
 								buffer.clear();
 							}
 
-							result << std::endl << STRING_HEXIDECIMAL(c65_word_t, address.word) << " |";
+							result << std::endl << STRING_WORD(address.word) << " |";
 						}
 
 						request.type = C65_ACTION_READ_BYTE;
@@ -474,7 +474,7 @@ namespace c65 {
 						value = (char)response.data.low;
 						buffer += ((std::isprint(value) && !std::isspace(value)) ? value : CHARACTER_FILL);
 
-						result << " " << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+						result << " " << STRING_BYTE(response.data.low);
 					}
 
 					if(!buffer.empty()) {
@@ -612,7 +612,7 @@ namespace c65 {
 						THROW_C65_TOOL_LAUNCHER_EXCEPTION_FORMAT(C65_TOOL_LAUNCHER_EXCEPTION_INTERNAL, "%s", c65_error());
 					}
 
-					stream << STRING_HEXIDECIMAL(c65_byte_t, response.status.raw);
+					stream << STRING_BYTE(response.status.raw);
 					result << std::endl << STRING_COLUMN() << "Status" << STRING_COLUMN() << stream.str();
 
 					for(; flag >= 0; flag--) {
@@ -628,7 +628,7 @@ namespace c65 {
 
 					stream.clear();
 					stream.str(std::string());
-					stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+					stream << STRING_WORD(response.data.word);
 					result << std::endl << STRING_COLUMN() << "Stack-Pointer" << STRING_COLUMN() << stream.str();
 
 					request.type = C65_ACTION_STACK_OVERFLOW;
@@ -656,7 +656,7 @@ namespace c65 {
 
 					stream.clear();
 					stream.str(std::string());
-					stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+					stream << STRING_WORD(response.data.word);
 					result << std::endl << STRING_COLUMN() << "Program-Counter" << STRING_COLUMN() << stream.str()
 						<< (int)response.data.word;
 
@@ -669,7 +669,7 @@ namespace c65 {
 
 					stream.clear();
 					stream.str(std::string());
-					stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					stream << STRING_BYTE(response.data.low);
 					result << std::endl << STRING_COLUMN() << "Accumulator" << STRING_COLUMN() << stream.str()
 						<< (int)response.data.low;
 
@@ -682,7 +682,7 @@ namespace c65 {
 
 					stream.clear();
 					stream.str(std::string());
-					stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					stream << STRING_BYTE(response.data.low);
 					result << std::endl << STRING_COLUMN() << "Index-X" << STRING_COLUMN() << stream.str()
 						<< (int)response.data.low;
 
@@ -695,7 +695,7 @@ namespace c65 {
 
 					stream.clear();
 					stream.str(std::string());
-					stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+					stream << STRING_BYTE(response.data.low);
 					result << std::endl << STRING_COLUMN() << "Index-Y" << STRING_COLUMN() << stream.str()
 						<< (int)response.data.low;
 
@@ -727,7 +727,7 @@ namespace c65 {
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Response", "%i(%s), %u(%02x)",
 						response.type, ACTION_STRING(response.type), response.data.low, response.data.low);
 
-					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_HEXIDECIMAL(c65_byte_t, response.data.low)
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_BYTE(response.data.low)
 						<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
 
 					TRACE_EXIT();
@@ -767,7 +767,7 @@ namespace c65 {
 							TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Response", "%i(%s), %u(%02x)",
 								response.type, ACTION_STRING(response.type), response.data.low, response.data.low);
 
-							std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_HEXIDECIMAL(c65_byte_t, response.data.low)
+							std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_BYTE(response.data.low)
 								<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
 							break;
 						case C65_REGISTER_PROGRAM_COUNTER:
@@ -777,7 +777,7 @@ namespace c65 {
 								response.data.word);
 
 							std::cout << LEVEL_COLOR(LEVEL_VERBOSE)
-								<< STRING_HEXIDECIMAL(c65_word_t, response.data.word) << LEVEL_COLOR(LEVEL_NONE)
+								<< STRING_WORD(response.data.word) << LEVEL_COLOR(LEVEL_NONE)
 								<< std::endl;
 							break;
 						default:
@@ -806,7 +806,7 @@ namespace c65 {
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Response", "%i(%s), %u(%02x)",
 						response.type, ACTION_STRING(response.type), response.status.raw, response.status.raw);
 
-					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_HEXIDECIMAL(c65_byte_t, response.status.raw) << " [";
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_BYTE(response.status.raw) << " [";
 
 					for(; flag >= 0; flag--) {
 						std::cout << FLAG_STRING(MASK_CHECK(response.status.raw, flag) ? flag : FLAG_UNUSED);
@@ -840,7 +840,7 @@ namespace c65 {
 					TRACE_MESSAGE_FORMAT(LEVEL_INFORMATION, "Response", "%i(%s), %u(%04x)",
 						response.type, ACTION_STRING(response.type), response.data.word, response.data.word);
 
-					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_HEXIDECIMAL(c65_word_t, response.data.word)
+					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << STRING_WORD(response.data.word)
 						<< LEVEL_COLOR(LEVEL_NONE) << std::endl;
 
 					TRACE_EXIT();
@@ -891,7 +891,7 @@ namespace c65 {
 
 					depth = (ADDRESS_MEMORY_STACK_END - response.data.word);
 
-					result << "[" << STRING_HEXIDECIMAL(c65_word_t, response.data.word) << ", " << (int)depth << " depth";
+					result << "[" << STRING_WORD(response.data.word) << ", " << (int)depth << " depth";
 
 					request.type = C65_ACTION_STACK_OVERFLOW;
 
@@ -925,8 +925,8 @@ namespace c65 {
 								"%s", c65_error());
 						}
 
-						result << std::endl << "[" << STRING_HEXIDECIMAL(c65_word_t, request.address.word)
-							<< STRING_COLUMN_SHORT() << "]" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+						result << std::endl << "[" << STRING_WORD(request.address.word)
+							<< STRING_COLUMN_SHORT() << "]" << STRING_BYTE(response.data.low);
 
 						--depth;
 					}
@@ -996,7 +996,7 @@ namespace c65 {
 								"%s", c65_error());
 						}
 
-						result << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+						result << STRING_BYTE(response.data.low);
 						request.address.word = C65_REGISTER_INDEX_X;
 
 						if(c65_action(&request, &response) != EXIT_SUCCESS) {
@@ -1004,7 +1004,7 @@ namespace c65 {
 								"%s", c65_error());
 						}
 
-						result << ", X=" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+						result << ", X=" << STRING_BYTE(response.data.low);
 						request.address.word = C65_REGISTER_INDEX_Y;
 
 						if(c65_action(&request, &response) != EXIT_SUCCESS) {
@@ -1012,7 +1012,7 @@ namespace c65 {
 								"%s", c65_error());
 						}
 
-						result << ", Y=" << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+						result << ", Y=" << STRING_BYTE(response.data.low);
 						request.address.word = C65_REGISTER_STACK_POINTER;
 
 						if(c65_action(&request, &response) != EXIT_SUCCESS) {
@@ -1020,7 +1020,7 @@ namespace c65 {
 								"%s", c65_error());
 						}
 
-						result << ", SP=" << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+						result << ", SP=" << STRING_WORD(response.data.word);
 
 						request.type = C65_ACTION_READ_STATUS;
 
@@ -1029,7 +1029,7 @@ namespace c65 {
 								"%s", c65_error());
 						}
 
-						result << ", P=" << STRING_HEXIDECIMAL(c65_byte_t, response.status.raw) << " [";
+						result << ", P=" << STRING_BYTE(response.status.raw) << " [";
 
 						for(; flag >= 0; flag--) {
 							result << FLAG_STRING(MASK_CHECK(response.status.raw, flag) ? flag : FLAG_UNUSED);
@@ -1161,7 +1161,7 @@ namespace c65 {
 
 					for(watch = m_watch.begin(); watch != m_watch.end(); ++watch, ++index) {
 						result << std::endl << "[" << index << STRING_COLUMN_SHORT() << "]"
-							<< STRING_HEXIDECIMAL(c65_word_t, *watch);
+							<< STRING_WORD(*watch);
 					}
 
 					std::cout << LEVEL_COLOR(LEVEL_VERBOSE) << result.str() << LEVEL_COLOR(LEVEL_NONE) << std::endl;
@@ -1494,12 +1494,12 @@ namespace c65 {
 							case C65_EVENT_SUBROUTINE_EXIT:
 							case C65_EVENT_WAIT_ENTRY:
 							case C65_EVENT_WAIT_EXIT:
-								result << ": " << STRING_HEXIDECIMAL(c65_word_t, event->address.word);
+								result << ": " << STRING_WORD(event->address.word);
 								break;
 							case C65_EVENT_ILLEGAL_INSTRUCTION:
 							case C65_EVENT_WATCH:
-								result << ": " << STRING_HEXIDECIMAL(c65_word_t, event->address.word) << ", "
-									<< STRING_HEXIDECIMAL(c65_byte_t, event->data.low);
+								result << ": " << STRING_WORD(event->address.word) << ", "
+									<< STRING_BYTE(event->data.low);
 								break;
 							default:
 								break;
@@ -1544,7 +1544,7 @@ namespace c65 {
 
 					stream.clear();
 					stream.str(std::string());
-					stream << STRING_HEXIDECIMAL(c65_word_t, address.word);
+					stream << STRING_WORD(address.word);
 					result << STRING_COLUMN_SHORT() << stream.str();
 
 					request.type = C65_ACTION_READ_BYTE;
@@ -1579,11 +1579,11 @@ namespace c65 {
 
 							stream.clear();
 							stream.str(std::string());
-							stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low);
+							stream << STRING_BYTE(response.data.low);
 
 							if(instruction.mode == INSTRUCTION_MODE_RELATIVE) {
 								c65_word_t offset = (address.word + (int8_t)response.data.low);
-								stream << " (" << STRING_HEXIDECIMAL(c65_word_t, offset) << ")";
+								stream << " (" << STRING_WORD(offset) << ")";
 							}
 
 							result << STRING_COLUMN_SHORT() << stream.str();
@@ -1607,11 +1607,11 @@ namespace c65 {
 							if(instruction.mode == INSTRUCTION_MODE_ZERO_PAGE_RELATIVE) {
 								c65_word_t offset = (address.word + (int8_t)response.data.high);
 
-								stream << STRING_HEXIDECIMAL(c65_byte_t, response.data.low) << ", "
-									<< STRING_HEXIDECIMAL(c65_byte_t, response.data.high)
-									<< " (" << STRING_HEXIDECIMAL(c65_word_t, offset) << ")";
+								stream << STRING_BYTE(response.data.low) << ", "
+									<< STRING_BYTE(response.data.high)
+									<< " (" << STRING_WORD(offset) << ")";
 							} else {
-								stream << STRING_HEXIDECIMAL(c65_word_t, response.data.word);
+								stream << STRING_WORD(response.data.word);
 							}
 
 							result << STRING_COLUMN_SHORT() << stream.str();
@@ -1624,7 +1624,7 @@ namespace c65 {
 					result << "[" << (int)instruction.cycle << "] {";
 
 					for(byte = data.begin(); byte != data.end(); ++byte) {
-						result << " " << STRING_HEXIDECIMAL(c65_byte_t, *byte);
+						result << " " << STRING_BYTE(*byte);
 					}
 
 					result << " }";

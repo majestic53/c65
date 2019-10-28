@@ -49,7 +49,7 @@ namespace c65 {
 		}
 
 		void
-		processor::calculate_sum(
+		processor::add_carry(
 			__in uint8_t value
 			)
 		{
@@ -58,10 +58,11 @@ namespace c65 {
 			TRACE_ENTRY_FORMAT("Value=%u(%02x)", value, value);
 
 			if(m_status.decimal_mode) {
-				// TODO: Decimal mode arithmetic
+				// TODO
 			}
 
 			sum = (m_accumulator.low + value + m_status.carry);
+
 			m_status.carry = (sum > UINT8_MAX);
 			m_status.overflow = MASK_CHECK(((m_accumulator.low ^ sum) & (value ^ sum) & MASK(FLAG_NEGATIVE)), FLAG_NEGATIVE);
 			m_accumulator.low = sum;
@@ -394,7 +395,7 @@ namespace c65 {
 						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
-			calculate_sum(value);
+			add_carry(value);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;
@@ -1632,7 +1633,7 @@ namespace c65 {
 						instruction.mode, INSTRUCTION_MODE_STRING(instruction.mode));
 			}
 
-			calculate_sum(~value);
+			add_carry(~value);
 
 			TRACE_EXIT_FORMAT("Result=%u", result);
 			return result;

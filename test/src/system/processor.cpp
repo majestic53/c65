@@ -213,9 +213,51 @@ namespace c65 {
 			void
 			processor::test_execute_add(void)
 			{
+				//c65_address_t address;
+				//processor_state_t state;
+				//instruction_t instruction;
+
 				TRACE_ENTRY();
 
+				clear_memory();
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1.a: ADC a, positive
 				// TODO
+
+				// Test #1.b: ADC a, zero
+				// TODO
+
+				// Test #1.c: ADC a, negative
+				// TODO
+
+				// Test #2: ADC a, x
+				// TODO
+
+				// Test #3: ADC a, y
+				// TODO
+
+				// Test #4: ADC imm
+				// TODO
+
+				// Test #5: ADC zp
+				// TODO
+
+				// Test #6: ADC (zp, x)
+				// TODO
+
+				// Test #7: ADC zp, x
+				// TODO
+
+				// Test #8: ADC (zp)
+				// TODO
+
+				// Test #9: ADC (zp), y
+				// TODO
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
@@ -232,7 +274,7 @@ namespace c65 {
 				clear_memory();
 				c65::system::processor &instance = c65::system::processor::instance();
 
-				// Test 1.a: AND a, positive
+				// Test #1.a: AND a, positive
 				instance.initialize();
 				instance.reset(*this);
 				instance.write_register(C65_REGISTER_ACCUMULATOR, {{0x02, 0x00}});
@@ -254,7 +296,7 @@ namespace c65 {
 				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
 				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
 
-				// Test 1.b; AND a, zero
+				// Test #1.b; AND a, zero
 				instance.initialize();
 				instance.reset(*this);
 				instance.write_register(C65_REGISTER_ACCUMULATOR, {{0x00, 0x00}});
@@ -3948,9 +3990,161 @@ namespace c65 {
 			void
 			processor::test_execute_rotate_left(void)
 			{
+				c65_address_t address;
+				processor_state_t state;
+				instruction_t instruction;
+
 				TRACE_ENTRY();
 
-				// TODO
+				clear_memory();
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1.a: ROL a, positive
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROL_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROL_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1000) == 0x02);
+
+				// Test #1.b: ROL a, zero
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x80;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROL_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROL_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_CARRY) & ~MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO)));
+				ASSERT(m_memory.at(0x1000) == 0x00);
+
+				// Test #1.c: ROL a, negative
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0xc0;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROL_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROL_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) & ~MASK(FLAG_ZERO)));
+				ASSERT(m_memory.at(0x1000) == 0x80);
+
+				// Test #2: ROL a, x
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_INDEX_X, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = 0x1002;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROL_ABSOLUTE_INDEX_X;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROL_ABSOLUTE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1002) == 0x02);
+
+				// Test #3: ROL A
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_ACCUMULATOR, {{0x01, 0x00}});
+				save_state(state);
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROL_ACCUMULATOR;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROL_ACCUMULATOR);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == 0x02);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #4: ROL zp
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x00aa;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROL_ZERO_PAGE;
+				m_memory.at(address.word + 1) = 0xaa;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROL_ZERO_PAGE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x00aa) == 0x02);
+
+				// Test #5: ROL zp, x
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_INDEX_X, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = 0x00ac;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROL_ZERO_PAGE_INDEX_X;
+				m_memory.at(address.word + 1) = 0xaa;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROL_ZERO_PAGE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x00ac) == 0x02);
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
@@ -3958,9 +4152,165 @@ namespace c65 {
 			void
 			processor::test_execute_rotate_right(void)
 			{
+				c65_status_t status;
+				c65_address_t address;
+				processor_state_t state;
+				instruction_t instruction;
+
 				TRACE_ENTRY();
 
-				// TODO
+				clear_memory();
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1.a: ROR a, positive
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROR_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROR_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1000) == 0x01);
+
+				// Test #1.b: ROR a, zero
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROR_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROR_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw | MASK(FLAG_CARRY) & ~MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO)));
+				ASSERT(m_memory.at(0x1000) == 0x00);
+
+				// Test #1.c: ROR a, negative
+				instance.reset(*this);
+				status = instance.read_status();
+				status.carry = true;
+				instance.write_status(status);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROR_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROR_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) & ~MASK(FLAG_ZERO)));
+				ASSERT(m_memory.at(0x1000) == 0x81);
+
+				// Test #2: ROR a, x
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_INDEX_X, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = 0x1002;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROR_ABSOLUTE_INDEX_X;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROR_ABSOLUTE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1002) == 0x01);
+
+				// Test #3: ROR A
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_ACCUMULATOR, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROR_ACCUMULATOR;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROR_ACCUMULATOR);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == 0x01);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #4: ROR zp
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x00aa;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROR_ZERO_PAGE;
+				m_memory.at(address.word + 1) = 0xaa;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROR_ZERO_PAGE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x00aa) == 0x01);
+
+				// Test #5: ROR zp, x
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_INDEX_X, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = 0x00ac;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ROR_ZERO_PAGE_INDEX_X;
+				m_memory.at(address.word + 1) = 0xaa;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ROR_ZERO_PAGE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).word == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).low == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw & ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x00ac) == 0x01);
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
@@ -4113,9 +4463,168 @@ namespace c65 {
 			void
 			processor::test_execute_shift_left(void)
 			{
+				c65_address_t address;
+				processor_state_t state;
+				instruction_t instruction;
+
 				TRACE_ENTRY();
 
-				// TODO
+				clear_memory();
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1.a: ASL a, positive
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ASL_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ASL_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1000) == 0x02);
+
+				// Test #1.b: ASL a, zero
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x00;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ASL_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ASL_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE)) | MASK(FLAG_ZERO)));
+				ASSERT(m_memory.at(0x1000) == 0x00);
+
+				// Test #1.c: ASL a, negative
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0xc0;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ASL_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ASL_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					| MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) & ~MASK(FLAG_ZERO)));
+				ASSERT(m_memory.at(0x1000) == 0x80);
+
+				// Test #2: ASL a, x
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_INDEX_X, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = 0x1002;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ASL_ABSOLUTE_INDEX_X;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ASL_ABSOLUTE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1002) == 0x02);
+
+				// Test #3: ASL A
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_ACCUMULATOR, {{0x01, 0x00}});
+				save_state(state);
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ASL_ACCUMULATOR;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ASL_ACCUMULATOR);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == (state.accumulator.word << 1));
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #4: ASL zp
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x00aa;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ASL_ZERO_PAGE;
+				m_memory.at(address.word + 1) = 0xaa;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ASL_ZERO_PAGE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x00aa) == 0x02);
+
+				// Test #5: ASL zp, x
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_INDEX_X, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = 0x00ac;
+				m_memory.at(address.word) = 0x01;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_ASL_ZERO_PAGE_INDEX_X;
+				m_memory.at(address.word + 1) = 0xaa;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_ASL_ZERO_PAGE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x00ac) == 0x02);
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
@@ -4123,9 +4632,168 @@ namespace c65 {
 			void
 			processor::test_execute_shift_right(void)
 			{
+				c65_address_t address;
+				processor_state_t state;
+				instruction_t instruction;
+
 				TRACE_ENTRY();
 
-				// TODO
+				clear_memory();
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1.a: LSR a, positive
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_LSR_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_LSR_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1000) == 0x01);
+
+				// Test #1.b: LSR a, zero
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x00;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_LSR_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_LSR_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE)) | MASK(FLAG_ZERO)));
+				ASSERT(m_memory.at(0x1000) == 0x00);
+
+				// Test #1.c: LSR a, negative
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x1000;
+				m_memory.at(address.word) = 0x81;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_LSR_ABSOLUTE;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_LSR_ABSOLUTE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					| MASK(FLAG_CARRY) & ~(MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1000) == 0x40);
+
+				// Test #2: LSR a, x
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_INDEX_X, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = 0x1002;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_LSR_ABSOLUTE_INDEX_X;
+				m_memory.at(address.word + 1) = 0x00;
+				m_memory.at(address.word + 2) = 0x10;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_LSR_ABSOLUTE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x1002) == 0x01);
+
+				// Test #3: LSR A
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_ACCUMULATOR, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_LSR_ACCUMULATOR;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_LSR_ACCUMULATOR);
+				ASSERT(instance.step(*this) == instruction.cycle);
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == (state.accumulator.word >> 1));
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+
+				// Test #4: LSR zp
+				instance.reset(*this);
+				save_state(state);
+
+				address.word = 0x00aa;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_LSR_ZERO_PAGE;
+				m_memory.at(address.word + 1) = 0xaa;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_LSR_ZERO_PAGE);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x00aa) == 0x01);
+
+				// Test #5: LSR zp, x
+				instance.reset(*this);
+				instance.write_register(C65_REGISTER_INDEX_X, {{0x02, 0x00}});
+				save_state(state);
+
+				address.word = 0x00ac;
+				m_memory.at(address.word) = 0x02;
+				address.word = INTERRUPT_VECTOR_ADDRESS(INTERRUPT_VECTOR_RESET);
+				m_memory.at(address.word) = INSTRUCTION_TYPE_LSR_ZERO_PAGE_INDEX_X;
+				m_memory.at(address.word + 1) = 0xaa;
+
+				instruction = INSTRUCTION(INSTRUCTION_TYPE_LSR_ZERO_PAGE_INDEX_X);
+				ASSERT(instance.step(*this) == (instruction.cycle + 2));
+				ASSERT(instance.read_register(C65_REGISTER_ACCUMULATOR).low == state.accumulator.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_X).word == state.index_x.word);
+				ASSERT(instance.read_register(C65_REGISTER_INDEX_Y).word == state.index_y.word);
+				ASSERT(instance.read_register(C65_REGISTER_PROGRAM_COUNTER).word == (address.word + instruction.length + 1));
+				ASSERT(instance.read_register(C65_REGISTER_STACK_POINTER).word == state.stack_pointer.word);
+				ASSERT(instance.read_status().raw == (state.status.raw
+					& ~(MASK(FLAG_CARRY) | MASK(FLAG_NEGATIVE) | MASK(FLAG_ZERO))));
+				ASSERT(m_memory.at(0x00ac) == 0x01);
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
@@ -4629,9 +5297,51 @@ namespace c65 {
 			void
 			processor::test_execute_subtract(void)
 			{
+				//c65_address_t address;
+				//processor_state_t state;
+				//instruction_t instruction;
+
 				TRACE_ENTRY();
 
+				clear_memory();
+				c65::system::processor &instance = c65::system::processor::instance();
+
+				instance.initialize();
+
+				// Test #1.a: SBC a, positive
 				// TODO
+
+				// Test #1.b: SBC a, zero
+				// TODO
+
+				// Test #1.c: SBC a, negative
+				// TODO
+
+				// Test #2: SBC a, x
+				// TODO
+
+				// Test #3: SBC a, y
+				// TODO
+
+				// Test #4: SBC imm
+				// TODO
+
+				// Test #5: SBC zp
+				// TODO
+
+				// Test #6: SBC (zp, x)
+				// TODO
+
+				// Test #7: SBC zp, x
+				// TODO
+
+				// Test #8: SBC (zp)
+				// TODO
+
+				// Test #9: SBC (zp), y
+				// TODO
+
+				instance.uninitialize();
 
 				TRACE_EXIT();
 			}
