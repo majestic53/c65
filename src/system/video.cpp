@@ -62,6 +62,7 @@ namespace c65 {
 			TRACE_ENTRY();
 
 			m_changed = true;
+			m_title = C65 " " VERSION_STRING();
 
 			m_window = SDL_CreateWindow(STRING(m_title), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 					WINDOW_WIDTH * WINDOW_SCALE, WINDOW_WIDTH * WINDOW_SCALE, SDL_WINDOW_FLAGS);
