@@ -158,12 +158,19 @@ $ make TRACE=3
 Changelog
 =
 
+Version 0.1.1944
+-
+
+*Updated: 10/28/2019*
+
+* Added adc/sbc test cases
+
 Version 0.1.1943
 -
 
-*Updated: 10/26/2019*
+*Updated: 10/26-27/2019*
 
-* Added adc/and/asl/cmp/cpx/cpy/eor/lsr/ora/rol/ror/sbc instruction handlers (incomplete)
+* Added adc/and/asl/cmp/cpx/cpy/eor/lsr/ora/rol/ror/sbc instruction handlers <s>(incomplete)</s>
 * Added video regression tests
 
 *Updated: 10/24/2019*
@@ -177,42 +184,5 @@ Version 0.1.1943
 *Updated: 10/21/2019*
 
 * Added lda/ldx/ldy instruction handlers <s>(incomplete)</s>
-
-Version 0.1.1942
--
-
-*Updated: 10/20/2019*
-
-* Added bit/trb/tsb instruction handlers <s>(incomplete)</s>
-* Added address mode helper routine
-
-*Updated: 10/19/2019*
-
-* Added breakpoint/watch debug commands
-* Added asynchronous event support
-
-*Updated: 10/18/2019*
-
-* Added jmp/jsr processor instruction handlers <s>(incomplete)</s>
-* Added processor tracking of stack overflows/underflows
-* Fixed bug in stack debug command
-
-*Updated: 10/17/2019*
-
-* Added test cases for return/transfer processor commands
-* Aligned illegal nop instruction cycles/lengths with datasheet
-
-*Updated: 10/16/2019*
-
-* Minor code cleanup
-
-*Updated: 10/15/2019*
-
-* Added return/transfer processor command handlers
-* Added debug stack command
-
-*Updated: 10/14/2019*
-
-* Added dex/dey/inx/iny/pha/php/phx/phy/pla/plp/plx/ply processor command handlers
 
 *Changelog truncated (see file history for full log)*
